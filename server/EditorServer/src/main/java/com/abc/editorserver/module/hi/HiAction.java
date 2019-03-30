@@ -13,6 +13,9 @@ public class HiAction extends GameActionJson {
     @Override
     public void doAction(User user, JSONObject request) {
         System.out.println(request.getString("hi"));
+        JSONObject msg = new JSONObject();
+        msg.put("msg", "hello world!");
+        sendMsg(user, msg);
     }
 
 }

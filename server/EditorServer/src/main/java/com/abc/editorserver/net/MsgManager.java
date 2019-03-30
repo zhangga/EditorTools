@@ -56,7 +56,12 @@ public class MsgManager {
      */
     private static void doDispatch(RequestData req) throws InstantiationException, IllegalAccessException {
         // 客户端上送的消息
-        int cmd = req.param.getInteger(EditorConst.CMD);
+        Object cmdObj = req.param.get(EditorConst.CMD);
+        if (cmdObj == null) {
+            LogEditor.msg.error("消息必须带有消息号");
+            return;
+        }
+        int cmd = Integer.valueOf(cmdObj.toString());
 
         GameActionsJson type = GameActionsJson.getType(cmd);
         if (type == null) {
