@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<Loggers>
+		<Root level="warn">
+			<AppenderRef ref="ConsoleOut"/>
+			<AppenderRef ref="ConsoleErr"/>
+			<AppenderRef ref="File"/>
+		</Root>
+
+		<Logger name="TEST" level="info" />
+		<Logger name="CONFIG" level="info" />
+		<Logger name="DB" level="info" />
+		<Logger name="MSG" level="info" />
+		<Logger name="SERV" level="info" />
+
+
+		<logger name="XIAPIAN" additivity="false" level="info">
+			<appender-ref ref="XiaPian" />
+		</logger>
+	</Loggers>
+	<Appenders>
+		<Console name="ConsoleOut" target="SYSTEM_OUT">
+			<ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="ACCEPT"/>
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} (%F:%L) [%p][%c] %m%n"/>
+		</Console>
+		<Console name="ConsoleErr" target="SYSTEM_ERR">
+			<ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} (%F:%L) [%p][%c] %m%n"/>
+		</Console>
+		<RollingRandomAccessFile name="File" fileName="../log4j2/${sys:logFileName}/${sys:logFileName}.log"
+			filePattern="../log4j2/${sys:logFileName}/${sys:logFileName}.log-%d{MM-dd-yyyy}-%i.log" >
+			<PatternLayout>
+				<charset>UTF-8</charset>
+				<Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} (%F:%L) [%p][%c] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="100 M"/>
+			</Policies>
+			<DefaultRolloverStrategy max="20" fileIndex="max"/>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="XiaPian" fileName="../log4j2/${sys:logFileName}/${sys:logFileName}_xiapian.log"
+			filePattern="../log4j2/${sys:logFileName}/${sys:logFileName}_xiapian.log-%d{MM-dd-yyyy}-%i.log" >
+			<PatternLayout>
+				<charset>UTF-8</charset>
+				<Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} (%F:%L) [%p][%c] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="100 M"/>
+			</Policies>
+			<DefaultRolloverStrategy max="20" fileIndex="max"/>
+		</RollingRandomAccessFile>
+	</Appenders>
+</Configuration>
