@@ -14,6 +14,9 @@ export default {
 		};
 	},
 	login_token(token) {
-		return SERVER_URL + "cmd=0&token="+token;
+		return {
+			'cmd': 0,
+			'token': token
+		};
 	},
 }
