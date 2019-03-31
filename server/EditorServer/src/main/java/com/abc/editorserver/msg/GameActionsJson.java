@@ -83,4 +83,8 @@ public enum GameActionsJson {
 		return name;
 	}
 
+	public int getId() {
+		return id;
+	}
+
 }

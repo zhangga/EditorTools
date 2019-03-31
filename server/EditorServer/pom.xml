@@ -68,6 +68,11 @@
             <artifactId>commons-io</artifactId>
             <version>2.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.tmatesoft.svnkit</groupId>
+            <artifactId>svnkit</artifactId>
+            <version>1.9.3</version>
+        </dependency>
     </dependencies>
 
     <build>

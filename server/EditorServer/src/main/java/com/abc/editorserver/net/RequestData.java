@@ -11,18 +11,14 @@ public class RequestData {
 
     public ChannelHandlerContext ctx;
 
-    public long uid;
+    public String uid;
 
-    public JSONObject param;
+    public JSONObject msg;
 
-    public RequestData(ChannelHandlerContext ctx, long uid, JSONObject param) {
+    public RequestData(ChannelHandlerContext ctx, String uid, JSONObject msg) {
         this.ctx = ctx;
         this.uid = uid;
-        this.param = param;
-    }
-
-    public JSONObject getParam() {
-        return param;
+        this.msg = msg;
     }
 
 }

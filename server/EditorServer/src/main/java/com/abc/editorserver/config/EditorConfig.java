@@ -29,6 +29,12 @@ public class EditorConfig {
     public static final int redis_port;
     public static final String redis_pwd;
 
+    /** SVN */
+    public static final String svn_name;
+    public static final String svn_pwd;
+    public static final String svn_root;
+    public static final String svn_export;
+
     /** 配置文件路径 */
     public static String CONFIG_PATH;
 
@@ -66,6 +72,10 @@ public class EditorConfig {
         redis_ip = prop.getProperty("redis_ip");
         redis_port = Integer.valueOf(prop.getProperty("redis_port"));
         redis_pwd = prop.getProperty("redis_pwd");
+        svn_name = prop.getProperty("svn_name");
+        svn_pwd = prop.getProperty("svn_pwd");
+        svn_root = prop.getProperty("svn_root");
+        svn_export = prop.getProperty("svn_export");
     }
 
 }

@@ -6,7 +6,10 @@ package com.abc.editorserver.config;
  */
 public class EditorConst {
 
+    public static final String USER_ID_PREFIX = "EDITOR_USER:";
+    public static final String USER_ID_MAX = "EDITOR_USER_ID_MAX";
     public static final String UID = "uid";
     public static final String CMD = "cmd";
+    public static final String RET = "ret";
 
 }

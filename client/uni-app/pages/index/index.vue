@@ -1,61 +1,70 @@
 <template>
 	<view class="content">
-		<view>
-			<button type="primary" @click="openXlsx">打开文件</button>
+		<view class="uni-padding-wrap uni-common-mt">
+			<form @submit="formSubmit" @reset="formReset">
+				<view class="uni-form-item uni-column">
+					<view class="title">SVN用户名：</view>
+					<input class="uni-input" name="input-name" placeholder="在这输入姓名" value="zhangzeqiang" />
+					<view class="title">SVN密码：</view>
+					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" value="GNT8EYkz" />
+				</view>
+				<view class="uni-btn-v">
+					<button formType="submit">登陆</button>
+					<button type="default" formType="reset">重置</button>
+				</view>
+			</form>
 		</view>
 	</view>
 </template>
 
 <script>
+	import utils from '../../common/util.js'
+	import msg from '../../common/msg.js'
+	import {mapState,mapMutations} from 'vuex'
 	export default {
 		data() {
 			return {
-				news: []
+				
 			}
 		},
 		onLoad() {
-			uni.showLoading({
-				title: '加载中......',
-				mask: false
-			});
-			uni.request({
-				url: 'https://unidemo.dcloud.net.cn/api/news',
-				method: 'GET',
-				data: {},
-				success: res => {
-					console.log(res);
-					this.news = res.data;
-					uni.hideLoading();
-				},
-				fail: () => {},
-				complete: () => {}
-			});
+			
 		},
 		methods: {
-			// 打开xlsx
-			openXlsx(e) {
-				uni.downloadFile({
-					url: 'D:\\SandBox\\trunk\\public\\config\\Action.xlsx',
-					success(res) {
-						var filePath = res.tempFilePath;
-						uni.openDocument({
-							filePath: filePath,
-							success: function(res) {
-								console.log('打开文档成功');
-							}
-						})
-					}
+			// 登陆
+			formSubmit(e) {
+				var name = e.detail.value['input-name']
+				var pwd = e.detail.value['input-pwd']
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.login(name, pwd),
+					success: res => {
+						console.log(res);
+						// 登陆成功
+						if (res.data['ret']) {
+							mapState([true, '', ''])
+							console.log("登陆状态：" + mapState.state)
+						} else {
+							uni.showModal({
+								title: '错误',
+								content: '登陆失败！'
+							})
+						}
+					},
+					fail: () => {},
+					complete: () => {}
 				});
+			},
+			formReset(e) {
+				console.log('清空数据')
 			}
 		}
 	}
 </script>
 
 <style>
-	.uni-media-list-body {
-		height: auto;
-	}
-	.uni-media-list-text-to {
-		line-height: 1.6em;
+	.uni-form-item .title {
+		padding: 5upx 0;
 	}
 </style>

@@ -1,7 +1,9 @@
 package com.abc.editorserver.manager;
 
+import com.abc.editorserver.config.EditorConst;
+import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.user.User;
-import io.netty.channel.ChannelHandlerContext;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +17,48 @@ public class UserManager {
     /**
      * 存放当前服务器登陆的所有用户
      */
-    private static Map<Long, User> userIdMap = new HashMap<>();
+    private static Map<String, User> userIdMap = new HashMap<>();
+    private static Map<String, User> userNameMap = new HashMap<>();
 
-    public static User getUser(long uid) {
-        if (uid == 0) {
+    public static User getUser(String uid) {
+        if (uid == null || uid.equals("")) {
             return null;
         }
         return userIdMap.get(uid);
+    }
+
+    /**
+     * 用户登录
+     * @param name
+     * @param pwd
+     * @return
+     */
+    public static String loginUser(String name, String pwd) {
+        User user = userNameMap.get(name);
+        if (user == null) {
+            String json = JedisManager.gi().getKey(name);
+            // 创建用户
+            if (json == null) {
+                user = new User();
+                user.setUid(EditorConst.USER_ID_PREFIX+getUserId());
+                user.setName(name);
+                user.setPwd(pwd);
+                JedisManager.gi().setKey(user.getName(), JSONObject.toJSONString(user));
+                userNameMap.put(user.getName(), user);
+                userIdMap.put(user.getUid(), user);
+            }
+            else {
+                user = JSONObject.parseObject(json, User.class);
+                userNameMap.put(user.getName(), user);
+                userIdMap.put(user.getUid(), user);
+            }
+        }
+        return user.getUid();
+    }
+
+    public static long getUserId() {
+        long uid = JedisManager.gi().incr(EditorConst.USER_ID_MAX);
+        return uid;
     }
 
 }

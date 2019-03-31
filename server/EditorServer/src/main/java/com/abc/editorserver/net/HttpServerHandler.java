@@ -100,12 +100,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             LogEditor.msg.error("解析http请求错误。url: {}", req.uri());
             return;
         }
-        Long uid = param.getLong(EditorConst.UID);
+        String uid = param.getString(EditorConst.UID);
         if (uid == null) {
 //            // 随机一个id，用于分配线程
 //            uid = -new Random().nextLong();
             // 保证注册用户在同一个线程里
-            uid = 0L;
+            uid = "";
         }
         // 通过uid分配线程
 //        GameLogicExecutor.exec.submit(uid, new Runnable() {

@@ -6,6 +6,7 @@ import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.msg.GameActionsJson;
 import com.abc.editorserver.support.LogEditor;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.concurrent.*;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.*;
  */
 public class MsgManager {
 
-    private static final SerialKeyExecutor<Long> protocolExec;
+    private static final SerialKeyExecutor<String> protocolExec;
 
     static{
         protocolExec = new SerialKeyExecutor<>(
@@ -56,7 +57,7 @@ public class MsgManager {
      */
     private static void doDispatch(RequestData req) throws InstantiationException, IllegalAccessException {
         // 客户端上送的消息
-        Object cmdObj = req.param.get(EditorConst.CMD);
+        Object cmdObj = req.msg.get(EditorConst.CMD);
         if (cmdObj == null) {
             LogEditor.msg.error("消息必须带有消息号");
             return;
@@ -81,15 +82,19 @@ public class MsgManager {
 
         // User对象
         User user = UserManager.getUser(req.uid);
-        if (user == null) {
-            user = new User(req.ctx);
+        if (user == null && cmd != GameActionsJson.Hi.getId()) {
+            JSONObject msg = new JSONObject();
+            msg.put(EditorConst.CMD, GameActionsJson.Hi.getId());
+            msg.put(EditorConst.RET, false);
+            action.sendMsg(req.ctx, msg);
+            return;
         }
-        else {
+        if (user != null) {
             user.setCtx(req.ctx);
         }
 
         // 执行
-        action.action(user, req.getParam());
+        action.action(user, req);
     }
 
     /**

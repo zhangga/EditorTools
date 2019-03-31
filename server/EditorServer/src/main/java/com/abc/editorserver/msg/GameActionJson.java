@@ -6,12 +6,14 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import java.io.UnsupportedEncodingException;
 
 import com.abc.editorserver.module.user.User;
+import com.abc.editorserver.net.RequestData;
 import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.JSONObject;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -30,7 +32,7 @@ public abstract class GameActionJson {
 	 */
 	protected int cmd;
 	
-	public void action(User user, JSONObject request) {
+	public void action(User user, RequestData request) {
 		try {
 			LogEditor.msg.info("接收消息：{}", request);
 			doAction(user, request);
@@ -44,26 +46,26 @@ public abstract class GameActionJson {
 	 * @param user
 	 * @param request
 	 */
-	public abstract void doAction(User user, JSONObject request);
+	public abstract void doAction(User user, RequestData request);
 	
 	/**
 	 * 发送消息
-	 * @param user
+	 * @param ctx
 	 * @param msg
 	 */
-	public void sendMsg(User user, JSONObject msg) {
-		sendMsg(cmd, user, msg);
+	public void sendMsg(ChannelHandlerContext ctx, JSONObject msg) {
+		sendMsg(cmd, ctx, msg);
 	}
 	
 	/**
 	 * 发送消息
 	 * @param cmd
-	 * @param user
+	 * @param ctx
 	 * @param msg
 	 */
-	public static void sendMsg(int cmd, User user, JSONObject msg) {
+	public static void sendMsg(int cmd, ChannelHandlerContext ctx, JSONObject msg) {
 		msg.put("cmd", cmd);
-		sendMsg0(user.getCtx().channel(), msg.toJSONString());
+		sendMsg0(ctx.channel(), msg.toJSONString());
 	}
 	
 	/***
