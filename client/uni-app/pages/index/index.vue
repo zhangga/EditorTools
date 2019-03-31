@@ -20,7 +20,6 @@
 <script>
 	import utils from '../../common/util.js'
 	import msg from '../../common/msg.js'
-	import {mapState,mapMutations} from 'vuex'
 	export default {
 		data() {
 			return {
@@ -28,7 +27,26 @@
 			}
 		},
 		onLoad() {
-			
+			var _this = this
+			// 获取缓存信息
+			uni.getStorage({
+				key: 'token',
+				success(res) {
+					var token = res.data['token']
+					// 使用token登陆
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.login_token(token),
+						success: res => {
+							// 登陆成功
+							if (res.data['ret']) {
+								this.onLogin(token)
+							}
+						}
+					});
+				}
+			})
 		},
 		methods: {
 			// 登陆
@@ -40,11 +58,10 @@
 					method: 'GET',
 					data: msg.login(name, pwd),
 					success: res => {
-						console.log(res);
 						// 登陆成功
 						if (res.data['ret']) {
-							mapState([true, '', ''])
-							console.log("登陆状态：" + mapState.state)
+							var token = res.data['token']
+							this.onLogin(token)
 						} else {
 							uni.showModal({
 								title: '错误',
@@ -58,6 +75,18 @@
 			},
 			formReset(e) {
 				console.log('清空数据')
+			},
+			onLogin(token) {
+				uni.setStorageSync('token', token)
+				this.$store.state.hasLogin = true
+				this.$store.state.token = token
+				// 跳转home界面
+				uni.navigateTo({
+					url: '../home/home',
+					success: res => {},
+					fail: () => {},
+					complete: () => {}
+				});
 			}
 		}
 	}

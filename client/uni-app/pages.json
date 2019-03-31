@@ -10,6 +10,10 @@
             "path" : "pages/info/info",
             "style" : {}
         }
+        ,{
+            "path" : "pages/home/home",
+            "style" : {}
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
