@@ -1,0 +1,15 @@
+# Created by .ignore support plugin
+*.iml
+.project
+.settings/
+
+bin/*
+*.class
+*/target/*
+*/unpackage/*
+lib/*
+release/*
+
+# logs
+*.log
+.idea
