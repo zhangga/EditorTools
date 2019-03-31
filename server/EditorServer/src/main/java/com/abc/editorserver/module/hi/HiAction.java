@@ -18,13 +18,31 @@ public class HiAction extends GameActionJson {
     public void doAction(User user, RequestData request) {
         String name = request.msg.getString("name");
         String pwd = request.msg.getString("pwd");
-        boolean ret = SVNManager.auth(name, pwd);
+        String token = request.msg.getString(EditorConst.TOKEN);
         JSONObject msg = new JSONObject();
+        // TOKEN登录。简易版直接拿UID当token
+        if (token != null) {
+            user = UserManager.getUser(token);
+            if (user != null) {
+                msg.put(EditorConst.RET, true);
+                msg.put(EditorConst.TOKEN, user.getUid());
+                sendMsg(request.ctx, msg);
+                return;
+            }
+            else {
+                msg.put(EditorConst.RET, false);
+                sendMsg(request.ctx, msg);
+                return;
+            }
+        }
+
+        // 用户名密码登录
+        boolean ret = SVNManager.auth(name, pwd);
         msg.put(EditorConst.RET, ret);
         // SVN验证成功
         if (ret) {
             String uid = UserManager.loginUser(name, pwd);
-            msg.put(EditorConst.UID, uid);
+            msg.put(EditorConst.TOKEN, uid);
         }
         sendMsg(request.ctx, msg);
     }

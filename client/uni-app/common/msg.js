@@ -13,7 +13,7 @@ export default {
 			'pwd': pwd
 		};
 	},
-	login1(name, pwd) {
-		return SERVER_URL + "cmd=0&name="+name+"&pwd="+pwd;
+	login_token(token) {
+		return SERVER_URL + "cmd=0&token="+token;
 	},
 }
