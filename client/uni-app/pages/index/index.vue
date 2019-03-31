@@ -44,7 +44,7 @@
 						// 登陆成功
 						if (res.data['ret']) {
 							mapState([true, '', ''])
-							console.log("登陆状态：" + mapState.state)
+							console.log("登陆状态：" + mapState.states)
 						} else {
 							uni.showModal({
 								title: '错误',
