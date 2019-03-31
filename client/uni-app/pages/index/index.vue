@@ -4,9 +4,9 @@
 			<form @submit="formSubmit" @reset="formReset">
 				<view class="uni-form-item uni-column">
 					<view class="title">SVN用户名：</view>
-					<input class="uni-input" name="input-name" placeholder="在这输入姓名" value="zhangzeqiang" />
+					<input class="uni-input" name="input-name" placeholder="在这输入姓名" />
 					<view class="title">SVN密码：</view>
-					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" value="GNT8EYkz" />
+					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" />
 				</view>
 				<view class="uni-btn-v">
 					<button formType="submit">登陆</button>
@@ -31,8 +31,8 @@
 			// 获取缓存信息
 			uni.getStorage({
 				key: 'token',
-				success(res) {
-					var token = res.data['token']
+				success(store) {
+					var token = store.data
 					// 使用token登陆
 					uni.request({
 						url: msg.url(),
@@ -41,7 +41,7 @@
 						success: res => {
 							// 登陆成功
 							if (res.data['ret']) {
-								this.onLogin(token)
+								_this.onLogin(token)
 							}
 						}
 					});
