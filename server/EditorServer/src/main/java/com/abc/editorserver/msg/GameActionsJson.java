@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import com.abc.editorserver.module.hi.HiAction;
+import com.abc.editorserver.module.hi.TestAction;
 
 /**
  * 消息注册类
@@ -14,6 +15,7 @@ import com.abc.editorserver.module.hi.HiAction;
 public enum GameActionsJson {
 	
 	Hi("欢迎信息", 0, HiAction.class),
+	Test("测试信息", 1, TestAction.class),
 	;
 	
 	/**

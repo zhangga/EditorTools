@@ -1,0 +1,10 @@
+{
+  "configs": [
+    {
+      "excel": "Quest.xlsx",
+      "sheet": "任务|Quest",
+      "redis_table": "QUEST",
+      "redis_key": "sn"
+    }
+  ]
+}

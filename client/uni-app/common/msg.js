@@ -1,5 +1,5 @@
 // 服务器地址
-var SERVER_URL = 'http://172.17.145.174:28100';
+var SERVER_URL = 'http://127.0.0.1:28100';
 
 export default {
 	url() {
@@ -19,4 +19,10 @@ export default {
 			'token': token
 		};
 	},
+	test(token){
+		return{
+			'cmd':1,
+			'token':token
+		};
+	}
 }
