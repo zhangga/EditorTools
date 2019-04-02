@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
+import com.abc.editorserver.module.excel.GetTableDataAction;
 
 /**
  * 消息注册类
@@ -16,6 +17,7 @@ public enum GameActionsJson {
 	
 	Hi("欢迎信息", 0, HiAction.class),
 	Test("测试信息", 1, TestAction.class),
+	GetTableData("获取表数据", 2, GetTableDataAction.class),
 	;
 	
 	/**

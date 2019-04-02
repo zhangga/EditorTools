@@ -24,6 +24,8 @@ public class EditorServer {
 
     private void start() {
         SVNManager.init();
+        // 初始化数据
+        DataManager.gi().init();
         // 启动一个守护线程
         GlobalManager.init();
         //Excel数据导入
