@@ -6,6 +6,20 @@
       "redis_table": "QUEST",
       "redis_key": "sn",
       "navigateTo": "../table/table"
+    },
+    {
+      "excel": "Quest.xlsx",
+      "sheet": "任务目标|QuestGoal",
+      "redis_table": "QUESTGOAL",
+      "redis_key": "sn",
+      "navigateTo": "../table/table"
+    },
+    {
+      "excel": "Quest.xlsx",
+      "sheet": "对话表|Plot",
+      "redis_table": "PLOT",
+      "redis_key": "sn",
+      "navigateTo": "../table/table"
     }
   ],
   "defaultNames": [
