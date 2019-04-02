@@ -6,6 +6,14 @@ import pageFoot from './components/page-foot.vue'
 
 import store from './store'
 
+import ElementUI from './element-ui'
+import './element-ui/lib/theme-chalk/index.css'
+Vue.use(ElementUI)
+
+import { DataTables, DataTablesServer } from './vue-data-tables';
+Vue.use(DataTables)
+Vue.use(DataTablesServer)
+
 Vue.config.productionTip = false
 
 Vue.prototype.$store = store
