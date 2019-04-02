@@ -4,9 +4,9 @@
 			<form @submit="formSubmit" @reset="formReset">
 				<view class="uni-form-item uni-column">
 					<view class="title">SVN用户名：</view>
-					<input class="uni-input" name="input-name" placeholder="在这输入姓名" />
+					<input class="uni-input" name="input-name" placeholder="在这输入姓名" value="zhangzeqiang" />
 					<view class="title">SVN密码：</view>
-					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" />
+					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" value="GNT8EYkz" />
 				</view>
 				<view class="uni-btn-v">
 					<button formType="submit">登陆</button>

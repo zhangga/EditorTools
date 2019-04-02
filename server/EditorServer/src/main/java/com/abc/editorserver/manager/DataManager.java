@@ -1,6 +1,5 @@
 package com.abc.editorserver.manager;
 
-
 import java.io.*;
 import java.util.*;
 
@@ -9,6 +8,7 @@ import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelConfigs;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -23,7 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class DataManager {
 
     private static DataManager mgr = new DataManager();
-    public static DataManager DataMgr(){ return mgr; }
+    public static DataManager gi(){ return mgr; }
 
     private DataManager(){ }
 
@@ -31,8 +31,7 @@ public class DataManager {
 
     public void init(){
         loadExcelConfig();
-        //excelToRedis(ExcelConfigs.Instance());
-        redisToExcel(ExcelConfigs.Instance());
+        excelToRedis();
     }
 
     /**
@@ -45,7 +44,6 @@ public class DataManager {
             InputStream input = new FileInputStream(file);
             byte[] buff = input.readAllBytes();
             String jsonStr = new String(buff);
-            //System.out.println(jsonStr);
             JSONObject jo = JSON.parseObject(jsonStr);
             ExcelConfigs.setInstance(jo.toJavaObject(ExcelConfigs.class));
         }
@@ -56,11 +54,10 @@ public class DataManager {
 
     /**
      * 根据配置信息将对应的excel表写入Redis
-     * @param config
      */
-    private void excelToRedis(ExcelConfigs config){
+    private void excelToRedis(){
         try{
-            for(ExcelConfig conf:config.getConfigs()){
+            for(ExcelConfig conf:ExcelConfigs.gi().getConfigs()){
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 String sheetName = conf.getSheet();
                 XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
@@ -85,7 +82,7 @@ public class DataManager {
                             valueList.add("");
                         }
                         else{
-                            valueList.add(cell.toString());
+                            valueList.add(convertFromBR(cell.toString()));
                         }
                     }
                     while(valueList.size() < keyList.size()){
@@ -94,8 +91,8 @@ public class DataManager {
 
                     //System.out.println(toJSON(keyList, valueList));
                     String key = valueList.get(0);
-                    if(i<config.getDefaultNames().length){
-                        key = config.getDefaultNames()[i];
+                    if(i<ExcelConfigs.gi().getDefaultNames().length){
+                        key = ExcelConfigs.gi().getDefaultNames()[i];
                     }
                     JedisManager.gi().push(conf.getRedis_table()+"_Row",key);
                     JedisManager.gi().hset(conf.getRedis_table(), key, stringToJSON(keyList, valueList));
@@ -106,6 +103,20 @@ public class DataManager {
         catch(Exception e){
             LogEditor.config.error("Excel写入Redis失败：", e);
         }
+    }
+
+    private String convertFromBR(String value) {
+        if (value.contains("\n") || value.contains("\r\n")) {
+            return value.replaceAll("\\n", "@n@");
+        }
+        return value;
+    }
+
+    private String convertToBR(String value) {
+        if (value.contains("@n@")) {
+            return value.replaceAll("@n@", "\\n");
+        }
+        return value;
     }
 
     /**
@@ -209,4 +220,23 @@ public class DataManager {
             jo.remove(columnKey);
         }
     }
+
+    /**
+     * 获取数据表数据
+     * @param tableName
+     * @return
+     */
+    public JSONArray getTableData(String tableName) {
+        ExcelConfig config = ExcelConfigs.gi().getConfig(tableName);
+        JSONArray ret = new JSONArray();
+        if (config == null) {
+            return ret;
+        }
+        Map<String, String> datas = JedisManager.gi().hgetAll(config.getRedis_table());
+        for (String data : datas.values()) {
+            ret.add(data);
+        }
+        return  ret;
+    }
+
 }
