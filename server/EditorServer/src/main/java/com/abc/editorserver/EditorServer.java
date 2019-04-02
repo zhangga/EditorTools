@@ -28,8 +28,6 @@ public class EditorServer {
         DataManager.gi().init();
         // 启动一个守护线程
         GlobalManager.init();
-        //Excel数据导入
-        DataManager.DataMgr().init();
         // DB
         JedisManager.gi().test();
         // 监听网络端口
