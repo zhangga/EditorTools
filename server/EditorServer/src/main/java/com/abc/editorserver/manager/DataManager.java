@@ -8,6 +8,7 @@ import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelConfigs;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -77,7 +78,7 @@ public class DataManager {
                             valueList.add("");
                         }
                         else{
-                            valueList.add(cell.toString());
+                            valueList.add(convertFromBR(cell.toString()));
                         }
                     }
                     while(valueList.size() < keyList.size()){
@@ -97,6 +98,20 @@ public class DataManager {
         catch(Exception e){
             LogEditor.config.error("Excel写入Redis失败：", e);
         }
+    }
+
+    private String convertFromBR(String value) {
+        if (value.contains("\n") || value.contains("\r\n")) {
+            return value.replaceAll("\\n", "@n@");
+        }
+        return value;
+    }
+
+    private String convertToBR(String value) {
+        if (value.contains("@n@")) {
+            return value.replaceAll("@n@", "\\n");
+        }
+        return value;
     }
 
     /**
@@ -184,15 +199,15 @@ public class DataManager {
      * @param tableName
      * @return
      */
-    public JSONObject getTableData(String tableName) {
+    public JSONArray getTableData(String tableName) {
         ExcelConfig config = ExcelConfigs.gi().getConfig(tableName);
-        JSONObject ret = new JSONObject();
+        JSONArray ret = new JSONArray();
         if (config == null) {
             return ret;
         }
         Map<String, String> datas = JedisManager.gi().hgetAll(config.getRedis_table());
-        for (Map.Entry<String, String> entry : datas.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue());
+        for (String data : datas.values()) {
+            ret.add(data);
         }
         return  ret;
     }
