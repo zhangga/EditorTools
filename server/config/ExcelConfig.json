@@ -6,5 +6,11 @@
       "redis_table": "QUEST",
       "redis_key": "sn"
     }
+  ],
+  "defaultNames": [
+    "cs",
+    "type",
+    "enName",
+    "cnName"
   ]
 }

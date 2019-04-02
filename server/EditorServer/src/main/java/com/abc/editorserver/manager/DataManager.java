@@ -1,16 +1,13 @@
 package com.abc.editorserver.manager;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
-import com.abc.editorserver.module.JSONModule.excelConfig;
-import com.abc.editorserver.module.JSONModule.excelConfigs;
+import com.abc.editorserver.module.JSONModule.ExcelConfig;
+import com.abc.editorserver.module.JSONModule.ExcelConfigs;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
@@ -32,16 +29,15 @@ public class DataManager {
     private static final String excelConfigPath = "../config/ExcelConfig.json";
 
     public void init(){
-        excelConfigs config = loadExcelConfig();
-        excelToRedis(config);
-        redisToExcel(config);
+        loadExcelConfig();
+        excelToRedis(ExcelConfigs.Instance());
     }
 
     /**
      * 读取ExcelConfig.json配置文件，解析成excelConfigs对象
      * @return
      */
-    private excelConfigs loadExcelConfig(){
+    private void loadExcelConfig(){
         try{
             File file = new File(excelConfigPath);
             InputStream input = new FileInputStream(file);
@@ -49,22 +45,20 @@ public class DataManager {
             String jsonStr = new String(buff);
             //System.out.println(jsonStr);
             JSONObject jo = JSON.parseObject(jsonStr);
-            excelConfigs config = jo.toJavaObject(excelConfigs.class);
-            return config;
+            ExcelConfigs.setInstance(jo.toJavaObject(ExcelConfigs.class));
         }
         catch(Exception e){
             LogEditor.config.error("读取Excel配置失败：", e);
         }
-        return null;
     }
 
     /**
      * 根据配置信息将对应的excel表写入Redis
      * @param config
      */
-    private void excelToRedis(excelConfigs config){
+    private void excelToRedis(ExcelConfigs config){
         try{
-            for(excelConfig conf:config.getConfigs()){
+            for(ExcelConfig conf:config.getConfigs()){
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 String sheetName = conf.getSheet();
                 XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
@@ -94,22 +88,9 @@ public class DataManager {
                     }
 
                     //System.out.println(toJSON(keyList, valueList));
-                    String key = "";
-                    switch(i){
-                        case 0 :
-                            key = "cs";
-                            break;
-                        case 1:
-                            key = "type";
-                            break;
-                        case 2:
-                            key = "enName";
-                            break;
-                        case 3:
-                            key = "cnName";
-                            break;
-                         default:
-                             key = valueList.get(0);
+                    String key = valueList.get(0);
+                    if(i<config.getDefaultNames().length){
+                        key = config.getDefaultNames()[i];
                     }
                     JedisManager.gi().hset(conf.getRedis_table(), key, toJSON(keyList, valueList));
                 }
@@ -153,28 +134,51 @@ public class DataManager {
      * 读取redis中的数据，保存到Excel表中
      * @param config
      */
-    private void redisToExcel(excelConfigs config){
+    private void redisToExcel(ExcelConfigs config){
+        FileOutputStream fos = null;
         try {
-            for (excelConfig conf : config.getConfigs()) {
+            for (ExcelConfig conf : config.getConfigs()) {
                 //根据原表名和页签sheet名生成新表名,目前格式为：原表名_页签英文名.xlsx
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 if (fileName.endsWith(".xlsx")) {
                     fileName = fileName.substring(0, fileName.length() - 5);
-                } else {
+                }
+                else {
                     throw new Exception("要写入的目标文件不是xlsx格式：" + conf.getExcel());
                 }
                 String sheetName = conf.getSheet();
                 String[] sArr = sheetName.split("\\|");
                 fileName += "_" + sArr[1] + ".xlsx";
 
-                FileOutputStream fos = new FileOutputStream(fileName);
-
+                //fos = new FileOutputStream(fileName);
                 Map<String, String> mapAll = JedisManager.gi().hgetAll(conf.getRedis_table());
+                XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
+                //遍历删除原表的sheet
+                int sheetNum = workbook.getNumberOfSheets();
+                for(int i=0;i<sheetNum;i++){
+                    workbook.removeSheetAt(i);
+                }
+                XSSFSheet sheet  = workbook.createSheet(sheetName);
+                String[] defaultName = config.getDefaultNames();
+                for(int i = 0;i < defaultName.length; i ++){
+                    String key = defaultName[i];
+                }
+
 
             }
         }
         catch(Exception e){
             LogEditor.config.error("Redis写入Excel失败：", e);
+        }
+        finally {
+            try{
+                fos.flush();
+                fos.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 

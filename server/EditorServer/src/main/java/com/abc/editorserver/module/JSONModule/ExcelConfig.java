@@ -1,6 +1,6 @@
 package com.abc.editorserver.module.JSONModule;
 
-public class excelConfig {
+public class ExcelConfig {
     private String excel;
 
     public String getExcel() {
