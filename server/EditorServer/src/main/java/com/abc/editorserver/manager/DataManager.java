@@ -177,4 +177,14 @@ public class DataManager {
             LogEditor.config.error("Redis写入Excel失败：", e);
         }
     }
+
+    /**
+     * 获取数据表数据
+     * @param table_name
+     * @return
+     */
+    public JSONObject getTableData(String table_name) {
+        JedisManager.gi().hgetAll()
+    }
+
 }
