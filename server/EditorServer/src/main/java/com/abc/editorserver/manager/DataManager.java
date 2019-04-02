@@ -11,6 +11,7 @@ import com.abc.editorserver.module.JSONModule.ExcelConfigs;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -30,7 +31,8 @@ public class DataManager {
 
     public void init(){
         loadExcelConfig();
-        excelToRedis(ExcelConfigs.Instance());
+        //excelToRedis(ExcelConfigs.Instance());
+        redisToExcel(ExcelConfigs.Instance());
     }
 
     /**
@@ -70,6 +72,9 @@ public class DataManager {
                 for(int i = 0; i < nameRow.getLastCellNum(); i++){
                     keyList.add(nameRow.getCell(i).toString());
                 }
+                for(String key : keyList){
+                    JedisManager.gi().push(conf.getRedis_table()+"_Column",key);
+                }
 
                 for(int i = 0; i <= sheet.getLastRowNum(); i++){
                     List<String> valueList = new ArrayList<>();
@@ -92,7 +97,8 @@ public class DataManager {
                     if(i<config.getDefaultNames().length){
                         key = config.getDefaultNames()[i];
                     }
-                    JedisManager.gi().hset(conf.getRedis_table(), key, toJSON(keyList, valueList));
+                    JedisManager.gi().push(conf.getRedis_table()+"_Row",key);
+                    JedisManager.gi().hset(conf.getRedis_table(), key, stringToJSON(keyList, valueList));
                 }
 
             }
@@ -109,7 +115,7 @@ public class DataManager {
      * @return
      * @throws Exception
      */
-    private String toJSON(List<String> keys, List<String> values) throws Exception{
+    private String stringToJSON(List<String> keys, List<String> values) throws Exception{
         int length = keys.size();
 //        if(values.size() != length){
 //            throw new Exception("key与value的数目不相同");
@@ -152,19 +158,25 @@ public class DataManager {
 
                 //fos = new FileOutputStream(fileName);
                 Map<String, String> mapAll = JedisManager.gi().hgetAll(conf.getRedis_table());
-                XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
+                FileInputStream fis = new FileInputStream(fileName);
+                XSSFWorkbook workbook = new XSSFWorkbook();
                 //遍历删除原表的sheet
                 int sheetNum = workbook.getNumberOfSheets();
                 for(int i=0;i<sheetNum;i++){
                     workbook.removeSheetAt(i);
                 }
                 XSSFSheet sheet  = workbook.createSheet(sheetName);
-                String[] defaultName = config.getDefaultNames();
-                for(int i = 0;i < defaultName.length; i ++){
-                    String key = defaultName[i];
+                int rowCount = 0;
+                while(mapAll.size()>0){
+                    String rowKey = JedisManager.gi().pop(conf.getRedis_table()+"_Row");
+                    String value = mapAll.get(rowKey);
+                    makeRow(value, sheet, rowCount, conf.getRedis_table()+"_Column");
+                    rowCount++;
+                    mapAll.remove(rowKey);
                 }
 
-
+                fos = new FileOutputStream(fileName);
+                workbook.write(fos);
             }
         }
         catch(Exception e){
@@ -172,13 +184,29 @@ public class DataManager {
         }
         finally {
             try{
-                fos.flush();
-                fos.close();
+                if(fos != null){
+                    fos.flush();
+                    fos.close();
+                }
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
 
+        }
+    }
+
+    private void makeRow(String value, XSSFSheet sheet, int rowNum, String listName){
+        XSSFRow row = sheet.createRow(rowNum);
+        JSONObject jo = JSON.parseObject(value);
+        int cellNum = 0;
+        XSSFCell cell;
+        while(jo.size()>0){
+            String columnKey = JedisManager.gi().pop(listName);
+            cell = row.createCell(cellNum);
+            cell.setCellValue(jo.getString(columnKey));
+            cellNum++;
+            jo.remove(columnKey);
         }
     }
 }

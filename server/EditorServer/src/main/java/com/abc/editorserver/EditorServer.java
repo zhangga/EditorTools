@@ -2,6 +2,7 @@ package com.abc.editorserver;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
+import com.abc.editorserver.manager.DataManager;
 import com.abc.editorserver.manager.GlobalManager;
 import com.abc.editorserver.manager.SVNManager;
 import com.abc.editorserver.net.HttpServer;
@@ -25,6 +26,8 @@ public class EditorServer {
         SVNManager.init();
         // 启动一个守护线程
         GlobalManager.init();
+        //Excel数据导入
+        DataManager.DataMgr().init();
         // DB
         JedisManager.gi().test();
         // 监听网络端口
