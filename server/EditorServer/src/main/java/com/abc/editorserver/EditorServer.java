@@ -25,7 +25,7 @@ public class EditorServer {
     private void start() {
         SVNManager.init();
         // 初始化数据
-        DataManager.DataMgr().init();
+        DataManager.gi().init();
         // 启动一个守护线程
         GlobalManager.init();
         // DB

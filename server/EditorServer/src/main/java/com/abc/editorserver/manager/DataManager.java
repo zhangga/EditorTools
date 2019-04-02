@@ -21,7 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class DataManager {
 
     private static DataManager mgr = new DataManager();
-    public static DataManager DataMgr(){ return mgr; }
+    public static DataManager gi(){ return mgr; }
 
     private DataManager(){ }
 

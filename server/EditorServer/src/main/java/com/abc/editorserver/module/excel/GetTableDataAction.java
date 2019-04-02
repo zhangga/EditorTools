@@ -16,7 +16,7 @@ public class GetTableDataAction extends GameActionJson {
     @Override
     public void doAction(User user, RequestData request) {
         String table_name = request.msg.getString("table_name");
-        JSONObject data = DataManager.DataMgr().getTableData(table_name);
+        JSONObject data = DataManager.gi().getTableData(table_name);
         JSONObject msg = new JSONObject();
         msg.put("data", data);
         sendMsg(request.ctx, msg);
