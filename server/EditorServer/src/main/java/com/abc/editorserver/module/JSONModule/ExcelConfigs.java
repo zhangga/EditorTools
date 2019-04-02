@@ -1,34 +1,16 @@
 package com.abc.editorserver.module.JSONModule;
 
-public class ExcelConfigs {
-    public static ExcelConfigs Instance(){
-        return instance;
-    }
-    public static void setInstance(ExcelConfigs ecs){
-        instance = ecs;
-    }
-    private static ExcelConfigs instance;
-
-    private ExcelConfigs(){ }
-
-    public ExcelConfig[] getConfigs() {
+public class excelConfigs {
+    public excelConfig[] getConfigs() {
         return configs;
     }
 
-    public void setConfigs(ExcelConfig[] configs) {
+    public void setConfigs(excelConfig[] configs) {
         this.configs = configs;
     }
 
-    private ExcelConfig[] configs;
+    private excelConfig[] configs;
 
-    public String[] getDefaultNames() {
-        return defaultNames;
-    }
-
-    public void setDefaultNames(String[] defaultNames) {
-        this.defaultNames = defaultNames;
-    }
-
-    private String[] defaultNames;
+    public
 
 }
