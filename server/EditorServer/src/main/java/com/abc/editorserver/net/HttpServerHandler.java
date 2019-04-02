@@ -100,7 +100,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             LogEditor.msg.error("解析http请求错误。url: {}", req.uri());
             return;
         }
-        String uid = param.getString(EditorConst.UID);
+        String uid = param.getString(EditorConst.TOKEN);
         if (uid == null) {
 //            // 随机一个id，用于分配线程
 //            uid = -new Random().nextLong();

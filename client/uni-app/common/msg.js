@@ -19,4 +19,17 @@ export default {
 			'token': token
 		};
 	},
+	test(token){
+		return{
+			'cmd':1,
+			'token':token
+		};
+	},
+	get_table_data(token, table_name){
+		return{
+			'cmd': 2,
+			'token': token,
+			'table_name': table_name
+		};
+	}
 }
