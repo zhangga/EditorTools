@@ -1,5 +1,8 @@
 package com.abc.editorserver.module.JSONModule;
 
+/**
+ * @author Marco
+ */
 public class ExcelConfigs {
     public static ExcelConfigs gi(){
         return instance;
@@ -44,5 +47,4 @@ public class ExcelConfigs {
     }
 
     private String[] defaultNames;
-
 }
