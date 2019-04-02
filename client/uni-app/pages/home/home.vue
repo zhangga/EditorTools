@@ -23,10 +23,10 @@
 			uni.request({
 				url: msg.url(),
 				method: 'GET',
-				data: msg.test(this.$store.state.token),
+				data: msg.get_table_data(this.$store.state.token, 'QUEST'),
 				success: res => {
-					console.log(res.data['token'])
-					this.news = res.data['test']
+					console.log(res.data['data'])
+					this.news = res.data['data']
 				},
 				fail: () => {
 					console.log(this.$store.state.token)

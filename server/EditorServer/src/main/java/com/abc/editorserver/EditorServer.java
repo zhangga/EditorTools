@@ -2,6 +2,7 @@ package com.abc.editorserver;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
+import com.abc.editorserver.manager.DataManager;
 import com.abc.editorserver.manager.GlobalManager;
 import com.abc.editorserver.manager.SVNManager;
 import com.abc.editorserver.net.HttpServer;
@@ -23,6 +24,8 @@ public class EditorServer {
 
     private void start() {
         SVNManager.init();
+        // 初始化数据
+        DataManager.DataMgr().init();
         // 启动一个守护线程
         GlobalManager.init();
         // DB
