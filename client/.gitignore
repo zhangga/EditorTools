@@ -10,6 +10,21 @@ bin/*
 lib/*
 release/*
 
+uni-app/node_modules/*
+*/async-validator/*
+*/babel-helper-vue-jsx-merge-props/*
+*/babel-runtime/*
+*/core-js/*
+*/deepmerge/*
+*/element-ui/*
+*/lodash/*
+*/normalize-wheel/*
+*/regenerator-runtime/*
+*/resize-observer-polyfill/*
+*/throttle-debounce/*
+*/vue/*
+*/vue-data-tables/*
+
 # logs
 *.log
 .idea
