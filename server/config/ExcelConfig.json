@@ -1,27 +1,43 @@
 {
   "configs": [
     {
+      // excel表名
       "excel": "Quest.xlsx",
+      // sheet名
       "sheet": "任务|Quest",
+      // Redis hash的表名
       "redis_table": "QUEST",
+      // Redis hash的key值
       "redis_key": "sn",
-      "navigateTo": "../table/table"
+      // 点击跳转的导航页
+      "navigateTo": "../table/table",
     },
     {
+      // excel表名
       "excel": "Quest.xlsx",
+      // sheet名
       "sheet": "任务目标|QuestGoal",
+      // Redis hash的表名
       "redis_table": "QUESTGOAL",
+      // Redis hash的key值
       "redis_key": "sn",
-      "navigateTo": "../table/table"
+      // 点击跳转的导航页
+      "navigateTo": "../table/table",
     },
     {
+      // excel表名
       "excel": "Quest.xlsx",
+      // sheet名
       "sheet": "对话表|Plot",
+      // Redis hash的表名
       "redis_table": "PLOT",
+      // Redis hash的key值
       "redis_key": "sn",
-      "navigateTo": "../table/table"
+      // 点击跳转的导航页
+      "navigateTo": "../table/table",
     }
   ],
+  // 基础配置
   "defaultNames": [
     "cs",
     "type",
