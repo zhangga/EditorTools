@@ -23,7 +23,23 @@
 					}, {
 					prop: "goal",
 					label: "完成目标"
-				}],
+					}, {
+					prop: "goal",
+					label: "完成目标"
+					}, {
+					prop: "goal",
+					label: "完成目标"
+					}, {
+					prop: "goal",
+					label: "完成目标"
+					}, {
+					prop: "goal",
+					label: "完成目标"
+					}, {
+					prop: "goal",
+					label: "完成目标"
+					}
+				],
 				table_data: []
 			};
 		},
