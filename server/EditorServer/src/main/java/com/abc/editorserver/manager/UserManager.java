@@ -36,14 +36,14 @@ public class UserManager {
     public static String loginUser(String name, String pwd) {
         User user = userNameMap.get(name);
         if (user == null) {
-            String json = JedisManager.gi().getKey(name);
+            String json = JedisManager.getInstance().getKey(name);
             // 创建用户
             if (json == null) {
                 user = new User();
                 user.setUid(EditorConst.USER_ID_PREFIX+getUserId());
                 user.setName(name);
                 user.setPwd(pwd);
-                JedisManager.gi().setKey(user.getName(), JSONObject.toJSONString(user));
+                JedisManager.getInstance().setKey(user.getName(), JSONObject.toJSONString(user));
                 userNameMap.put(user.getName(), user);
                 userIdMap.put(user.getUid(), user);
             }
@@ -57,7 +57,7 @@ public class UserManager {
     }
 
     public static long getUserId() {
-        long uid = JedisManager.gi().incr(EditorConst.USER_ID_MAX);
+        long uid = JedisManager.getInstance().incr(EditorConst.USER_ID_MAX);
         return uid;
     }
 

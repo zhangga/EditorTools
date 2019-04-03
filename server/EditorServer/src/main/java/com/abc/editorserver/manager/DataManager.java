@@ -6,7 +6,6 @@ import java.util.*;
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
-import com.abc.editorserver.module.JSONModule.ExcelConfigs;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -36,19 +35,19 @@ public class DataManager {
     }
 
     /**
-     * 读取ExcelConfig.json配置文件，解析成excelConfigs对象
+     * 读取ExcelConfig.json配置文件，解析成excelConfig对象
      * @return
      */
-    private void loadExcelConfig(){
-        try{
+    private void loadExcelConfig() {
+        try {
             File file = new File(EditorConfig.CONFIG_PATH + ConfigPath);
             InputStream input = new FileInputStream(file);
             byte[] buff = input.readAllBytes();
             String jsonStr = new String(buff);
             JSONObject jo = JSON.parseObject(jsonStr);
-            ExcelConfigs.setInstance(jo.toJavaObject(ExcelConfigs.class));
+            ExcelManager.setInstance(jo.toJavaObject(ExcelManager.class));
         }
-        catch(Exception e){
+        catch(Exception e) {
             LogEditor.config.error("读取Excel配置失败：", e);
         }
     }
@@ -56,54 +55,56 @@ public class DataManager {
     /**
      * 根据配置信息将对应的excel表写入Redis
      */
-    private void excelToRedis(){
-        try{
-            for(ExcelConfig conf:ExcelConfigs.gi().getConfigs()){
+    private void excelToRedis() {
+        try {
+            for (ExcelConfig conf: ExcelManager.getInstance().getConfigs()) {
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 String sheetName = conf.getSheet();
                 XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
                 XSSFSheet sheet = workbook.getSheet(sheetName);
 
                 //表格每一列的英文名称
-                List<String> keyList = new ArrayList<>();
+                List<String> colNames = new ArrayList<>();
                 XSSFRow nameRow = sheet.getRow(2);
-                for(int i = 0; i < nameRow.getLastCellNum(); i++){
-                    if(nameRow.getCell(i)==null){
-                        keyList.add(Integer.toString(i));
+                for (int i = 0; i < nameRow.getLastCellNum(); i++) {
+                    if (nameRow.getCell(i)==null) {
+                        colNames.add(Integer.toString(i));
                     }
                     else{
-                        keyList.add(nameRow.getCell(i).toString());
+                        colNames.add(nameRow.getCell(i).toString());
                     }
                 }
-                columnSeqMap.put(conf.getRedis_table(),keyList);
-                for(int i = 0; i <= sheet.getLastRowNum(); i++){
+
+                columnSeqMap.put(conf.getRedis_table(),colNames);
+
+                for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
                     XSSFRow row = sheet.getRow(i);
-                    for(int j = 0; j < row.getLastCellNum(); j++){
+                    for (int j = 0; j < row.getLastCellNum(); j++) {
                         XSSFCell cell = row.getCell(j);
-                        if(null == cell){
+                        if (null == cell) {
                             valueList.add("");
                         }
-                        else{
+                        else {
                             valueList.add(convertFromBR(cell.toString()));
                         }
                     }
-                    while(valueList.size() < keyList.size()){
+                    while (valueList.size() < colNames.size()) {
                         valueList.add("");
                     }
 
                     //System.out.println(toJSON(keyList, valueList));
                     String key = valueList.get(0);
-                    if(i<ExcelConfigs.gi().getDefaultNames().length){
-                        key = ExcelConfigs.gi().getDefaultNames()[i];
+                    if (i < ExcelManager.getInstance().getDefaultNames().length) {
+                        key = ExcelManager.getInstance().getDefaultNames()[i];
                     }
-                    //JedisManager.gi().push(conf.getRedis_table()+"_Row",key);
-                    JedisManager.gi().hset(conf.getRedis_table(), key, stringToJSON(keyList, valueList));
+                    //JedisManager.getInstance().push(conf.getRedis_table()+"_Row",key);
+                    JedisManager.getInstance().hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
                 }
 
             }
         }
-        catch(Exception e){
+        catch (Exception e) {
             LogEditor.config.error("Excel写入Redis失败：", e);
         }
     }
@@ -127,6 +128,9 @@ public class DataManager {
         }
         if (value.contains("@q@")) {
             return value.replaceAll("@q@", "\"");
+        }
+        if(value.endsWith(".0")){
+            return value.substring(0,value.length()-2);
         }
         return value;
     }
@@ -165,7 +169,7 @@ public class DataManager {
     private void redisToExcel(){
         FileOutputStream fos = null;
         try {
-            for (ExcelConfig conf : ExcelConfigs.gi().getConfigs()) {
+            for (ExcelConfig conf : ExcelManager.getInstance().getConfigs()) {
                 //根据原表名和页签sheet名生成新表名,目前格式为：原表名_页签英文名.xlsx
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 if (fileName.endsWith(".xlsx")) {
@@ -182,16 +186,11 @@ public class DataManager {
                     file.createNewFile();
                 }
 
-                Map<String, String> mapAll = JedisManager.gi().hgetAll(conf.getRedis_table());
+                Map<String, String> mapAll = JedisManager.getInstance().hgetAll(conf.getRedis_table());
                 FileInputStream fis = new FileInputStream(fileName);
                 XSSFWorkbook workbook = new XSSFWorkbook();
-                //遍历删除原表的sheet
-                int sheetNum = workbook.getNumberOfSheets();
-                for(int i=0;i<sheetNum;i++){
-                    workbook.removeSheetAt(i);
-                }
                 XSSFSheet sheet  = workbook.createSheet(sheetName);
-                String[] defaultName = ExcelConfigs.gi().getDefaultNames();
+                String[] defaultName = ExcelManager.getInstance().getDefaultNames();
                 int rowCount = 0;
                 for(String name:defaultName){
                     String value = mapAll.get(name);
@@ -249,25 +248,26 @@ public class DataManager {
      * @return
      */
     public JSONArray getTableData(String tableName) {
-        ExcelConfig config = ExcelConfigs.gi().getConfig(tableName);
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
         JSONArray ret = new JSONArray();
         if (config == null) {
             return ret;
         }
-        Map<String, String> datas = JedisManager.gi().hgetAll(config.getRedis_table());
+        Map<String, String> datas = JedisManager.getInstance().hgetAll(config.getRedis_table());
+
         //在返回数据前去掉属性行
-        String[] defaultName = ExcelConfigs.gi().getDefaultNames();
+        String[] defaultName = ExcelManager.getInstance().getDefaultNames();
         for(String name:defaultName){
             datas.remove(name);
         }
         for (String data : datas.values()) {
             ret.add(data);
         }
-        return  ret;
+        return ret;
     }
 
     public JSONArray getTableColumnName(String tableName) {
-        String value = JedisManager.gi().hget(tableName,"cnName");
+        String value = JedisManager.getInstance().hget(tableName,"cnName");
         JSONObject jo = JSONObject.parseObject(value);
         JSONArray ret = new JSONArray();
         List<String> columnName = columnSeqMap.get(tableName);

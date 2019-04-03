@@ -16,7 +16,7 @@ public class JedisManager {
 
     private static JedisManager mgr = new JedisManager();
 
-    public static JedisManager gi() {
+    public static JedisManager getInstance() {
         return mgr;
     }
 
