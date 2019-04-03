@@ -1,6 +1,7 @@
 package com.abc.editorserver.manager;
 
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
+import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 
 public class ExcelManager {
 
@@ -17,6 +18,7 @@ public class ExcelManager {
     private static ExcelManager instance;
     private String[] defaultNames;
     private ExcelConfig[] configs;
+    private ExcelTrigger[] triggers;
 
     /**
      * 通过表名获取配置信息
@@ -46,5 +48,13 @@ public class ExcelManager {
 
     public void setDefaultNames(String[] defaultNames) {
         this.defaultNames = defaultNames;
+    }
+
+    public ExcelTrigger[] getTriggers() {
+        return triggers;
+    }
+
+    public void setTriggers(ExcelTrigger[] triggers) {
+        this.triggers = triggers;
     }
 }
