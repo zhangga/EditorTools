@@ -27,7 +27,7 @@ public class DataManager {
 
     private DataManager(){ }
 
-    private static final String excelConfigPath = "../config/ExcelConfig.json";
+    private static final String ConfigPath = "ExcelConfig.json";
 
     public void init(){
         loadExcelConfig();
@@ -41,7 +41,7 @@ public class DataManager {
      */
     private void loadExcelConfig(){
         try{
-            File file = new File(excelConfigPath);
+            File file = new File(EditorConfig.CONFIG_PATH + ConfigPath);
             InputStream input = new FileInputStream(file);
             byte[] buff = input.readAllBytes();
             String jsonStr = new String(buff);
