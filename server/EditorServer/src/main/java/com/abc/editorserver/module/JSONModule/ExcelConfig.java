@@ -1,7 +1,12 @@
 package com.abc.editorserver.module.JSONModule;
 
 public class ExcelConfig {
+
     private String excel;
+    private String sheet;
+    private String redis_table;
+    private String redis_key;
+
 
     public String getExcel() {
         return excel;
@@ -34,8 +39,4 @@ public class ExcelConfig {
     public void setRedis_key(String redis_key) {
         this.redis_key = redis_key;
     }
-
-    private String sheet;
-    private String redis_table;
-    private String redis_key;
 }

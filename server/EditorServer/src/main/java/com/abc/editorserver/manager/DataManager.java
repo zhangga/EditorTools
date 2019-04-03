@@ -6,6 +6,7 @@ import java.util.*;
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
+import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -21,8 +22,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class DataManager {
 
     private static DataManager mgr = new DataManager();
-    public static DataManager gi(){ return mgr; }
-    private static Map<String, List<String>> columnSeqMap = new HashMap<String, List<String>>();
+    public static DataManager getInstance(){ return mgr; }
+    private static Map<String, List<String>> columnSeqMap = new HashMap<>();
+    private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
 
     private DataManager(){ }
 
@@ -30,8 +32,20 @@ public class DataManager {
 
     public void init(){
         loadExcelConfig();
+
+        LogEditor.serv.info("======开始加载Trigger表======");
+        initTriggers();
+
         excelToRedis();
         redisToExcel();
+
+        // TEST
+        getAllTriggerTableData("Trigger", "EConditionType");
+
+        JSONObject result = getTriggerTableDataAtRow("Trigger", "EConditionType", "24");
+        LogEditor.serv.info(result == null ? "NULL" : result.toJSONString());
+
+        LogEditor.serv.info(getTriggerTableDataAtRowColumn("Trigger", "EConditionType", "24", "描述"));
     }
 
     /**
@@ -49,6 +63,77 @@ public class DataManager {
         }
         catch(Exception e) {
             LogEditor.config.error("读取Excel配置失败：", e);
+        }
+    }
+
+    /**
+     * 读取ExcelConfig中配置的Trigger表，缓存表格内容
+     */
+    public void initTriggers() {
+
+        XSSFRow row;
+        XSSFCell cell;
+        XSSFSheet sheet;
+        XSSFWorkbook workbook;
+        String triggerName, excelName, sheetName;
+        List<String> colNames, rowValues;
+
+
+        ExcelTrigger[] triggers = ExcelManager.getInstance().getTriggers();
+
+        try {
+            for (ExcelTrigger trigger : triggers) {
+                excelName = trigger.getExcel();
+                sheetName = trigger.getSheet();
+                triggerName = excelName.substring(0, excelName.lastIndexOf('.')) + "_" + sheetName;
+                excelName = EditorConfig.svn_export + "/" + excelName;
+
+                workbook = new XSSFWorkbook(new FileInputStream(excelName));
+                sheet = workbook.getSheet(sheetName);
+
+                // 获取表格所有的列名
+                colNames = new ArrayList<>();
+                row = sheet.getRow(0);
+
+                for (int colIndex = 0; colIndex < row.getLastCellNum(); colIndex++) {
+                    cell = row.getCell(colIndex);
+
+                    if (cell == null) {
+                        colNames.add(String.valueOf(colIndex));
+                    } else {
+                        colNames.add(cell.toString());
+                    }
+                }
+
+                // 缓存表格数据
+                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                    rowValues = new ArrayList<>();
+                    row = sheet.getRow(rowIndex);
+
+                    String indexColumn = row.getCell(0).toString();
+
+                    for (int colIndex = 0; colIndex < row.getLastCellNum(); colIndex++) {
+                        cell = row.getCell(colIndex);
+
+                        if (cell == null) {
+                            rowValues.add("");
+                        } else {
+                            rowValues.add(convertFromBR(cell.toString()));
+                        }
+                    }
+
+                    while (rowValues.size() < colNames.size())
+                    {
+                        rowValues.add("");
+                    }
+
+                    triggerData.computeIfAbsent(triggerName, s -> new LinkedHashMap<>())
+                            .put(indexColumn, JSONObject.parseObject(stringToJSON(colNames, rowValues)));
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -266,15 +351,82 @@ public class DataManager {
         return ret;
     }
 
+    /**
+     * 获取数据表列名
+     * @param tableName
+     * @return
+     */
     public JSONArray getTableColumnName(String tableName) {
         String value = JedisManager.getInstance().hget(tableName,"cnName");
         JSONObject jo = JSONObject.parseObject(value);
         JSONArray ret = new JSONArray();
         List<String> columnName = columnSeqMap.get(tableName);
-        for(String name:columnName){
+
+        for(String name : columnName){
             ret.add("{\"prop\":\"" + name +"\",\"label\":\""+ convertToBR(jo.getString(name))+ "\"}");
         }
-        return  ret;
+
+        return ret;
     }
 
+
+    /**
+     * 获取指定Trigger表的全表数据
+     * @param excelName Excel文件名
+     * @param sheetName 表格名
+     * @return
+     */
+    public JSONArray getAllTriggerTableData(String excelName, String sheetName) {
+        int excelNameEndsAt = excelName.lastIndexOf('.');
+        String triggerKey = excelName.substring(0, excelNameEndsAt == -1 ? excelName.length() : excelNameEndsAt)
+                + "_" + sheetName;
+        Map<String, JSONObject> data = triggerData.get(triggerKey);
+        Iterator<Map.Entry<String, JSONObject>> iter = data.entrySet().iterator();
+
+        JSONArray result = new JSONArray();
+
+        while(iter.hasNext()) {
+            result.add(iter.next().getValue());
+        }
+
+        return result;
+    }
+
+    /**
+     * 获取Trigger表指定行的整行数据
+     * @param excelName Excel文件名
+     * @param sheetName 表格名
+     * @param row 行ID
+     * @return
+     */
+    public JSONObject getTriggerTableDataAtRow(String excelName, String sheetName, String row) {
+        int excelNameEndsAt = excelName.lastIndexOf('.');
+        String triggerKey = excelName.substring(0, excelNameEndsAt == -1 ? excelName.length() : excelNameEndsAt)
+                + "_" + sheetName;
+
+        return triggerData.get(triggerKey).get(row);
+    }
+
+    /**
+     * 获取Trigger表在指定行&指定列位置的数据
+     * @param excelName Excel文件名
+     * @param sheetName 表格名
+     * @param row 行ID
+     * @param columnName 列ID
+     * @return
+     */
+    public String getTriggerTableDataAtRowColumn(String excelName, String sheetName, String row, String columnName) {
+        int excelNameEndsAt = excelName.lastIndexOf('.');
+        String triggerKey = excelName.substring(0, excelNameEndsAt == -1 ? excelName.length() : excelNameEndsAt)
+                + "_" + sheetName;
+
+        JSONObject jsonObject = triggerData.get(triggerKey).get(row);
+
+        if (jsonObject != null) {
+            return jsonObject.get(columnName).toString();
+        } else {
+            //TODO: LOG
+            return null;
+        }
+    }
 }
