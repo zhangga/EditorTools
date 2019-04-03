@@ -29,7 +29,7 @@ public class EditorServer {
         // 启动一个守护线程
         GlobalManager.init();
         // DB
-        JedisManager.gi().test();
+        JedisManager.getInstance().test();
         // 监听网络端口
         initNet();
         // 启动日志信息
