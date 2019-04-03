@@ -18,8 +18,10 @@ public class GetTableDataAction extends GameActionJson {
     public void doAction(User user, RequestData request) {
         String table_name = request.msg.getString("table_name");
         JSONArray data = DataManager.gi().getTableData(table_name);
+        JSONArray columnName = DataManager.gi().getTableColumnName(table_name);
         JSONObject msg = new JSONObject();
         msg.put("data", data);
+        msg.put("titles",columnName);
         sendMsg(request.ctx, msg);
     }
 

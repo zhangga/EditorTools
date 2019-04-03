@@ -1,6 +1,6 @@
 <template>
    <data-tables :data="table_data" :pagination-props="{ pageSizes: [5, 10, 15] }">
-     <el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.label">
+     <el-table-column v-for="title in table_title" :prop="title.prop" :label="title.label" :key="title.label">
      </el-table-column>
    </data-tables>
  </template>
@@ -14,32 +14,7 @@
 		data() {
 			return {
 				table_name: '',
-				titles: [{
-					prop: "sn",
-					label: "SN"
-					}, {
-					prop: "questName",
-					label: "名称"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}, {
-					prop: "goal",
-					label: "完成目标"
-					}
-				],
+				table_title: [],
 				table_data: []
 			};
 		},
@@ -55,6 +30,13 @@
 						datas[i] = JSON.parse(res.data['data'][i])
 					}
 					this.table_data = datas
+					
+					var titles = []
+					for (var i = 0; i < res.data['titles'].length; i++) {
+						titles[i] = JSON.parse(res.data['titles'][i])
+					}
+					this.table_title = titles
+					
 // 					this.table_data = [{
 // 						"content": "Water flood",
 // 						"flow_no": "FW201601010001",
@@ -87,5 +69,8 @@
 	}
 	.uni-media-list-text-to {
 		line-height: 1.6em;
+	}
+	.el-table .cell{
+		white-space:pre-wrap;
 	}
 </style>

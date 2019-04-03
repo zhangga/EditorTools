@@ -128,9 +128,6 @@ public class DataManager {
         if (value.contains("@q@")) {
             return value.replaceAll("@q@", "\"");
         }
-        if(value.endsWith(".0")){
-            return value.substring(0,value.length()-2);
-        }
         return value;
     }
 
@@ -258,8 +255,24 @@ public class DataManager {
             return ret;
         }
         Map<String, String> datas = JedisManager.gi().hgetAll(config.getRedis_table());
+        //在返回数据前去掉属性行
+        String[] defaultName = ExcelConfigs.gi().getDefaultNames();
+        for(String name:defaultName){
+            datas.remove(name);
+        }
         for (String data : datas.values()) {
             ret.add(data);
+        }
+        return  ret;
+    }
+
+    public JSONArray getTableColumnName(String tableName) {
+        String value = JedisManager.gi().hget(tableName,"cnName");
+        JSONObject jo = JSONObject.parseObject(value);
+        JSONArray ret = new JSONArray();
+        List<String> columnName = columnSeqMap.get(tableName);
+        for(String name:columnName){
+            ret.add("{\"prop\":\"" + name +"\",\"label\":\""+ convertToBR(jo.getString(name))+ "\"}");
         }
         return  ret;
     }
