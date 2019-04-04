@@ -20,7 +20,7 @@ public class GetAllQuestBriefAction extends GameActionJson {
         JSONArray quests = DataManager.getInstance().getTableData("QUEST");
         // 不同类型的任务信息
         // [
-        //  {text: "主线任务", children: [{sn: 1, name: xx}, {sn: 1, name: xx}]},
+        //  {text: "主线任务", children: [{id: 1, text: xx}, {id: 1, text: xx}]},
         //  {{text: "XX任务",  children: []}
         //  ]
         JSONArray datas = new JSONArray();
