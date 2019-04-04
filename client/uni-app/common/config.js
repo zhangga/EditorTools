@@ -60,5 +60,13 @@ export default {
 			}
 		}
 		return null;
+	},
+	GetExcelConfig(excelName, sheetName) {
+		for (var i = 0; i < ExcelConfig_json['configs'].length; i++) {
+			var config = ExcelConfig_json['configs'][i];
+			if (config['excel'] == excelName && config['sheet'] == sheetName) {
+				return config;
+			}
+		}
 	}
 }
