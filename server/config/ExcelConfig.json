@@ -10,7 +10,7 @@
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
-      "navigateTo": "../table/table",
+      "navigateTo": "../table/table"
     },
     {
       // excel表名
@@ -22,7 +22,7 @@
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
-      "navigateTo": "../table/table",
+      "navigateTo": "../table/table"
     },
     {
       // excel表名
@@ -34,8 +34,40 @@
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
-      "navigateTo": "../table/table",
+      "navigateTo": "../table/table"
     }
+  ],
+  "triggers": [
+//    {
+//      // excel表名
+//      "excel": "Trigger.xlsx",
+//      // sheet名
+//      "sheet": "ERegionTriggerType"
+//    },
+//    {
+//      // excel表名
+//      "excel": "Trigger.xlsx",
+//      // sheet名
+//      "sheet": "EItemUseScript"
+//    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EConditionType"
+    },
+//    {
+//      // excel表名
+//      "excel": "Trigger.xlsx",
+//      // sheet名
+//      "sheet": "EnumQuestGoalType"
+//    },
+//    {
+//      // excel表名
+//      "excel": "Trigger.xlsx",
+//      // sheet名
+//      "sheet": "EActionType"
+//    }
   ],
   // 基础配置
   "defaultNames": [
