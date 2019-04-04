@@ -10,6 +10,7 @@ bin/*
 lib/*
 release/*
 
+*/package-lock.json
 uni-app/node_modules/*
 */async-validator/*
 */babel-helper-vue-jsx-merge-props/*
@@ -24,6 +25,12 @@ uni-app/node_modules/*
 */throttle-debounce/*
 */vue/*
 */vue-data-tables/*
+*/@babel/*
+*/@vant/*
+*/@vue/*
+*/regenerator-runtime/*
+*/vant/*
+*/vue-lazyload/*
 
 # logs
 *.log

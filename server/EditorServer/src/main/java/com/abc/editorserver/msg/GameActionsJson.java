@@ -6,6 +6,7 @@ import java.util.Map;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
 import com.abc.editorserver.module.excel.GetTableDataAction;
+import com.abc.editorserver.module.excel.GetAllQuestBriefAction;
 
 /**
  * 消息注册类
@@ -18,6 +19,7 @@ public enum GameActionsJson {
 	Hi("欢迎信息", 0, HiAction.class),
 	Test("测试信息", 1, TestAction.class),
 	GetTableData("获取表数据", 2, GetTableDataAction.class),
+	GetAllQuestBrief("获取所有任务的简述", 3, GetAllQuestBriefAction.class),
 	;
 	
 	/**

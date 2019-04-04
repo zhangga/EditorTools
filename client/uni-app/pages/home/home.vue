@@ -37,8 +37,14 @@
 					//fail: () => {},
 					//complete: () => {}
 				//});
-				uni.switchTab({
-						url: "../property/property",
+// 				uni.switchTab({
+// 						url: "../property/property",
+// 						success: res => {},
+// 						fail: () => {},
+// 						complete: () => {}
+// 				})
+				uni.navigateTo({
+						url: "../quest/quest",
 						success: res => {},
 						fail: () => {},
 						complete: () => {}

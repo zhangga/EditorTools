@@ -31,5 +31,11 @@ export default {
 			'token': token,
 			'table_name': table_name
 		};
+	},
+	get_all_quest_brief(token){
+		return{
+			'cmd': 3,
+			'token': token
+		};
 	}
 }

@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "element-ui": "^2.7.0",
+    "vant": "^1.6.12",
     "vue-data-tables": "^3.4.4"
   }
 }

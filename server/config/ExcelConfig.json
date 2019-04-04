@@ -69,6 +69,8 @@
 //      "sheet": "EActionType"
 //    }
   ],
+  // 任务类型
+  "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],
   // 基础配置
   "defaultNames": [
     "cs",

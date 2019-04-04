@@ -3,6 +3,8 @@ package com.abc.editorserver.manager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 
+import java.util.Map;
+
 public class ExcelManager {
 
     private ExcelManager(){}
@@ -19,6 +21,7 @@ public class ExcelManager {
     private String[] defaultNames;
     private ExcelConfig[] configs;
     private ExcelTrigger[] triggers;
+    private String[] EnumQuestType;
 
     /**
      * 通过表名获取配置信息
@@ -56,5 +59,31 @@ public class ExcelManager {
 
     public void setTriggers(ExcelTrigger[] triggers) {
         this.triggers = triggers;
+    }
+
+    public String getQuestType(int id) {
+        for (int i = 0; i < EnumQuestType.length; i+=2) {
+            if (EnumQuestType[i].equals(String.valueOf(id))) {
+                return EnumQuestType[i+1];
+            }
+        }
+        return "NULL";
+    }
+
+    public int getQuestIndex(int id) {
+        for (int i = 0; i < EnumQuestType.length; i+=2) {
+            if (EnumQuestType[i].equals(String.valueOf(id))) {
+                return i/2;
+            }
+        }
+        return 0;
+    }
+
+    public String[] getEnumQuestType() {
+        return EnumQuestType;
+    }
+
+    public void setEnumQuestType(String[] enumQuestType) {
+        EnumQuestType = enumQuestType;
     }
 }

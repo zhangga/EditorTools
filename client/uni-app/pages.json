@@ -38,6 +38,10 @@
 			"path":"pages/complete/complete",
 			"style" : {}
 		}
+        ,{
+            "path" : "pages/quest/quest",
+            "style" : {}
+        }
     ],
 	 "tabBar": {
 	    "color": "#cdcdcd",
