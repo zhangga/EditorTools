@@ -10,7 +10,7 @@
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
-      "navigateTo": "../table/table"
+      "navigateTo": "../quest/quest"
     },
     {
       // excel表名

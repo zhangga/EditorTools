@@ -40,7 +40,10 @@
 		}
         ,{
             "path" : "pages/quest/quest",
-            "style" : {}
+            "style" : {
+				"navigationBarTitleText": "任务界面",
+				"navigationBarTextStyle": "black"
+			}
         }
     ],
 	 "tabBar": {
