@@ -6,19 +6,68 @@
 				"navigationBarTitleText": "登陆界面"
 			}
 		}
-	    ,{
+		,{
             "path" : "pages/info/info",
             "style" : {}
         }
-        ,{
+		,{
             "path" : "pages/home/home",
             "style" : {}
         }
-        ,{
+		,{
             "path" : "pages/table/table",
             "style" : {}
         }
+		,{
+			"path":"pages/tab/tab",
+			"style" : {}
+		}
+		,{
+			"path":"pages/property/property",
+			"style" : {}
+		}
+		,{
+			"path":"pages/accept/accept",
+			"style" : {}
+		}
+		,{
+			"path":"pages/target/target",
+			"style" : {}
+		}
+		,{
+			"path":"pages/complete/complete",
+			"style" : {}
+		}
     ],
+	 "tabBar": {
+	    "color": "#cdcdcd",
+	    "selectedColor": "#39cffc",
+	    "borderStyle": "black",
+	    "backgroundColor": "#ffffff",
+	    "list": [{
+	            "pagePath": "pages/property/property",
+	            "iconPath": "static/icon/index.png",
+	            "selectedIconPath": "static/icon/indexsl.png",
+	            "text": "任务属性"
+	        }, {
+	            "pagePath": "pages/accept/accept",
+	            "iconPath": "static/icon/find.png",
+	            "selectedIconPath": "static/icon/findsl.png",
+	            "text": "任务接取"
+	        },
+	        {
+	            "pagePath": "pages/target/target",
+	            "iconPath": "static/icon/nav.png",
+	            "selectedIconPath": "static/icon/navsl.png",
+	            "text": "任务目标"
+	        }, {
+	            "pagePath": "pages/complete/complete",
+	            "iconPath": "static/icon/person.png",
+	            "selectedIconPath": "static/icon/personsl.png",
+	            "text": "任务完成"
+	        }
+	    ]
+	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
