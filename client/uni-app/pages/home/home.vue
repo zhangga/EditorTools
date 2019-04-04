@@ -30,12 +30,19 @@
 				var table_name = e.currentTarget.dataset.table
 				var t_config = config.GetExcelConfig(table_name)
 				console.log("打开表: " + t_config['excel'])
-				uni.navigateTo({
-					url: t_config['navigateTo'] + "?table_name=" + table_name,
-					success: res => {},
-					fail: () => {},
-					complete: () => {}
-				});
+				//uni.navigateTo({
+					//url: t_config['navigateTo'] + "?table_name=" + table_name,
+					//url: "../tab/tab",
+					//success: res => {},
+					//fail: () => {},
+					//complete: () => {}
+				//});
+				uni.switchTab({
+						url: "../property/property",
+						success: res => {},
+						fail: () => {},
+						complete: () => {}
+				})
 			}
 		}
 	}

@@ -1,53 +1,77 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		
 		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "登陆界面"
 			}
 		}
-	    ,{
+		,{
             "path" : "pages/info/info",
             "style" : {}
         }
-        ,{
+		,{
             "path" : "pages/home/home",
             "style" : {}
         }
-        ,{
+		,{
             "path" : "pages/table/table",
             "style" : {}
         }
+		,{
+			"path":"pages/tab/tab",
+			"style" : {}
+		}
+		,{
+			"path":"pages/property/property",
+			"style" : {}
+		}
+		,{
+			"path":"pages/accept/accept",
+			"style" : {}
+		}
+		,{
+			"path":"pages/target/target",
+			"style" : {}
+		}
+		,{
+			"path":"pages/complete/complete",
+			"style" : {}
+		}
     ],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
-	},
 	 "tabBar": {
 	    "color": "#cdcdcd",
 	    "selectedColor": "#39cffc",
 	    "borderStyle": "black",
 	    "backgroundColor": "#ffffff",
 	    "list": [{
-	            "pagePath": "pages/index/index",
+	            "pagePath": "pages/property/property",
 	            "iconPath": "static/icon/index.png",
 	            "selectedIconPath": "static/icon/indexsl.png",
-	            "text": "index"
+	            "text": "任务属性"
 	        }, {
-	            "pagePath": "pages/home/home",
+	            "pagePath": "pages/accept/accept",
 	            "iconPath": "static/icon/find.png",
 	            "selectedIconPath": "static/icon/findsl.png",
-	            "text": "home"
+	            "text": "任务接取"
 	        },
 	        {
-	            "pagePath": "pages/table/table",
+	            "pagePath": "pages/target/target",
 	            "iconPath": "static/icon/nav.png",
 	            "selectedIconPath": "static/icon/navsl.png",
-	            "text": "table"
+	            "text": "任务目标"
+	        }, {
+	            "pagePath": "pages/complete/complete",
+	            "iconPath": "static/icon/person.png",
+	            "selectedIconPath": "static/icon/personsl.png",
+	            "text": "任务完成"
 	        }
 	    ]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
 	}
 }
