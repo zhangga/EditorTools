@@ -13,8 +13,19 @@
 			</van-col>
 			<van-col class="quest-details">
 				<van-tabs v-model="activeTab">
-					<van-tab v-for="index in 4" :title="'tab' + index">
-						content of tab {{ index }}
+					<van-tab v-for="index in tabConfig.length" :title="tabConfig[index-1]">
+						<view v-if="index == 1">
+							<quest-prop/>
+						</view>
+						<view v-if="index == 2">
+							<quest-acpt/>
+						</view>
+						<view v-if="index == 3">
+							<quest-goal/>
+						</view>
+						<view v-if="index == 4">
+							<quest-comp/>
+						</view>
 					</van-tab>
 				</van-tabs>
 			</van-col>
@@ -24,10 +35,16 @@
 
 <script>
 	import msg from '../../common/msg.js'
+	import config from '../../common/config.js'
+	import questProp from './quest-prop.vue'
+	import questAcpt from './quest-acpt.vue'
+	import questGoal from './quest-goal.vue'
+	import questComp from './quest-comp.vue'
 	
 	export default {
 		data() {
 			return {
+				tabConfig: [],
 				items: [],
 				mainActiveIndex: 0,
 				activeId: 1,
@@ -36,7 +53,15 @@
 		},
 		computed: {
 		},
+		components: {
+			questProp,
+			questAcpt,
+			questGoal,
+			questComp
+		},
 		onLoad() {
+			// 任务页签的配置
+			this.tabConfig = config.ExcelConfig()['QuestTab'];
 			this.onLoadQuestBrief();
 		},
 		methods: {

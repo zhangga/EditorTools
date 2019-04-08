@@ -45,6 +45,22 @@
 				"navigationBarTextStyle": "black"
 			}
         }
+        ,{
+            "path" : "pages/quest/quest-prop",
+            "style" : {}
+        }
+		,{
+		    "path" : "pages/quest/quest-acpt",
+		    "style" : {}
+		}
+		,{
+		    "path" : "pages/quest/quest-goal",
+		    "style" : {}
+		}
+		,{
+		    "path" : "pages/quest/quest-comp",
+		    "style" : {}
+		}
     ],
 	 "tabBar": {
 	    "color": "#cdcdcd",
