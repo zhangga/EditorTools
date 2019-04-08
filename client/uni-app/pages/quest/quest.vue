@@ -1,24 +1,37 @@
 <template>
-	<div class="quest-select">
-		<van-tree-select
-			:items="items"
-			:main-active-index="mainActiveIndex"
-			:active-id="activeId"
-			:height=1000
-			@navclick="onNavClick"
-			@itemclick="onItemClick"
-		/>
-	</div>
+	<view>
+		<van-row>
+			<van-col span="10">
+				<van-tree-select
+					:items="items"
+					:main-active-index="mainActiveIndex"
+					:active-id="activeId"
+					:height=1000
+					@navclick="onNavClick"
+					@itemclick="onItemClick"
+				/>
+			</van-col>
+			<van-col span="10">
+				<van-tabs v-model="activeTab">
+					<van-tab v-for="index in 4" :title="'tab' + index">
+						content of tab {{ index }}
+					</van-tab>
+				</van-tabs>
+			</van-col>
+		</van-row>
+	</view>
 </template>
 
 <script>
 	import msg from '../../common/msg.js'
+	
 	export default {
 		data() {
 			return {
 				items: [],
 				mainActiveIndex: 0,
-				activeId: 1
+				activeId: 1,
+				activeTab: 0,
 			};
 		},
 		computed: {
@@ -55,7 +68,5 @@
 </script>
 
 <style>
-	.quest-select {
-		width: 30%;
-	}
+	
 </style>
