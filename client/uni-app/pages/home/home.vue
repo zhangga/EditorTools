@@ -14,7 +14,7 @@
 
 	<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" 
 				style="margin-left: 20upx; margin-right: 20upx" @selection-change="onSelectionChange">
-		<el-table-column type="selection" width="55"></el-table-column>
+		<!-- <el-table-column type="selection" width="55"></el-table-column> -->
 		<el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom"></el-table-column>
 	</data-tables>
   </view>
@@ -80,19 +80,6 @@
 			open_table: function (excelName, sheetName) {
 				var t_config = config.GetExcelConfig(excelName, sheetName)
 				console.log("打开表: " + t_config['excel'])
-				//uni.navigateTo({
-					//url: t_config['navigateTo'] + "?table_name=" + table_name,
-					//url: "../tab/tab",
-					//success: res => {},
-					//fail: () => {},
-					//complete: () => {}
-				//});
-	// 				uni.switchTab({
-	// 						url: "../property/property",
-	// 						success: res => {},
-	// 						fail: () => {},
-	// 						complete: () => {}
-	// 				})
 				uni.navigateTo({
 						url: "../quest/quest",
 						success: res => {},
@@ -105,18 +92,31 @@
 				console.log(this.selectedRows.length);
 			},
 			refreshTableData: function (tableName) {
+				uni.showLoading({
+					title: '更新中...',
+					mask: true,
+					icon: 'none',
+				})
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.get_all_quest_brief(this.$store.state.token),
+					data: msg.update_table_data_from_svn(this.$store.state.token),
 					success: res => {
-						this.items = res.data['data']
-						// 排序
-						for (let i = 0; i < this.items.length; i++) {
-							let children = this.items[i]['children']
-							children.sort(function(a, b) {
-								return a['id'] - b['id']
-							})
+						var result = res.data['result'];
+						uni.hideLoading();
+						if (result == 1) {
+							uni.showToast({
+								title: '更新成功！',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+						else {
+							uni.showToast({
+								title: '更新失败！',
+								icon: 'none',
+								duration: 2000
+							});
 						}
 					}
 				});

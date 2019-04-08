@@ -12,5 +12,6 @@ public class EditorConst {
     public static final String CMD = "cmd";
     public static final String RET = "ret";
     public static final String TOKEN = "token";
+    public static final String RESULT_OK = "1";
 
 }

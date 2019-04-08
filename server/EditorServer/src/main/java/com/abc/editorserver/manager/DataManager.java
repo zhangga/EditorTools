@@ -38,14 +38,6 @@ public class DataManager {
 
         excelToRedis();
         redisToExcel();
-
-        // TEST
-        getAllTriggerTableData("Trigger", "EConditionType");
-
-        JSONObject result = getTriggerTableDataAtRow("Trigger", "EConditionType", "24");
-        LogEditor.serv.info(result == null ? "NULL" : result.toJSONString());
-
-        LogEditor.serv.info(getTriggerTableDataAtRowColumn("Trigger", "EConditionType", "24", "描述"));
     }
 
     /**
@@ -77,7 +69,6 @@ public class DataManager {
         XSSFWorkbook workbook;
         String triggerName, excelName, sheetName;
         List<String> colNames, rowValues;
-
 
         ExcelTrigger[] triggers = ExcelManager.getInstance().getTriggers();
 
@@ -267,7 +258,7 @@ public class DataManager {
                 String[] sArr = sheetName.split("\\|");
                 fileName += "_" + sArr[1] + ".xlsx";
                 File file = new File(fileName);
-                if(!file.exists()){
+                if(!file.exists()) {
                     file.createNewFile();
                 }
 
@@ -313,7 +304,7 @@ public class DataManager {
             JSONObject jo = JSON.parseObject(value);
             int cellNum = 0;
             XSSFCell cell;
-            while(jo.size()>0){
+            while(jo.size() > 0) {
                 String columnKey = columnSeqMap.get(tableName).get(cellNum);
                 cell = row.createCell(cellNum);
                 cell.setCellValue(convertToBR(jo.getString(columnKey)));
@@ -341,7 +332,7 @@ public class DataManager {
 
         //在返回数据前去掉属性行
         String[] defaultName = ExcelManager.getInstance().getDefaultNames();
-        for(String name:defaultName){
+        for(String name : defaultName) {
             datas.remove(name);
         }
         for (String data : datas.values()) {
