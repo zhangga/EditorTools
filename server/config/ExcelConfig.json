@@ -38,36 +38,36 @@
     }
   ],
   "triggers": [
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "ERegionTriggerType"
-//    },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EItemUseScript"
-//    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "ERegionTriggerType"
+    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EItemUseScript"
+    },
     {
       // excel表名
       "excel": "Trigger.xlsx",
       // sheet名
       "sheet": "EConditionType"
     },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EnumQuestGoalType"
-//    },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EActionType"
-//    }
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EnumQuestGoalType"
+    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EActionType"
+    }
   ],
   // 任务类型
   "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],

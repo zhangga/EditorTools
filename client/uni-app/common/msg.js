@@ -19,22 +19,28 @@ export default {
 			'token': token
 		};
 	},
-	test(token){
-		return{
+	test(token) {
+		return {
 			'cmd':1,
 			'token':token
 		};
 	},
-	get_table_data(token, table_name){
-		return{
+	get_table_data(token, table_name) {
+		return {
 			'cmd': 2,
 			'token': token,
 			'table_name': table_name
 		};
 	},
-	get_all_quest_brief(token){
-		return{
+	get_all_quest_brief(token) {
+		return {
 			'cmd': 3,
+			'token': token
+		};
+	},
+	update_table_data_from_svn(token) {
+		return {
+			'cmd': 4,
 			'token': token
 		};
 	}

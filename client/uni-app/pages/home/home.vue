@@ -3,7 +3,7 @@
 		<view style="margin-bottom: 10px">
 			<el-row>
 				<el-col :span="18">
-					<el-button>更新表格</el-button>
+					<el-button type="primary" round @click="refreshTableData">更新服务器表格数据</el-button>
 				</el-col>
 
 				<el-col :span="6">
@@ -12,8 +12,9 @@
 			</el-row>
 		</view>
 
-	<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" style="margin-left: 20upx; margin-right: 20upx">
-		<el-table-column type="selection" width="55"></el-table-column>
+	<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" 
+				style="margin-left: 20upx; margin-right: 20upx" @selection-change="onSelectionChange">
+		<!-- <el-table-column type="selection" width="55"></el-table-column> -->
 		<el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom"></el-table-column>
 	</data-tables>
   </view>
@@ -21,6 +22,7 @@
 
 <script>
 	import config from '../../common/config.js'
+	import msg from '../../common/msg.js'
 	
 	export default {
 		data() {
@@ -56,12 +58,6 @@
 							this.open_table(row.excel, row.sheet)
 						},
 						label: '编辑'
-					}, {
-						handler: row => {
-// 							this.data.splice(this.data.indexOf(row), 1)
-// 							this.$message('delete success')
-						},
-						label: 'delete'
 					}]
 				},
 				tableProps: {
@@ -74,6 +70,7 @@
 						'text-align': 'center'
 					}
 				},
+				selectedRows: []
 			}
 		},
 		onLoad() {
@@ -84,17 +81,56 @@
 				var t_config = config.GetExcelConfig(excelName, sheetName)
 				console.log("打开表: " + t_config['excel'])
 				uni.navigateTo({
-					url: t_config['navigateTo'] + "?table_name=" + t_config['redis_table'],
-					success: res => {},
-					fail: () => {},
-					complete: () => {}
+						url: "../quest/quest",
+						success: res => {},
+						fail: () => {},
+						complete: () => {}
+				})
+			},
+			onSelectionChange: function(rows) {
+				this.selectedRows = rows;
+				console.log(this.selectedRows.length);
+			},
+			refreshTableData: function (tableName) {
+				uni.showLoading({
+					title: '更新中...',
+					mask: true,
+					icon: 'none',
 				});
-// 				uni.switchTab({
-// 						url: "../property/property",
-// 						success: res => {},
-// 						fail: () => {},
-// 						complete: () => {}
-// 				})
+				
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.update_table_data_from_svn(this.$store.state.token),
+					success: res => {
+						var result = res.data['result'];
+						uni.hideLoading();
+						if (result == 1) {
+							uni.showToast({
+								title: '更新成功！',
+								icon: 'none',
+								mask: true,
+								duration: 1500
+							});
+						}
+						else {
+							uni.showToast({
+								title: res.data['desc'],
+								icon: 'none',
+								mask: true,
+								duration: 1500
+							});
+						}
+					},
+					fail: res => {
+						uni.hideLoading();
+						uni.showToast({
+							title: '操作超时，更新失败！',
+							icon: 'none',
+							duration: 2000
+						});
+					}
+				});
 			}
 		}
 	}

@@ -1,16 +1,22 @@
 <template>
 	<view class="content">
-		<view class="uni-padding-wrap uni-common-mt">
+		<view class="input-group">
 			<form @submit="formSubmit" @reset="formReset">
-				<view class="uni-form-item uni-column">
-					<view class="title">SVN用户名：</view>
-					<input class="uni-input" name="input-name" placeholder="在这输入姓名" value="zhangzeqiang" />
-					<view class="title">SVN密码：</view>
-					<input class="uni-input" name="input-pwd" placeholder="在这输入密码" value="GNT8EYkz" />
-				</view>
-				<view class="uni-btn-v">
-					<button formType="submit">登陆</button>
-					<button type="default" formType="reset">重置</button>
+				<el-row class="login-fields">
+					<el-row class="login-input-hint">SVN用户名：</el-row>
+					<el-row>
+						<input :span="6" class="login-input-field" type="text" clearable focus name="input-name" placeholder="请输入SVN账号" value="zhangzeqiang"/>
+					</el-row>
+				</el-row>
+				<el-row class='login-fields'>
+					<el-row class="login-input-hint">SVN密码：</el-row>
+					<el-row >
+						<input :span="6" class="uni-input login-input-field" type="password" name="input-pwd" placeholder="请输入SVN密码" value="GNT8EYkz"/>
+					</el-row>
+				</el-row>
+				<view class="btn-row">
+					<button type="primary" class="primary login-page-btn" formType="submit">登陆</button>
+					<button type="default" class="login-page-btn" formType="reset">重置</button>
 				</view>
 			</form>
 		</view>
@@ -95,5 +101,36 @@
 <style>
 	.uni-form-item .title {
 		padding: 5upx 0;
+	}
+	
+	.login-input-field {
+		margin-left: 30upx;
+		margin-right: 30upx;
+		border-style: solid;
+		border-width: 2upx;
+		padding: 8upx;
+	}
+	
+	.login-input-hint {
+		margin-left: 30upx;
+		padding: 5upx;
+	}
+	
+	.login-fields {
+		margin-left: 30upx;
+		margin-right: 30upx;
+		padding-bottom: 10upx;
+	}
+	
+	.login-fields:first-child {
+		padding-top: 30upx;
+		margin-left: 30upx;
+		margin-right: 30upx;
+	}
+	
+	.login-page-btn {
+		margin-top: 20upx;
+		width: 35%;
+		font-size: 30upx;
 	}
 </style>

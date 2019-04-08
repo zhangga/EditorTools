@@ -3,8 +3,6 @@ package com.abc.editorserver.manager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 
-import java.util.Map;
-
 public class ExcelManager {
 
     private ExcelManager(){}
@@ -62,18 +60,18 @@ public class ExcelManager {
     }
 
     public String getQuestType(int id) {
-        for (int i = 0; i < EnumQuestType.length; i+=2) {
+        for (int i = 0; i < EnumQuestType.length; i += 2) {
             if (EnumQuestType[i].equals(String.valueOf(id))) {
-                return EnumQuestType[i+1];
+                return EnumQuestType[i + 1];
             }
         }
         return "NULL";
     }
 
     public int getQuestIndex(int id) {
-        for (int i = 0; i < EnumQuestType.length; i+=2) {
+        for (int i = 0; i < EnumQuestType.length; i += 2) {
             if (EnumQuestType[i].equals(String.valueOf(id))) {
-                return i/2;
+                return i / 2;
             }
         }
         return 0;

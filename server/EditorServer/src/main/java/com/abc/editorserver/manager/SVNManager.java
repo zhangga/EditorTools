@@ -160,8 +160,8 @@ public class SVNManager {
             return updateClient.doUpdate(wc, updateToRevision, depth, false, false);
         } catch (SVNException e) {
             LogEditor.config.error("更新SNV项目出错。{}", e);
+            return -e.getErrorMessage().getErrorCode().getCode();
         }
-        return 0;
     }
 
     /**

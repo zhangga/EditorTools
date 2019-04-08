@@ -3,6 +3,8 @@ package com.abc.editorserver.msg;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.abc.editorserver.module.excel.UpdateTableDataFromSVN;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
 import com.abc.editorserver.module.excel.GetTableDataAction;
@@ -20,6 +22,7 @@ public enum GameActionsJson {
 	Test("测试信息", 1, TestAction.class),
 	GetTableData("获取表数据", 2, GetTableDataAction.class),
 	GetAllQuestBrief("获取所有任务的简述", 3, GetAllQuestBriefAction.class),
+	UpdateTableDataFromSVN("从SVN更新表格数据", 4, UpdateTableDataFromSVN.class),
 	;
 	
 	/**
