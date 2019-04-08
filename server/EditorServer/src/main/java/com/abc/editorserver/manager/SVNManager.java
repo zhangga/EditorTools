@@ -1,6 +1,7 @@
 package com.abc.editorserver.manager;
 
 import com.abc.editorserver.config.EditorConfig;
+import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.support.LogEditor;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
@@ -23,9 +24,11 @@ import java.util.Date;
  */
 public class SVNManager {
 
-    private static SVNClientManager client;
+    private SVNManager() {}
 
+    private static SVNClientManager client;
     private static SVNURL svnurl;
+    private static User currUpdatingUser;
 
     /**
      * 初始化SVN
@@ -66,6 +69,22 @@ public class SVNManager {
             init();
         }
         return client;
+    }
+
+    /**
+     * 获取当前正在进行更新操作的用户
+     * @return
+     */
+    public static User getCurrUpdatingUser() {
+        return currUpdatingUser;
+    }
+
+    /**
+     * 设置当前正在进行更新操作的用户
+     * @param user
+     */
+    public static void setCurrUpdatingUser(User user) {
+        currUpdatingUser = user;
     }
 
     /**
