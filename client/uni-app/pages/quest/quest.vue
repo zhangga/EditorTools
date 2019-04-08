@@ -1,7 +1,7 @@
 <template>
 	<view>
 		<van-row>
-			<van-col span="10">
+			<van-col class="quest-select">
 				<van-tree-select
 					:items="items"
 					:main-active-index="mainActiveIndex"
@@ -11,7 +11,7 @@
 					@itemclick="onItemClick"
 				/>
 			</van-col>
-			<van-col span="10">
+			<van-col class="quest-details">
 				<van-tabs v-model="activeTab">
 					<van-tab v-for="index in 4" :title="'tab' + index">
 						content of tab {{ index }}
@@ -68,5 +68,11 @@
 </script>
 
 <style>
+	.quest-select {
+		width: 30%;
+	}
 	
+	.quest-details {
+		width: 70%;
+	}
 </style>
