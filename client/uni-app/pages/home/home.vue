@@ -96,7 +96,8 @@
 					title: '更新中...',
 					mask: true,
 					icon: 'none',
-				})
+				});
+				
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
@@ -108,16 +109,26 @@
 							uni.showToast({
 								title: '更新成功！',
 								icon: 'none',
-								duration: 2000
+								mask: true,
+								duration: 1500
 							});
 						}
 						else {
 							uni.showToast({
-								title: '更新失败！',
+								title: res.data['desc'],
 								icon: 'none',
-								duration: 2000
+								mask: true,
+								duration: 1500
 							});
 						}
+					},
+					fail: res => {
+						uni.hideLoading();
+						uni.showToast({
+							title: '操作超时，更新失败！',
+							icon: 'none',
+							duration: 2000
+						});
 					}
 				});
 			}

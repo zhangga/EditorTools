@@ -13,5 +13,6 @@ public class EditorConst {
     public static final String RET = "ret";
     public static final String TOKEN = "token";
     public static final String RESULT_OK = "1";
+    public static final String RESULT_FAILED = "0";
 
 }
