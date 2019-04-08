@@ -272,17 +272,16 @@ public class DataManager {
                 }
 
                 Map<String, String> mapAll = JedisManager.getInstance().hgetAll(conf.getRedis_table());
-                FileInputStream fis = new FileInputStream(fileName);
                 XSSFWorkbook workbook = new XSSFWorkbook();
                 XSSFSheet sheet  = workbook.createSheet(sheetName);
                 String[] defaultName = ExcelManager.getInstance().getDefaultNames();
                 int rowCount = 0;
-                for(String name:defaultName){
+                for(String name : defaultName) {
                     String value = mapAll.get(name);
                     makeRow(value, sheet, rowCount++, conf.getRedis_table());
                     mapAll.remove(name);
                 }
-                for(String key:mapAll.keySet()){
+                for(String key : mapAll.keySet()) {
                     String value = mapAll.get(key);
                     makeRow(value, sheet, rowCount++, conf.getRedis_table());
                 }
