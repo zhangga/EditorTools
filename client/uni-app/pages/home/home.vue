@@ -2,12 +2,16 @@
 	<view>
 		<view style="margin-bottom: 10px">
 			<el-row>
-				<el-col :span="18">
+				<el-col :span="8">
 					<el-button type="primary" round @click="refreshTableData">更新服务器表格数据</el-button>
 				</el-col>
 
-				<el-col :span="6">
+				<el-col :span="12">
 					<el-input placeholder="搜索表格" v-model="filters[0].value"></el-input>
+				</el-col>
+				
+				<el-col :span="4">
+					<el-button type="primary" icon="el-icon-share" @click="onAbout"></el-button>
 				</el-col>
 			</el-row>
 		</view>
@@ -91,6 +95,14 @@
 				this.selectedRows = rows;
 				console.log(this.selectedRows.length);
 			},
+			onAbout: function() {
+				uni.navigateTo({
+						url: "../about/about",
+						success: res => {},
+						fail: () => {},
+						complete: () => {}
+				})
+			},
 			refreshTableData: function (tableName) {
 				uni.showLoading({
 					title: '更新中...',
@@ -143,5 +155,9 @@
 	
 	.el-col:last-child {
 		padding-right: 25upx;
+	}
+	
+	.el-input {
+		width: 45%;
 	}
 </style>
