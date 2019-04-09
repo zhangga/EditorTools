@@ -38,7 +38,7 @@
 		</view>
 		
 		<view>
-			<textInput tableName='NPC' :keys=["sn","name"] placeholder='测试'></textInput>
+			<textInput tableName='NPC' :keys='NpcKeys' placeholder='测试'></textInput>
 		</view>
 	</view>
 </template>
