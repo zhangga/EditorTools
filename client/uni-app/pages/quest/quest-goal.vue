@@ -1,15 +1,23 @@
 <template>
 	<view class="content">
 		<el-row :gutter="12">
-			<el-col :span="8">
-				<el-card shadow="hover">
+			<el-col>
+				<el-card shadow="hover" class="box-card1">
+					<el-form label-width="100px">
+						<el-form-item label="任务限时(秒)">
+							<el-input placeholder="时间限制" v-model="timeLimit" clearable></el-input>
+						</el-form-item>
+						<el-form-item label="显示时间信息">
+							<el-checkbox v-model="showTimeLimit" disabled></el-checkbox>
+						</el-form-item>
+					</el-form>
 					<el-checkbox v-model="canAutomaticDeliver">【可交】后自动完成</el-checkbox>
 				</el-card>
 			</el-col>
 		</el-row>
 		<el-row :gutter="12">
-			<el-col :span="20">
-				<el-card shadow="hover" class="box-card">
+			<el-col>
+				<el-card shadow="hover" class="box-card2">
 					<div slot="header" class="clearfix">
 						<span>任务目标</span>
 						<el-switch style="display: block; float: right; padding-top: 20upx; padding-right: 20upx"
@@ -30,6 +38,8 @@
 			return {
 				canAutomaticDeliver: false,
 				goalNull: true,
+				timeLimit: 0,
+				showTimeLimit: true
 			};
 		},
 		methods: {
@@ -43,7 +53,6 @@
 <style>
   .content {
 	padding-top: 30upx;
-	padding-left: -20upx;
   }
   .el-row {
 	margin-bottom: 10upx;
@@ -51,7 +60,10 @@
 	  margin-bottom: 0;
 	}
   }
-  .box-card {
+  .box-card1 {
+    width: 200upx;
+  }
+  .box-card2 {
     width: 400upx;
   }
 </style>
