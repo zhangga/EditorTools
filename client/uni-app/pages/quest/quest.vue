@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<el-container v-if="dataLoadComplete" class="nav-bar">
+		<el-container style="height: 500upx" v-if="dataLoadComplete" class="nav-bar">
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
 				<el-menu 
 					:default-openeds="['1']"
