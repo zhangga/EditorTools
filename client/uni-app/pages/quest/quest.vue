@@ -19,13 +19,11 @@
 			</el-aside>
 			
 			<el-container>
-				<el-tabs v-model="activeTab" class="quest-details" v-for="(item, index) in tabConfig">
-					<el-tab-pane :label='item' :name='item'>
-						<view v-if="index == 1"><quest-prop/></view>
-						<view v-if="index == 2"><quest-acpt/></view>
-						<view v-if="index == 3"><quest-goal/></view>
-						<view v-if="index == 4"><quest-comp/></view>
-					</el-tab-pane>
+				<el-tabs v-model="activeTab" class="quest-details">
+					<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'><quest-prop/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'><quest-acpt/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'><quest-goal/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'><quest-comp/></el-tab-pane>
 				</el-tabs>
 			</el-container>
 		</el-container>
@@ -99,8 +97,10 @@
 		height: 100%;
 		border: 1px solid #eee
 	}
-	
 	.quest-details {
-		width: 70%;
+		margin-left: 3%;
+		width: 94%;
+		margin-left: 3%;
 	}
+
 </style>
