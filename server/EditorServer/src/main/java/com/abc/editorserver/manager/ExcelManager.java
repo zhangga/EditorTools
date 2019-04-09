@@ -3,6 +3,9 @@ package com.abc.editorserver.manager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ExcelManager {
 
     private ExcelManager(){}
@@ -18,6 +21,7 @@ public class ExcelManager {
     private static ExcelManager instance;
     private String[] defaultNames;
     private ExcelConfig[] configs;
+    private Map<String, ExcelConfig> configMap;
     private ExcelTrigger[] triggers;
     private String[] EnumQuestType;
 
@@ -27,12 +31,10 @@ public class ExcelManager {
      * @return
      */
     public ExcelConfig getConfig(String tableName) {
-        for (ExcelConfig config : configs) {
-            if (config.getRedis_table().toUpperCase().equals(tableName.toUpperCase())) {
-                return config;
-            }
+        if (tableName == null) {
+            return null;
         }
-        return null;
+        return configMap.get(tableName.toUpperCase());
     }
 
     public ExcelConfig[] getConfigs() {
@@ -41,6 +43,11 @@ public class ExcelManager {
 
     public void setConfigs(ExcelConfig[] configs) {
         this.configs = configs;
+        Map<String, ExcelConfig> temp = new HashMap<>();
+        for (ExcelConfig config : this.configs) {
+            temp.put(config.getRedis_table().toUpperCase(), config);
+        }
+        this.configMap = temp;
     }
 
     public String[] getDefaultNames() {

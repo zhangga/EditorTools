@@ -419,4 +419,44 @@ public class DataManager {
             return null;
         }
     }
+
+    /**
+     * 更新数据表数据
+     * @param table
+     * @param sn
+     * @param field
+     * @param value
+     * @return
+     */
+    public int updateTableData(String table, String sn, String field, String value) {
+        ExcelConfig config = ExcelManager.getInstance().getConfig(table);
+        if (config == null) {
+            return -1;
+        }
+        String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
+        JSONObject jo = null;
+        if (json == null) {
+            jo = new JSONObject();
+        }
+        else {
+            jo = JSON.parseObject(json);
+        }
+        jo.put(field, value);
+        JedisManager.getInstance().hset(config.getRedis_table(), sn, jo.toJSONString());
+        return 1;
+    }
+
+    /**
+     * 获取数据表某条数据
+     * @param tableName
+     * @return
+     */
+    public String getTableDataBySn(String tableName, String sn) {
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
+        if (config == null) {
+            return null;
+        }
+        String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
+        return json;
+    }
 }

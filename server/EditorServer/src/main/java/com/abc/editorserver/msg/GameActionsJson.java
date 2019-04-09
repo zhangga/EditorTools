@@ -9,6 +9,8 @@ import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
 import com.abc.editorserver.module.excel.GetTableDataAction;
 import com.abc.editorserver.module.excel.GetAllQuestBriefAction;
+import com.abc.editorserver.module.excel.UpdateTableDataAction;
+import com.abc.editorserver.module.excel.GetTableDataBySnAction;
 
 /**
  * 消息注册类
@@ -23,6 +25,8 @@ public enum GameActionsJson {
 	GetTableData("获取表数据", 2, GetTableDataAction.class),
 	GetAllQuestBrief("获取所有任务的简述", 3, GetAllQuestBriefAction.class),
 	UpdateTableDataFromSVN("从SVN更新表格数据", 4, UpdateTableDataFromSVN.class),
+	GetTableDataBySn("获取某条数据", 5, GetTableDataBySnAction.class),
+	UpdateTableData("更新数据表数据", 6, UpdateTableDataAction.class),
 	;
 	
 	/**

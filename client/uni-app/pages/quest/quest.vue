@@ -15,7 +15,10 @@
 							</el-badge>
 						</template>
 						<el-menu-item-group v-for="subIndex in items[index - 1].children.length">
-							<el-menu-item :index="String(index) + '.'+ String(subIndex)">{{items[index - 1].children[subIndex - 1]['text']}}</el-menu-item>
+							<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
+							 @click="onItemClick">
+								{{items[index - 1].children[subIndex - 1]['text']}}
+							</el-menu-item>
 						</el-menu-item-group>
 					</el-submenu>
 				</el-menu>
@@ -48,9 +51,10 @@
 				tabConfig: [],
 				items: [],
 				mainActiveIndex: 0,
-				activeId: 1,
+				activeSn: 0,
 				activeTab: 0,
-				dataLoadComplete: false
+				dataLoadComplete: false,
+				questData: {}
 			};
 		},
 		computed: {
@@ -73,8 +77,25 @@
 			onNavClick: function(index) {
 				this.mainActiveIndex = index;
 			},
-			onItemClick: function(data) {
-				this.activeId = data.id;
+			onItemClick: function(e) {
+				let sn = e.index.substring(e.index.lastIndexOf('.')+1,e.index.length)
+				this.activeSn = sn
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.get_table_data_by_sn(this.$store.state.token, 'QUEST', this.activeSn),
+					success: res => {
+						this.questData = JSON.parse(res.data['data'])
+						console.log(this.questData['questName'])
+					},
+					fail: res => {
+						uni.showToast({
+							title: '获取不到对应的任务数据！',
+							icon: 'none',
+							duration: 2000
+						});
+					}
+				});
 			},
 			onLoadQuestBrief: function() {
 				uni.request({

@@ -102,6 +102,10 @@ public class JedisManager {
         return getResource().hset(key, field, value);
     }
 
+    public long hsetNx(String key, String field, String value) {
+        return getResource().hsetnx(key, field, value);
+    }
+
     public long hdel(String key, String field) {
         return getResource().hdel(key, field);
     }

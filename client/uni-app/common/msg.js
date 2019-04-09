@@ -44,6 +44,14 @@ export default {
 			'token': token
 		};
 	},
+	get_table_data_by_sn(token, table, sn) {
+		return {
+			'cmd': 5,
+			'token': token,
+			'table': table,
+			'sn': sn
+		};
+	},
 	// 更新任务表数据
 	update_quest_data(token, sn, field, value) {
 		return update_table_data(token, 'QUEST', sn, field, value);
@@ -51,7 +59,7 @@ export default {
 	// 更新数据表数据
 	update_table_data(token, table, sn, field, value) {
 		return {
-			'cmd': 5,
+			'cmd': 6,
 			'token': token,
 			'table': table,
 			'sn': sn,
