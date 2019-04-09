@@ -1,41 +1,41 @@
 <template>
 	<view>
-		<van-row>
-			<van-col class="quest-select">
-				<van-tree-select
-					:items="items"
-					:main-active-index="mainActiveIndex"
-					:active-id="activeId"
-					:height=1000
-					@navclick="onNavClick"
-					@itemclick="onItemClick"
-				/>
-			</van-col>
-			<van-col class="quest-details">
-				<van-tabs v-model="activeTab">
-					<van-tab v-for="index in tabConfig.length" :title="tabConfig[index-1]">
-						<view v-if="index == 1">
-							<quest-prop/>
-						</view>
-						<view v-if="index == 2">
-							<quest-acpt/>
-						</view>
-						<view v-if="index == 3">
-							<quest-goal/>
-						</view>
-						<view v-if="index == 4">
-							<quest-comp/>
-						</view>
-					</van-tab>
-				</van-tabs>
-			</van-col>
-		</van-row>
+		<el-container v-if="dataLoadComplete" class="nav-bar">
+			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
+				<el-menu 
+					default-active="1" 
+					active-text-color="#ffd04b" 
+					v-for="index in items.length">
+					<el-submenu :index='String(index)'>
+						<template slot="title">
+							<i class="el-icon-menu"></i>
+							<span>{{items[index - 1]['text']}}</span>
+						</template>
+						<el-menu-item-group v-for="subIndex in items[index - 1].children.length">
+							<el-menu-item :index="String(index) + '.'+ String(subIndex)">{{items[index - 1].children[subIndex - 1]['text']}}</el-menu-item>
+						</el-menu-item-group>
+					</el-submenu>
+				</el-menu>
+			</el-aside>
+			
+			<el-container>
+				<el-tabs v-model="activeTab" class="quest-details" v-for="(item, index) in tabConfig">
+					<el-tab-pane :label='item' :name='item'>
+						<view v-if="index == 1"><quest-prop/></view>
+						<view v-if="index == 2"><quest-acpt/></view>
+						<view v-if="index == 3"><quest-goal/></view>
+						<view v-if="index == 4"><quest-comp/></view>
+					</el-tab-pane>
+				</el-tabs>
+			</el-container>
+		</el-container>
 	</view>
 </template>
 
 <script>
 	import msg from '../../common/msg.js'
 	import config from '../../common/config.js'
+	
 	import questProp from './quest-prop.vue'
 	import questAcpt from './quest-acpt.vue'
 	import questGoal from './quest-goal.vue'
@@ -49,6 +49,7 @@
 				mainActiveIndex: 0,
 				activeId: 1,
 				activeTab: 0,
+				dataLoadComplete: false
 			};
 		},
 		computed: {
@@ -59,32 +60,33 @@
 			questGoal,
 			questComp
 		},
-		onLoad() {
+		onLoad: function() {
 			// 任务页签的配置
 			this.tabConfig = config.ExcelConfig()['QuestTab'];
 			this.onLoadQuestBrief();
 		},
 		methods: {
-			onNavClick(index) {
+			onNavClick: function(index) {
 				this.mainActiveIndex = index;
 			},
-			onItemClick(data) {
+			onItemClick: function(data) {
 				this.activeId = data.id;
 			},
-			onLoadQuestBrief() {
+			onLoadQuestBrief: function() {
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
 					data: msg.get_all_quest_brief(this.$store.state.token),
 					success: res => {
-						this.items = res.data['data']
+						this.items = res.data['data'];
 						// 排序
 						for (let i = 0; i < this.items.length; i++) {
 							let children = this.items[i]['children']
 							children.sort(function(a, b) {
-								return a['id'] - b['id']
-							})
+								return a['id'] - b['id'];
+							});
 						}
+						this.dataLoadComplete = true;
 					}
 				});
 			}
@@ -93,8 +95,9 @@
 </script>
 
 <style>
-	.quest-select {
-		width: 30%;
+	.nav-bar {
+		height: 100%;
+		border: 1px solid #eee
 	}
 	
 	.quest-details {
