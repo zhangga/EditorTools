@@ -77,24 +77,24 @@
 	    "backgroundColor": "#ffffff",
 	    "list": [{
 	            "pagePath": "pages/property/property",
-	            "iconPath": "static/icon/index.png",
-	            "selectedIconPath": "static/icon/indexsl.png",
+	            "iconPath": "static/tab_quest_prop.png",
+	            "selectedIconPath": "static/tab_quest_prop.png",
 	            "text": "任务属性"
 	        }, {
 	            "pagePath": "pages/accept/accept",
-	            "iconPath": "static/icon/find.png",
-	            "selectedIconPath": "static/icon/findsl.png",
+	            "iconPath": "static/tab_quest_acpt.png",
+	            "selectedIconPath": "static/tab_quest_acpt.png",
 	            "text": "任务接取"
 	        },
 	        {
 	            "pagePath": "pages/target/target",
-	            "iconPath": "static/icon/nav.png",
-	            "selectedIconPath": "static/icon/navsl.png",
+	            "iconPath": "static/tab_quest_goal.png",
+	            "selectedIconPath": "static/tab_quest_goal.png",
 	            "text": "任务目标"
 	        }, {
 	            "pagePath": "pages/complete/complete",
-	            "iconPath": "static/icon/person.png",
-	            "selectedIconPath": "static/icon/personsl.png",
+	            "iconPath": "static/tab_quest_cmpt.png",
+	            "selectedIconPath": "static/tab_quest_cmpt.png",
 	            "text": "任务完成"
 	        }
 	    ]

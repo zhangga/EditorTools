@@ -8,10 +8,10 @@
 		
 		<div class="block">
 			<el-timeline>
-				<el-timeline-item v-for="index in vers.length" :timestamp="vers[index-1]['time']" placement="top">
+				<el-timeline-item v-for="tlIndex in vers.length" :timestamp="vers[tlIndex-1]['time']" placement="top">
 					<el-card>
-						<h4>{{ vers[index-1]['log'] }}</h4>
-						<p>{{ vers[index-1]['name'] }} 提交于 {{ vers[index-1]['time'] }}</p>
+						<h4>{{ vers[tlIndex-1]['log'] }}</h4>
+						<p>{{ vers[tlIndex-1]['name'] }} 提交于 {{ vers[tlIndex-1]['time'] }}</p>
 					</el-card>
 				</el-timeline-item>
 			</el-timeline>
