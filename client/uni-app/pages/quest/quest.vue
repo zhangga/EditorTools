@@ -9,7 +9,9 @@
 					<el-submenu :index='String(index)'>
 						<template slot="title">
 							<i class="el-icon-menu"></i>
-							<span>{{items[index - 1]['text']}}</span>
+							<el-badge :value="items[index - 1].children.length" type="primary">
+								<span>{{items[index - 1]['text']}}</span>
+							</el-badge>
 						</template>
 						<el-menu-item-group v-for="subIndex in items[index - 1].children.length">
 							<el-menu-item :index="String(index) + '.'+ String(subIndex)">{{items[index - 1].children[subIndex - 1]['text']}}</el-menu-item>
