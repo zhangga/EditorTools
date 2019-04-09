@@ -10,9 +10,8 @@
 					<el-submenu :index='String(index)'>
 						<template slot="title">
 							<i class="el-icon-menu"></i>
-							<el-badge :value="items[index - 1].children.length" type="primary">
-								<span>{{items[index - 1]['text']}}</span>
-							</el-badge>
+							<span>{{items[index - 1]['text']}}</span>
+							<span class="dot">{{items[index - 1].children.length > 999 ? "999+" : items[index - 1].children.length}}</span>
 						</template>
 						<el-menu-item-group v-for="subIndex in items[index - 1].children.length">
 							<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
@@ -130,6 +129,22 @@
 		margin-left: 3%;
 		width: 94%;
 		margin-left: 3%;
+	}
+	
+	.dot {
+		background:#409EFF; 
+		width: 22px;
+		height: 22px;
+		border-radius: 50%; 
+		
+		font-size: 8px; 
+		color: #FFFFFF;
+		text-align: center;
+		line-height: 22px;
+		
+		position: absolute;
+		top: 30%;
+		right: 20%;
 	}
 
 </style>
