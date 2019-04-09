@@ -3,9 +3,10 @@
 		<el-container v-if="dataLoadComplete" class="nav-bar">
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
 				<el-menu 
-					default-active="1" 
+					:default-openeds="['1']"
 					active-text-color="#ffd04b" 
-					v-for="index in items.length">
+					v-for="index in items.length"
+					@open="handleOpen">
 					<el-submenu :index='String(index)'>
 						<template slot="title">
 							<i class="el-icon-menu"></i>
@@ -66,6 +67,9 @@
 			this.onLoadQuestBrief();
 		},
 		methods: {
+			handleOpen: function(key, keyPath) {
+				console.log(key);
+			},
 			onNavClick: function(index) {
 				this.mainActiveIndex = index;
 			},
@@ -86,6 +90,8 @@
 								return a['id'] - b['id'];
 							});
 						}
+						
+						this.activeTab = this.tabConfig[0];
 						this.dataLoadComplete = true;
 					}
 				});
