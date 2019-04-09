@@ -85,7 +85,7 @@
 				var t_config = config.GetExcelConfig(excelName, sheetName)
 				console.log("打开表: " + t_config['excel'])
 				uni.navigateTo({
-						url: "../quest/quest",
+						url: t_config['navigateTo']+"?table_name="+t_config['redis_table'],
 						success: res => {},
 						fail: () => {},
 						complete: () => {}
