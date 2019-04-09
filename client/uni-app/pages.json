@@ -12,7 +12,9 @@
         }
 		,{
             "path" : "pages/home/home",
-            "style" : {}
+            "style" : {
+				"navigationBarTitleText": "首页"
+			}
         }
 		,{
             "path" : "pages/table/table",
@@ -61,6 +63,12 @@
 		    "path" : "pages/quest/quest-comp",
 		    "style" : {}
 		}
+        ,{
+            "path" : "pages/about/about",
+            "style" : {
+				"navigationBarTitleText": "关于我们"
+			}
+        }
     ],
 	 "tabBar": {
 	    "color": "#cdcdcd",

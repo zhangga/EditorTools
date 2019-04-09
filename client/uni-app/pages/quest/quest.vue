@@ -21,10 +21,10 @@
 			<el-container>
 				<el-tabs v-model="activeTab" class="quest-details" v-for="(item, index) in tabConfig">
 					<el-tab-pane :label='item' :name='item'>
-						<view v-if="index == 1"><quest-prop/></view>
-						<view v-if="index == 2"><quest-acpt/></view>
-						<view v-if="index == 3"><quest-goal/></view>
-						<view v-if="index == 4"><quest-comp/></view>
+						<view v-if="index == 0"><quest-prop/></view>
+						<view v-if="index == 1"><quest-acpt/></view>
+						<view v-if="index == 2"><quest-goal/></view>
+						<view v-if="index == 3"><quest-comp/></view>
 					</el-tab-pane>
 				</el-tabs>
 			</el-container>
