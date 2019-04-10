@@ -36,10 +36,15 @@
 			<el-autocomplete v-model="afterEndPlot" :fetch-suggestions="querySearchPlot" placeholder="结束后对话" @select="handleSelect">
 			</el-autocomplete>
 		</view>
+		
+		<view>
+			<textInput tableName='NPC' :keys='NpcKeys' placeholder='测试'></textInput>
+		</view>
 	</view>
 </template>
 
 <script>
+	import textInput from '../component/textInput.vue'
 	import msg from '../../common/msg.js'
 	export default {
 		data() {
@@ -57,7 +62,12 @@
 				beforeAcceptPlot: "",
 				afterAcceptPlot: "",
 				beforeEndPlot: "",
-				afterEndPlot: ""
+				afterEndPlot: "",
+				tablePlot:"PLOT",
+				NpcKeys:[
+					"sn",
+					"name"
+				]
 			};
 		},
 		methods: {
@@ -117,7 +127,7 @@
 			},
 			createStateFilter(queryString) {
 				return (state) => {
-					return (state.value.indexOf(queryString) === 0);
+					return (state.value.indexOf(queryString) !== -1);
 				};
 			},
 			handleSelect(item) {
@@ -129,6 +139,9 @@
 		},
 		onLoad() {
 
+		},
+		components:{
+			textInput
 		}
 	}
 </script>

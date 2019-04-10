@@ -69,6 +69,10 @@
 				"navigationBarTitleText": "关于我们"
 			}
         }
+        ,{
+            "path" : "pages/component/textInput",
+            "style" : {}
+        }
     ],
 	 "tabBar": {
 	    "color": "#cdcdcd",
