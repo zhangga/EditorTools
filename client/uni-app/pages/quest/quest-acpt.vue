@@ -1,5 +1,5 @@
 <template>
-	<view style="flex-direction: column; flex: 1;">
+	<view style="flex-direction: column;">
 		<view>
 			<el-select v-model="career" size="medium">
 				<el-option v-for="item in careers" :key="item" :value="item">
@@ -37,9 +37,8 @@
 			</el-autocomplete>
 		</view>
 		
-		<view>
-			<textInput tableName='NPC' :keys='NpcKeys' placeholder='测试'></textInput>
-		</view>
+		<textInput :datas="NPC" placeholder='测试' :method='loadNpc' :select="select"></textInput>
+		<button @click="show">保存</button>
 	</view>
 </template>
 
@@ -64,50 +63,55 @@
 				beforeEndPlot: "",
 				afterEndPlot: "",
 				tablePlot:"PLOT",
-				NpcKeys:[
-					"sn",
-					"name"
-				]
+				test:""
 			};
 		},
 		methods: {
-			loadAll() {
-				uni.request({
-					url: msg.url(),
-					method: 'GET',
-					data: msg.get_table_data(this.$store.state.token, "NPC"),
-					success: res => {
-						var items = res.data['data']
-						for (let i = 0; i < items.length; i++) {
-							var item = JSON.parse(items[i])
-							this.NPC[i] = {
-								value: item.sn + ':' + item.name
-							};
-						}
-					},
-					fail: () => {
-
-					},
-					complete: () => {}
-				});
-				uni.request({
-					url: msg.url(),
-					method: 'GET',
-					data: msg.get_table_data(this.$store.state.token, "PLOT"),
-					success: res => {
-						var items = res.data['data']
-						for (let i = 0; i < items.length; i++) {
-							var item = JSON.parse(items[i])
-							this.Plot[i] = {
-								value: item.sn + ':' + item["1"]
-							};
-						}
-					},
-					fail: () => {
-				
-					},
-					complete: () => {}
-				});
+			loadNpc() {
+				if(this.NPC.length === 0){
+					console.log("loadNpc")
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.get_table_data(this.$store.state.token, "NPC"),
+						success: res => {
+							var items = res.data['data']
+							for (let i = 0; i < items.length; i++) {
+								var item = JSON.parse(items[i])
+								this.NPC[i] = {
+									value: item.sn + ':' + item.name
+								};
+							}
+						},
+						fail: () => {
+					
+						},
+						complete: () => {}
+					});
+				}
+			},
+			loadPlot(){
+				if(this.Plot.length == 0){
+					console.log("loadPlot")
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.get_table_data(this.$store.state.token, "PLOT"),
+						success: res => {
+							var items = res.data['data']
+							for (let i = 0; i < items.length; i++) {
+								var item = JSON.parse(items[i])
+								this.Plot[i] = {
+									value: item.sn + ':' + item["1"]
+								};
+							}
+						},
+						fail: () => {
+					
+						},
+						complete: () => {}
+					});
+				}
 			},
 			querySearchNpc(queryString, cb) {
 				var Npc = this.NPC;
@@ -132,10 +136,13 @@
 			},
 			handleSelect(item) {
 				console.log(item);
+			},
+			show(){
+				console.log(this.test)
+			},
+			select(item){
+				this.test = item.value
 			}
-		},
-		mounted() {
-			this.loadAll();
 		},
 		onLoad() {
 

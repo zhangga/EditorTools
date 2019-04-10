@@ -1,6 +1,6 @@
 <template>
-	<view @click="loadAll">
-		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="handleSelect" :placeholder="placeholder">
+	<view @click="method">
+		<el-autocomplete v-model="result" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
 		</el-autocomplete>
 	</view>
 </template>
@@ -11,17 +11,12 @@
 		data() {
 			return {
 				Items:[],
-				value:"",
+				result:''
 			};
 		},
 		props:{
-			//数据源表名
-			tableName:{
-				type:String,
-				required:true
-			},
-			//显示的信息，一般是sn+中文
-			keys:{
+			//绑定数据
+			datas:{
 				type:Array,
 				required:true
 			},
@@ -29,11 +24,20 @@
 			placeholder:{
 				type:String,
 				required:true
+			},
+			method:{
+				type:Function,
+				required:true
+			},
+			select:{
+				type:Function,
+				required:true
 			}
 		},
 		methods: {
 			loadAll() {
-				if(this.Items.length === 0){
+				if(this.datas.length === 0){
+					console.log("load")
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
@@ -59,7 +63,7 @@
 				}
 			},
 			querySearch(queryString, cb) {
-				var items = this.Items;
+				var items = this.datas;
 				var results = queryString ? items.filter(this.createStateFilter(queryString)) : items;
 				clearTimeout(this.timeout);
 				this.timeout = setTimeout(() => {
@@ -72,7 +76,7 @@
 				};
 			},
 			handleSelect(item) {
-				console.log(item);
+				this.$emit("",item.value)
 			}
 		}
 	}
