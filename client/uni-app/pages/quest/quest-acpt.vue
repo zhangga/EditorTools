@@ -2,33 +2,41 @@
 	<view style="flex-direction: column;">
 		<el-form ref="form" :model="form" label-width="100px">
 			<el-form-item label="接受NPC">
-				<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
+				<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :model='startNpc' id="startNPC">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束NPC">
-				<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :value='endNpc' id="endNPC">
+				<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :model='endNpc' id="endNPC">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="接受前对话">
-				<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :value='beforeAcceptPlot' id="beforeAcceptPlot">
+				<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :model='beforeAcceptPlot' id="beforeAcceptPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="接受后对话">
-				<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :value='afterAcceptPlot' id="afterAcceptPlot">
+				<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :model='afterAcceptPlot' id="afterAcceptPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束前对话">
-				<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :value='beforeEndPlot' id="beforeEndPlot">
+				<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :model='beforeEndPlot' id="beforeEndPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束后对话">
-				<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :value='afterEndPlot' id="afterEndPlot">
+				<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :model='afterEndPlot' id="afterEndPlot">
 				</textInput>
+			</el-form-item>
+			
+			<el-form-item>
+				<el-checkbox v-model="showAcceptedEffect">是否显示接受特效</el-checkbox>
+			</el-form-item>
+			
+			<el-form-item>
+				<el-checkbox v-model="showFinishedEffect">是否显示完成任务特效</el-checkbox>
 			</el-form-item>
 		</el-form>
 		<view>
@@ -38,7 +46,7 @@
 			</el-select>
 		</view>
 
-		<button @click="show" v-text="tableRowData">保存</button>
+		<button @click="show" :text="tableRowData">保存</button>
 	</view>
 </template>
 
@@ -64,7 +72,12 @@
 				beforeEndPlot: "",
 				afterEndPlot: "",
 				tablePlot:"PLOT",
-				test:""
+				showAcceptedEffect: false,
+				showFinishedEffect: false,
+
+				/* 全局相关 */
+				hasSetDefaultValue: false,
+				prevTableRowData: null
 			};
 		},
 		props:['tableRowData'],
@@ -74,7 +87,19 @@
 		},
 		updated() {
 			console.log("Updated")
-			this.refreshDefaultValues()
+			// 如果是用户输入触发的更新，不刷新默认值
+			if (this.hasSetDefaultValue) {
+				// 如果是由于切换任务导致的更新，刷新默认值
+				if (this.prevTableRowData != this.tableRowData) {
+					this.refreshDefaultValues()
+					this.prevTableRowData = this.tableRowData
+				}
+			} else {
+				// 如果还未设置过默认值，执行设置
+				this.refreshDefaultValues()
+				this.hasSetDefaultValue = true;
+				this.prevTableRowData = this.tableRowData;
+			}
 		},
 		methods: {
 			loadNpc() {
@@ -101,7 +126,7 @@
 				}
 			},
 			loadPlot(){
-				if(this.Plot.length == 0){
+				if(this.Plot.length === 0){
 					console.log("loadPlot")
 					uni.request({
 						url: msg.url(),
@@ -123,30 +148,6 @@
 					});
 				}
 			},
-			querySearchNpc(queryString, cb) {
-				var Npc = this.NPC;
-				var results = queryString ? Npc.filter(this.createStateFilter(queryString)) : Npc;
-				clearTimeout(this.timeout);
-				this.timeout = setTimeout(() => {
-					cb(results);
-				});
-			},
-			querySearchPlot(queryString, cb) {
-				var plot = this.Plot;
-				var results = queryString ? plot.filter(this.createStateFilter(queryString)) : plot;
-				clearTimeout(this.timeout);
-				this.timeout = setTimeout(() => {
-					cb(results);
-				});
-			},
-			createStateFilter(queryString) {
-				return (state) => {
-					return (state.value.indexOf(queryString) !== -1);
-				};
-			},
-			handleSelect(item) {
-				console.log(item);
-			},
 			show(){
 				console.log(this.startNpc)
 				console.log(this.endNpc)
@@ -154,9 +155,8 @@
 				console.log(this.afterAcceptPlot)
 				console.log(this.beforeEndPlot)
 				console.log(this.afterEndPlot)
-			},
-			select(item){
-				this.test = item.value
+				console.log(this.showAcceptedEffect)
+				console.log(this.showFinishedEffect)
 			},
 			setStartNPC(item){
 				this.startNpc = item.value
@@ -177,15 +177,39 @@
 				this.afterEndPlot = item.value
 			},
 			refreshDefaultValues(){
-				this.startNpc = this.tableRowData['acceptNPC']
-				this.endNpc = this.tableRowData['endNPC']
-				this.beforeAcceptPlot = this.tableRowData['beforeAcceptPlotId']
-				this.afterAcceptPlot = this.tableRowData['afterAcceptPlotId']
-				this.beforeEndPlot = this.tableRowData['beforeEndPlotId']
-				this.afterEndPlot = this.tableRowData['afterEndPlotId']
+				this.startNpc = this.findNPC(this.tableRowData['acceptNPC'])
+				this.endNpc = this.findNPC(this.tableRowData['endNPC'])
+				this.beforeAcceptPlot = this.findPlot(this.tableRowData['beforeAcceptPlotId'])
+				this.afterAcceptPlot = this.findPlot(this.tableRowData['afterAcceptPlotId'])
+				this.beforeEndPlot = this.findPlot(this.tableRowData['beforeEndPlotId'])
+				this.afterEndPlot = this.findPlot(this.tableRowData['afterEndPlotId'])
+				this.showAcceptedEffect = this.tableRowData['showAcceptedEffect'] !== '0'
+				this.showFinishedEffect = this.tableRowData['showFinishedEffect'] !== '0'
+			},
+			findNPC(NpcID){
+				if(NpcID == ''){
+					return NpcID
+				}
+				for(let i=0;i<this.NPC.length;i++){
+					if(this.NPC[i].value.indexOf(NpcID) === 0){
+						return this.NPC[i].value
+					}
+				}
+				return NpcID
+			},
+			findPlot(plotID){
+				if(plotID == ''){
+					return plotID
+				}
+				for(let i=0;i<this.Plot.length;i++){
+					if(this.Plot[i].value.indexOf(plotID) === 0){
+						return this.Plot[i].value
+					}
+				}
+				return plotID
 			}
 		},
-		onLoad() {
+		onLoad(){
 
 		},
 		components:{
@@ -196,7 +220,7 @@
 
 <style>
 	view {
-		border: #000000 solid 0upx;
+		border: #000000 solid 1upx;
 		font-size: 15upx;
 		margin: 0upx;
 
