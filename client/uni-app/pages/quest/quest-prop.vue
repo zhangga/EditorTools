@@ -79,6 +79,8 @@
 			</el-form>
 		</el-card>
 		
+		<!-- 用于触发数据同步与更新 -->
+		<span style="display:none"> {{tableRowData['questName']}} </span>
 	</view>
 </template>
 
@@ -117,13 +119,9 @@
 		},
 		props: ['tableRowData', 'questTypes'],
 		mounted: function() {
-			console.log("Mounted")
 			this.refreshDefaultValues()
 		},
-		updated: function() {
-			console.log("Updated")
-			console.log(this.tableRowData)
-			
+		updated: function() {	
 			// 如果是用户输入触发的更新，不刷新默认值
 			if (this.hasSetDefaultValue) {
 				// 如果是由于切换任务导致的更新，刷新默认值
