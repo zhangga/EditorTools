@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="result" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
+		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
 		</el-autocomplete>
 	</view>
 </template>
@@ -11,7 +11,6 @@
 		data() {
 			return {
 				Items:[],
-				result:''
 			};
 		},
 		props:{
@@ -31,6 +30,10 @@
 			},
 			select:{
 				type:Function,
+				required:true
+			},
+			value:{
+				type:String,
 				required:true
 			}
 		},
@@ -83,5 +86,7 @@
 </script>
 
 <style>
-
+	view{
+		height: 30upx;
+	}
 </style>
