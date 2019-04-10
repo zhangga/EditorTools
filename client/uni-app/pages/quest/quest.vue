@@ -12,18 +12,17 @@
 						</el-col>
 					</el-row>
 				</el-header>
-				<el-menu 
-					:default-openeds="['1']"
+				<el-menu
 					active-text-color="#ffd04b" 
-					v-for="index in items.length"
+					ref="menu"
 					@open="handleOpen">
-					<el-submenu :index='String(index)'>
+					<el-submenu v-for="index in items.length" :index='String(index)' >
 						<template slot="title">
 							<i class="el-icon-menu"></i>
 							<span>{{items[index - 1]['text']}}</span>
 							<span class="dot">{{items[index - 1].children.length > 999 ? "999+" : items[index - 1].children.length}}</span>
 						</template>
-						<el-menu-item-group v-for="subIndex in items[index - 1].children.length">
+						<el-menu-item-group v-for="subIndex in items[index - 1].children.length" :index="String(index)">
 							<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
 							 @click="onItemClick">
 								{{items[index - 1].children[subIndex - 1]['text']}}
@@ -37,7 +36,7 @@
 				<el-main>
 				<el-tabs v-model="activeTab" class="quest-details">
 					<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
-						<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes"/>
+						<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes" v-if="hasSelectedRowData"/>
 					</el-tab-pane>
 					<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'><quest-acpt v-bind:tableRowData="currSelectedQuestData"/></el-tab-pane>
 					<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'><quest-goal v-bind:tableRowData="currSelectedQuestData"/></el-tab-pane>
@@ -68,6 +67,7 @@
 				activeSn: 0,
 				activeTab: 0,
 				dataLoadComplete: false,
+				hasSelectedRowData: false,
 				questTypes: [],
 				currSelectedQuestData: null
 			};
@@ -93,14 +93,30 @@
 				this.mainActiveIndex = index;
 			},
 			onItemClick: function(e) {
-				let sn = e.index.substring(e.index.lastIndexOf('.') + 1, e.index.length)
-				this.activeSn = sn
+				// 解析点击项ID
+				var splittedIndex = e.index.split('.')
+				
+				console.log("当前顶级菜单" + splittedIndex[0])
+				
+				// 关闭之前展开的顶级菜单（保留当前激活项目对应的顶级菜单）
+				for (var i = 1; i <= this.items.length; i++) {
+					if (i != splittedIndex[0]) {
+						console.log("关闭顶级菜单" + i)
+						this.$refs.menu.close(String(i))
+					}
+					else {
+						this.$refs.menu.open(String(i))
+					}
+				}
+				
+				this.activeSn = splittedIndex[2]
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
 					data: msg.get_table_data_by_sn(this.$store.state.token, 'QUEST', this.activeSn),
 					success: res => {
 						this.currSelectedQuestData = JSON.parse(res.data['data'])
+						this.hasSelectedRowData = true
 					},
 					fail: res => {
 						uni.showToast({
