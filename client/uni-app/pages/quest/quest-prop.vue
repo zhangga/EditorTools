@@ -1,12 +1,13 @@
 <template>
 	<view>
+		<!-- 任务属性 -->
 		<el-card class="box-card">
 			<view slot="header" class="clearfix">
 				<span class="header">任务属性</span>
 			</view>
 			<el-form label-width="30upx">
 				<el-form-item label="任务名称">
-					<el-input placeholder="请输入String类型名称(对应questName)" v-model="inputQuestName" :prefex="tableRowData['questName']" id="questName">
+					<el-input placeholder="请输入String类型名称(对应questName)" v-model="inputQuestName" id="questName">
 					</el-input>
 				</el-form-item>
 				<el-form-item label="任务描述">
@@ -24,6 +25,7 @@
 			</el-form>
 		</el-card>
 		
+		<!-- 任务显示 -->
 		<el-card class="box-card">
 			<view slot="header" class="clearfix">
 				<span class="header">任务显示</span>
@@ -44,22 +46,39 @@
 			</el-form>
 		</el-card>
 		
+		<!-- 任务时间段 -->
 		<el-card class="box-card">
 			<view slot="header" class="clearfix">
 				<span class="header">任务时间段</span>
 			</view>
-			<el-form label-width="30upx">
-				<el-form-item label="发放时间段">
-					
+			<el-form>
+				<el-form-item label="发放时间段" label-width="40upx">
+					<el-date-picker
+					    v-model="selectedQuestAvailTime"
+					    type="datetimerange"
+					    range-separator="到"
+					    start-placeholder="开始时间"
+					    end-placeholder="结束时间">
+					</el-date-picker>
 				</el-form-item>
-				<el-form-item label="发放间隔">
-					
+				<el-form-item label="发放间隔" label-width="40upx">
+					<el-row>
+						<el-col :span="9">
+							<el-select v-model="selectedQuestAvailInterval" size="medium" id="questType" @change="onQuestAvaiIntervalChanged">
+								<el-option v-for="option in questAvailIntervalOptions" :key="option.id" :value="option.id" :label="option.desc"></el-option>
+							</el-select>
+						</el-col>
+						<el-col :span="9" v-if="selectedQuestAvailInterval == 3">
+							<el-input placeholder="请填写具体间隔秒数(单位:秒)" v-model="inputQuestAvailIntervalSeconds" id="questAvailIntervalSecond"></el-input>
+						</el-col>
+					</el-row>
 				</el-form-item>
 				<el-form-item>
 					<span class="text">【说明：发放时间段和发放时间间隔可以同时生效，也可单独生效。下拉内容含有每隔一天、每隔一星期、每隔一月、每隔一段时间。每隔一段时间需要策划填写后面的具体秒数。】</span>
 				</el-form-item>
 			</el-form>
 		</el-card>
+		
 	</view>
 </template>
 
@@ -80,8 +99,16 @@
 				selectedCanAutomaticDeliver: false,
 				selectedCanAutomaticAccept: false,
 				
-				/* 任务时间段相关 */
-				
+				/* 任务时间段相关 (暂无) */
+				selectedQuestAvailTime: [],
+				questAvailIntervalOptions: [
+					{"id": 0, "desc":"每隔一天"}, 
+					{"id": 1, "desc": "每隔一星期"}, 
+					{"id":2, "desc": "每隔一个月"}, 
+					{"id": 3, "desc": "每隔一段时间"}],
+				selectedQuestAvailInterval: '',
+				inputQuestAvailIntervalSeconds: '',
+				isIntervalOfSecondSelected: false,
 				
 				/* 全局相关 */
 				hasSetDefaultValue: false,
@@ -128,6 +155,9 @@
 				this.selectedCanAutomaticAccept = this.tableRowData['canAutomaticAccept'] == null ? false : (this.tableRowData['canAutomaticAccept'] == "TRUE")
 				this.selectedCanAutomaticDeliver = this.tableRowData['canAutomaticDeliver'] == null ? false : (this.tableRowData['canAutomaticDeliver'] == "TRUE")
 			},
+			onQuestAvaiIntervalChanged: function(value) {
+				this.selectedQuestAvailInterval = value
+			}
 		}
 	}
 </script>
