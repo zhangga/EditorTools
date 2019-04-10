@@ -35,14 +35,20 @@
 			};
 		},
 		props: ['tableRowData', 'questTypes'],
-		created: function() {
-			
+		mounted: function() {
+			console.log("Mounted")
+			this.refreshDefaultValues()
 		},
 		updated: function() {
-			console.log("Updated!")
-			document.getElementById("questName").defaultValue = this.tableRowData['questName']
-			document.getElementById("questDesc").defaultValue = this.tableRowData['questDescription']
+			console.log("Updated")
+			this.refreshDefaultValues()
 		},
+		methods: {
+			refreshDefaultValues: function() {
+				document.getElementById("questName").defaultValue = this.tableRowData['questName']
+				document.getElementById("questDesc").defaultValue = this.tableRowData['questDescription']
+			}
+		}
 	}
 </script>
 
