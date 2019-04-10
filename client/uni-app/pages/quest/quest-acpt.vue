@@ -2,32 +2,32 @@
 	<view style="flex-direction: column;">
 		<el-form ref="form" :model="form" label-width="100px">
 			<el-form-item label="接受NPC">
-				<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :model='startNpc' id="startNPC">
+				<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束NPC">
-				<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :model='endNpc' id="endNPC">
+				<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :value='endNpc' id="endNPC">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="接受前对话">
-				<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :model='beforeAcceptPlot' id="beforeAcceptPlot">
+				<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :value='beforeAcceptPlot' id="beforeAcceptPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="接受后对话">
-				<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :model='afterAcceptPlot' id="afterAcceptPlot">
+				<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :value='afterAcceptPlot' id="afterAcceptPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束前对话">
-				<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :model='beforeEndPlot' id="beforeEndPlot">
+				<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :value='beforeEndPlot' id="beforeEndPlot">
 				</textInput>
 			</el-form-item>
 			
 			<el-form-item label="结束后对话">
-				<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :model='afterEndPlot' id="afterEndPlot">
+				<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :value='afterEndPlot' id="afterEndPlot">
 				</textInput>
 			</el-form-item>
 			
