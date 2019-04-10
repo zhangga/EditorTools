@@ -1,3 +1,26 @@
+import Vue from 'vue'
+import msg from '../common/msg.js'
+import Element from 'element-ui'
+import store from '../store/index.js'
+Vue.use(Element)
+
+function updateDataField(table,sn,field,value){
+	uni.request({
+		url: msg.url(),
+		method: 'GET',
+		data: msg.update_table_data(store.state.token,table,sn,field,value),
+		success: res => {
+// 			Vue.prototype.$message({
+// 				message: '这是一条成功消息',
+// 				type: 'success'
+// 			});
+		},
+		fail: () => {
+			Vue.prototype.$message.error(table+'表'+sn+'行'+field+'字段保存失败')
+		},
+		complete: () => {}
+	});
+}
 function formatTime(time) {
 	if (typeof time !== 'number' || time < 0) {
 		return time
@@ -69,5 +92,6 @@ var dateUtils = {
 module.exports = {
 	formatTime: formatTime,
 	formatLocation: formatLocation,
-	dateUtils: dateUtils
+	dateUtils: dateUtils,
+	updateDataField: updateDataField,
 }

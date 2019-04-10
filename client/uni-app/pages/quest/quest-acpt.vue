@@ -37,7 +37,7 @@
 			</el-autocomplete>
 		</view>
 		
-		<textInput :datas="NPC" placeholder='测试' :method='loadNpc' :select="select"></textInput>
+		<textInput :datas="NPC" placeholder='测试' :method='loadNpc' :select="select" id="test123"></textInput>
 		<button @click="show">保存</button>
 	</view>
 </template>
@@ -45,6 +45,7 @@
 <script>
 	import textInput from '../component/textInput.vue'
 	import msg from '../../common/msg.js'
+	import util from '../../common/util.js'
 	export default {
 		data() {
 			return {
@@ -65,6 +66,15 @@
 				tablePlot:"PLOT",
 				test:""
 			};
+		},
+		props:['tableRowData'],
+		mounted() {
+			console.log("Mounted")
+			this.refreshDefaultValues()
+		},
+		updated() {
+			console.log("Updated")
+			this.refreshDefaultValues()
 		},
 		methods: {
 			loadNpc() {
@@ -138,10 +148,13 @@
 				console.log(item);
 			},
 			show(){
-				console.log(this.test)
+				console.log(this.tableRowData)
 			},
 			select(item){
 				this.test = item.value
+			},
+			refreshDefaultValues(){
+				document.getElementById("test123").defaultValue = this.tableRowData['questName']
 			}
 		},
 		onLoad() {
