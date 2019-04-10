@@ -1,7 +1,17 @@
 <template>
 	<view>
-		<el-container style="height: 500upx" v-if="dataLoadComplete" class="nav-bar">
+		<el-container style="height: 800upx" v-if="dataLoadComplete" class="nav-bar">
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
+				<el-header height="80px">
+					<el-row>
+						<el-col :span="8">
+							<span>任务菜单</span>
+						</el-col>
+						<el-col :span="15">
+							<el-cascader placeholder="按照名称/ID搜索" filterable style="position: absolute; right: 10upx"></el-cascader>
+						</el-col>
+					</el-row>
+				</el-header>
 				<el-menu 
 					:default-openeds="['1']"
 					active-text-color="#ffd04b" 
@@ -24,14 +34,19 @@
 			</el-aside>
 			
 			<el-container>
+				<el-main>
 				<el-tabs v-model="activeTab" class="quest-details">
-					<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'><quest-prop/></el-tab-pane>
-					<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'><quest-acpt/></el-tab-pane>
-					<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'><quest-goal/></el-tab-pane>
-					<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'><quest-comp/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
+						<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes"/>
+					</el-tab-pane>
+					<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'><quest-acpt v-bind:tableRowData="currSelectedQuestData"/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'><quest-goal v-bind:tableRowData="currSelectedQuestData"/></el-tab-pane>
+					<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'><quest-comp v-bind:tableRowData="currSelectedQuestData"/></el-tab-pane>
 				</el-tabs>
+				</el-main>
 			</el-container>
 		</el-container>
+
 	</view>
 </template>
 
@@ -53,7 +68,8 @@
 				activeSn: 0,
 				activeTab: 0,
 				dataLoadComplete: false,
-				questData: {}
+				questTypes: [],
+				currSelectedQuestData: null
 			};
 		},
 		computed: {
@@ -77,15 +93,14 @@
 				this.mainActiveIndex = index;
 			},
 			onItemClick: function(e) {
-				let sn = e.index.substring(e.index.lastIndexOf('.')+1,e.index.length)
+				let sn = e.index.substring(e.index.lastIndexOf('.') + 1, e.index.length)
 				this.activeSn = sn
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
 					data: msg.get_table_data_by_sn(this.$store.state.token, 'QUEST', this.activeSn),
 					success: res => {
-						this.questData = JSON.parse(res.data['data'])
-						console.log(this.questData['questName'])
+						this.currSelectedQuestData = JSON.parse(res.data['data'])
 					},
 					fail: res => {
 						uni.showToast({
@@ -105,6 +120,7 @@
 						this.items = res.data['data'];
 						// 排序
 						for (let i = 0; i < this.items.length; i++) {
+							this.questTypes.push(this.items[i]['text'])
 							let children = this.items[i]['children']
 							children.sort(function(a, b) {
 								return a['id'] - b['id'];
@@ -115,7 +131,7 @@
 						this.dataLoadComplete = true;
 					}
 				});
-			}
+			},
 		}
 	}
 </script>
@@ -145,6 +161,18 @@
 		position: absolute;
 		top: 30%;
 		right: 20%;
+	}
+	
+	.el-header {
+		background-color: #909399;
+		color: #333;
+		/* line-height: 60px; */
+		font-size: 25px;
+	}
+	
+	.el-row {
+		padding-top: 10upx;
+		padding-bottom: 10upx;
 	}
 
 </style>
