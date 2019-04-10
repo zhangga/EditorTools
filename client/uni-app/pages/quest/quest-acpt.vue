@@ -1,5 +1,36 @@
 <template>
 	<view style="flex-direction: column;">
+		<el-form ref="form" :model="form" label-width="100px">
+			<el-form-item label="接受NPC">
+				<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
+				</textInput>
+			</el-form-item>
+			
+			<el-form-item label="结束NPC">
+				<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :value='endNpc' id="endNPC">
+				</textInput>
+			</el-form-item>
+			
+			<el-form-item label="接受前对话">
+				<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :value='beforeAcceptPlot' id="beforeAcceptPlot">
+				</textInput>
+			</el-form-item>
+			
+			<el-form-item label="接受后对话">
+				<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :value='afterAcceptPlot' id="afterAcceptPlot">
+				</textInput>
+			</el-form-item>
+			
+			<el-form-item label="结束前对话">
+				<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :value='beforeEndPlot' id="beforeEndPlot">
+				</textInput>
+			</el-form-item>
+			
+			<el-form-item label="结束后对话">
+				<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :value='afterEndPlot' id="afterEndPlot">
+				</textInput>
+			</el-form-item>
+		</el-form>
 		<view>
 			<el-select v-model="career" size="medium">
 				<el-option v-for="item in careers" :key="item" :value="item">
@@ -7,38 +38,7 @@
 			</el-select>
 		</view>
 
-		<view>
-			<el-autocomplete v-model="startNpc" :fetch-suggestions="querySearchNpc" placeholder="接受NPC" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-
-		<view>
-			<el-autocomplete v-model="endNpc" :fetch-suggestions="querySearchNpc" placeholder="结束NPC" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-
-		<view>
-			<el-autocomplete v-model="beforeAcceptPlot" :fetch-suggestions="querySearchPlot" placeholder="接受前对话" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-
-		<view>
-			<el-autocomplete v-model="afterAcceptPlot" :fetch-suggestions="querySearchPlot" placeholder="接受后对话" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-
-		<view>
-			<el-autocomplete v-model="beforeEndPlot" :fetch-suggestions="querySearchPlot" placeholder="结束前对话" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-
-		<view>
-			<el-autocomplete v-model="afterEndPlot" :fetch-suggestions="querySearchPlot" placeholder="结束后对话" @select="handleSelect">
-			</el-autocomplete>
-		</view>
-		
-		<textInput :datas="NPC" placeholder='测试' :method='loadNpc' :select="select" id="test123"></textInput>
-		<button @click="show">保存</button>
+		<button @click="show" v-text="tableRowData">保存</button>
 	</view>
 </template>
 
@@ -148,13 +148,41 @@
 				console.log(item);
 			},
 			show(){
-				console.log(this.tableRowData)
+				console.log(this.startNpc)
+				console.log(this.endNpc)
+				console.log(this.beforeAcceptPlot)
+				console.log(this.afterAcceptPlot)
+				console.log(this.beforeEndPlot)
+				console.log(this.afterEndPlot)
 			},
 			select(item){
 				this.test = item.value
 			},
+			setStartNPC(item){
+				this.startNpc = item.value
+			},
+			setEndNPC(item){
+				this.endNpc = item.value
+			},
+			setBeforeAcceptPlot(item){
+				this.beforeAcceptPlot = item.value
+			},
+			setAfterAcceptPlot(item){
+				this.afterAcceptPlot = item.value
+			},
+			setBeforeEndPlot(item){
+				this.beforeEndPlot = item.value
+			},
+			setAfterEndPlot(item){
+				this.afterEndPlot = item.value
+			},
 			refreshDefaultValues(){
-				document.getElementById("test123").defaultValue = this.tableRowData['questName']
+				this.startNpc = this.tableRowData['acceptNPC']
+				this.endNpc = this.tableRowData['endNPC']
+				this.beforeAcceptPlot = this.tableRowData['beforeAcceptPlotId']
+				this.afterAcceptPlot = this.tableRowData['afterAcceptPlotId']
+				this.beforeEndPlot = this.tableRowData['beforeEndPlotId']
+				this.afterEndPlot = this.tableRowData['afterEndPlotId']
 			}
 		},
 		onLoad() {
@@ -168,11 +196,17 @@
 
 <style>
 	view {
-		border: #000000 solid 1upx;
+		border: #000000 solid 0upx;
 		font-size: 15upx;
-		margin: 1upx;
+		margin: 0upx;
 
 		display: flex;
 		flex-direction: row;
+	}
+	.el-form{
+		align: middle;
+	}
+	.el-form-item{
+		height: 20upx;
 	}
 </style>
