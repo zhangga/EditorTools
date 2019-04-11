@@ -248,11 +248,11 @@ public class DataManager {
             for (ExcelConfig conf : ExcelManager.getInstance().getConfigs()) {
                 //根据原表名和页签sheet名生成新表名,目前格式为：原表名_页签英文名.xlsx
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
-                if (fileName.endsWith(".xlsx")) {
+                if (fileName.endsWith(".xlsx") || fileName.endsWith(".xlsm")) {
                     fileName = fileName.substring(0, fileName.length() - 5);
                 }
                 else {
-                    throw new Exception("要写入的目标文件不是xlsx格式：" + conf.getExcel());
+                    throw new Exception("要写入的目标文件不是xlsx或xlsm格式：" + conf.getExcel());
                 }
                 String sheetName = conf.getSheet();
                 String[] sArr = sheetName.split("\\|");
