@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<el-container style="height: 800upx" v-if="dataLoadComplete" class="nav-bar">
+		<el-container v-bind:style="{height: screenHeight}" v-if="dataLoadComplete" class="nav-bar" ref="navbar">
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
 				<el-header height="80px">
 					<el-row>
@@ -14,6 +14,7 @@
 						</el-col>
 					</el-row>
 				</el-header>
+				<el-scrollbar ref="scrollBar" style="height: 100%;">
 				<el-menu
 					active-text-color="#ffd04b" 
 					ref="menu"
@@ -32,6 +33,7 @@
 						</el-menu-item-group>
 					</el-submenu>
 				</el-menu>
+				</el-scrollbar>
 			</el-aside>
 			
 			<el-container>
@@ -69,6 +71,7 @@
 	export default {
 		data() {
 			return {
+				screenHeight: '',
 				tabConfig: [],
 				items: [],
 				mainActiveIndex: 0,
@@ -79,7 +82,8 @@
 				questTypes: [],
 				currSelectedQuestData: null,
 				navmenuSearchOptions: [],
-				searchedMenuItem: null
+				searchedMenuItem: null,
+				currentActivatedIndex: ''
 			};
 		},
 		computed: {
@@ -90,6 +94,18 @@
 			questGoal,
 			questComp
 		},
+		updated: function() {
+			// 保持container高度为屏幕尺寸的93%
+			this.screenHeight = "93vh"
+			console.log("QUEST UPDATED!!!")
+			
+			// 更新滚动条位置
+			if (this.currentActivatedIndex != '') {
+				this.$refs.scrollBar.wrap.scrollTop = this.getScrollPosition(this.currentActivatedIndex)
+			}
+
+			console.log("Hahahah")
+		},
 		onLoad: function() {
 			// 任务页签的配置
 			this.tabConfig = config.ExcelConfig()['QuestTab']
@@ -97,7 +113,6 @@
 		},
 		methods: {
 			handleOpen: function(key, keyPath) {
-				console.log(key)
 			},
 			handleSearchChanges: function(value) {
 				if (value.length >= 1) {
@@ -107,6 +122,12 @@
 				if (value.length >= 2) {
 					this.$refs.menu.activeIndex = value[1]
 					this.triggerItemClick(value[1])
+					
+// 					let scrollHeight = this.$refs.scrollBar.wrap.scrollHeight
+// 					console.log("ScrollHeight: " + scrollHeight)
+// 					
+// 					let clientHeight = this.$refs.scrollBar.wrap.clientHeight
+// 					console.log("ClientHeight: " + clientHeight)
 				}
 			},
 			onNavClick: function(index) {
@@ -118,11 +139,12 @@
 			triggerItemClick: function(index) {
 				// 解析点击项ID
 				var splittedIndex = index.split('.')
+				this.currentActivatedIndex = index
+				this.activeSn = splittedIndex[2]
 				
 				// 打开对应顶级菜单
 				this.openSelectedMenu(splittedIndex[0])
 				
-				this.activeSn = splittedIndex[2]
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
@@ -198,6 +220,17 @@
 						this.$refs.menu.open(String(i))
 					}
 				}
+			},
+			getScrollPosition: function(activatedIndex) {
+				// 每个主菜单项目的高度为56px
+				// 每个子菜单项目的高度为64px(50px height + 14px item_group_title height)
+				// 每页（对齐后）有11个子菜单项目，也即如果要保持激活菜单项在中间位置的话，其前面应该有4或5个菜单项
+				console.log("Activated Index: " + activatedIndex)
+				const topLevelItemHeight = 56
+				const subLevelItemHeight = 64
+				var splittedIndex = activatedIndex.split('.')
+				var scrollPos = Math.max(0, (splittedIndex[0]) * topLevelItemHeight + (splittedIndex[1] - 1) * subLevelItemHeight - 4 * subLevelItemHeight)
+				return scrollPos
 			}
 		}
 	}
@@ -241,5 +274,13 @@
 		padding-top: 10upx;
 		padding-bottom: 10upx;
 	}
-
+	
+	.el-scrollbar__wrap {
+		overflow-x: hidden;
+	}
+	
+	.el-container .el-aside {
+		/* 隐藏系统滚动条 */
+		overflow: hidden
+	}
 </style>
