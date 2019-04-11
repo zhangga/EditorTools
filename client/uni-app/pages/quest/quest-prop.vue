@@ -175,4 +175,9 @@
 	  font-size: 6upx;
 	  font-family: "PingFang SC"
   }
+  
+  .clearfix {
+	  font-size: 10upx;
+	  font-weight: bold
+  }
 </style>
