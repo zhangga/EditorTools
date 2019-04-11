@@ -1,6 +1,8 @@
 <template>
 	<view>
 		<el-container v-bind:style="{height: screenHeight}" v-if="dataLoadComplete" class="nav-bar" ref="navbar">
+			
+			<!-- 导航栏 -->
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
 				<el-header height="80px">
 					<el-row>
@@ -15,43 +17,73 @@
 					</el-row>
 				</el-header>
 				<el-scrollbar ref="scrollBar" style="height: 100%;">
-				<el-menu
-					active-text-color="#ffd04b" 
-					ref="menu"
-					@open="handleOpen">
-					<el-submenu v-for="index in items.length" :index='String(index)' >
-						<template slot="title">
-							<i class="el-icon-menu"></i>
-							<span>{{items[index - 1]['text']}}</span>
-							<span class="dot">{{items[index - 1].children.length > 999 ? "999+" : items[index - 1].children.length}}</span>
-						</template>
-						<el-menu-item-group v-for="subIndex in items[index - 1].children.length" :index="String(index)">
-							<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
-							 @click="onItemClick">
-								{{items[index - 1].children[subIndex - 1]['text']}}
-							</el-menu-item>
-						</el-menu-item-group>
-					</el-submenu>
-				</el-menu>
+					<el-menu
+						active-text-color="#ffd04b" 
+						ref="menu"
+						@open="handleOpen">
+						<el-submenu v-for="index in items.length" :index='String(index)' >
+							<template slot="title">
+								<i class="el-icon-menu"></i>
+								<span>{{items[index - 1]['text']}}</span>
+								<span class="dot">{{items[index - 1].children.length > 999 ? "999+" : items[index - 1].children.length}}</span>
+							</template>
+							<el-menu-item-group v-for="subIndex in items[index - 1].children.length" :index="String(index)">
+								<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
+								 @click="onItemClick">
+									{{items[index - 1].children[subIndex - 1]['text']}}
+								</el-menu-item>
+							</el-menu-item-group>
+						</el-submenu>
+					</el-menu>
 				</el-scrollbar>
 			</el-aside>
 			
-			<el-container>
+			<!-- 主内容 -->
+			<el-container direction="vertical">
+				<!-- 新增任务弹窗 -->
+				<el-popover placement="left-start" width="800" trigger="click" v-model="isPopoverVisible">
+					<el-card class="box-card">
+						<view slot="header" class="clearfix">
+							<span class="header">新增任务</span>
+						</view>
+						<el-form label-width="60upx">
+							<el-form-item label="任务类型">
+								<el-select v-model="selectedAddQuestType" size="medium" id="questType" @change="onAddQuestTypeChanged">
+									<el-option v-for="index in questTypes.length" :key="index" :value="index - 1" :label="questTypes[index - 1]"></el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="任务SN">
+								<el-input-number v-model="inputAddQuestSN" :min="0" id="addQuestSN" @change="onAddQuestIDUpdated"></el-input-number>
+								<span style="margin-left: 10upx; color: #DD524D;" v-if="inputAddQuestSN != '' && !isAddQuestSNValid">输入的任务ID已被占用！</span>
+							</el-form-item>
+							<el-form-item label="任务名称">
+								<el-input v-model="inputAddQuestName" placeholder="请输入String类型任务名称(对应questName)" id="questName">
+								</el-input>
+							</el-form-item>
+							<view style="display: table; clear:both; width: 100%;">
+								<el-button type='primary' style="float: left" @click="resetAddQuestForm">重置</el-button>
+								<el-button type='primary' style="float: right;" @click="submitAddQuestForm">确认</el-button>
+							</view>
+						</el-form>
+					</el-card>
+					<el-button slot="reference" type='primary' round class="float" @click="onAddQuestButtonClicked">新增任务</el-button>
+				</el-popover>
+				
 				<el-main>
-				<el-tabs v-model="activeTab" class="quest-details">
-					<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
-						<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes" v-if="hasSelectedRowData"/>
-					</el-tab-pane>
-					<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'>
-						<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
-					</el-tab-pane>
-					<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'>
-						<quest-goal v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+					<el-tabs v-model="activeTab" class="quest-details">
+						<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
+							<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes" v-if="hasSelectedRowData"/>
 						</el-tab-pane>
-					<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'>
-						<quest-comp v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+						<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'>
+							<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
 						</el-tab-pane>
-				</el-tabs>
+						<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'>
+							<quest-goal v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+							</el-tab-pane>
+						<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'>
+							<quest-comp v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+							</el-tab-pane>
+					</el-tabs>
 				</el-main>
 			</el-container>
 		</el-container>
@@ -80,10 +112,18 @@
 				dataLoadComplete: false,
 				hasSelectedRowData: false,
 				questTypes: [],
+				occupiedQuestSNs: [],
 				currSelectedQuestData: null,
 				navmenuSearchOptions: [],
 				searchedMenuItem: null,
-				currentActivatedIndex: ''
+				currentActivatedIndex: '',
+				
+				/* 新增任务用 */
+				selectedAddQuestType: 0,
+				inputAddQuestSN: 0,
+				inputAddQuestName: '',
+				isAddQuestSNValid: true,
+				isPopoverVisible: false
 			};
 		},
 		computed: {
@@ -97,14 +137,11 @@
 		updated: function() {
 			// 保持container高度为屏幕尺寸的93%
 			this.screenHeight = "93vh"
-			console.log("QUEST UPDATED!!!")
 			
 			// 更新滚动条位置
 			if (this.currentActivatedIndex != '') {
 				this.$refs.scrollBar.wrap.scrollTop = this.getScrollPosition(this.currentActivatedIndex)
 			}
-
-			console.log("Hahahah")
 		},
 		onLoad: function() {
 			// 任务页签的配置
@@ -122,12 +159,6 @@
 				if (value.length >= 2) {
 					this.$refs.menu.activeIndex = value[1]
 					this.triggerItemClick(value[1])
-					
-// 					let scrollHeight = this.$refs.scrollBar.wrap.scrollHeight
-// 					console.log("ScrollHeight: " + scrollHeight)
-// 					
-// 					let clientHeight = this.$refs.scrollBar.wrap.clientHeight
-// 					console.log("ClientHeight: " + clientHeight)
 				}
 			},
 			onNavClick: function(index) {
@@ -176,6 +207,13 @@
 							children.sort(function(a, b) {
 								return a['id'] - b['id']
 							});
+							
+							var occupiedSN = {"type": this.items[i]['text'], 'sn': []}
+							for (var j = 0; j < this.items[i]['children'].length; j++) {
+								occupiedSN['sn'].push(this.items[i]['children'][j]['id'])
+							}
+							
+							this.occupiedQuestSNs.push(occupiedSN)
 						}
 						
 						this.activeTab = this.tabConfig[0]
@@ -231,6 +269,46 @@
 				var splittedIndex = activatedIndex.split('.')
 				var scrollPos = Math.max(0, (splittedIndex[0]) * topLevelItemHeight + (splittedIndex[1] - 1) * subLevelItemHeight - 4 * subLevelItemHeight)
 				return scrollPos
+			},
+			generateNextQuestID: function(questIndex) {
+				// 获取当前最大的任务ID
+				var occupiedSNs = this.occupiedQuestSNs[questIndex]['sn']
+				this.inputAddQuestSN = occupiedSNs[occupiedSNs.length - 1] + 1
+			},
+			onAddQuestButtonClicked: function() {
+				this.resetAddQuestForm()
+			},
+			onAddQuestIDUpdated: function() {
+				// 检查输入的任务ID是否合法
+				if (this.occupiedQuestSNs[this.selectedAddQuestType]['sn'].indexOf(this.inputAddQuestSN) > -1) {
+					this.isAddQuestSNValid = false
+				}
+				else {
+					this.isAddQuestSNValid = true
+				}
+			},
+			onAddQuestTypeChanged: function() {
+				this.onAddQuestIDUpdated()
+			},
+			resetAddQuestForm: function() {
+				// 设置默认新增的任务类型
+				this.selectedAddQuestType = 0
+				
+				// 找到默认任务类型的下一个可用任务ID
+				this.generateNextQuestID(0)
+				
+				// 清空描述域
+				this.inputAddQuestName = ''
+			},
+			submitAddQuestForm: function() {
+				console.log("提交新增任务记录请求")
+				
+				// 隐藏弹窗
+				this.isPopoverVisible = false
+				
+				// 刷新页面
+				
+				// 激活对应的任务
 			}
 		}
 	}
@@ -281,5 +359,20 @@
 	.el-container .el-aside {
 		/* 隐藏系统滚动条 */
 		overflow: hidden
+	}
+	
+	.float {
+		position:fixed;
+		margin-top: 5upx;
+		top:30upx;
+		right:30upx;
+		text-align:center;
+		box-shadow: 2px 2px 3px #999;
+		z-index: 10;
+	}
+	
+	.clearfix {
+		  font-size: 12upx;
+		  font-weight: bold
 	}
 </style>
