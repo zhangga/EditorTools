@@ -271,8 +271,7 @@
 	}
 	
 	.el-row {
-		padding-top: 10upx;
-		padding-bottom: 10upx;
+		padding: 3%
 	}
 	
 	.el-scrollbar__wrap {
