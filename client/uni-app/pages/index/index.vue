@@ -1,24 +1,22 @@
 <template>
-	<view class="content">
-		<view class="input-group">
-			<form @submit="formSubmit" @reset="formReset">
-				<el-row class="login-fields">
-					<el-row class="login-input-hint">SVN用户名：</el-row>
-					<el-row>
-						<input :span="6" class="login-input-field" type="text" clearable focus name="input-name" placeholder="请输入SVN账号" value="zhangzeqiang"/>
-					</el-row>
-				</el-row>
-				<el-row class='login-fields'>
-					<el-row class="login-input-hint">SVN密码：</el-row>
-					<el-row >
-						<input :span="6" class="uni-input login-input-field" type="password" name="input-pwd" placeholder="请输入SVN密码" value="GNT8EYkz"/>
-					</el-row>
-				</el-row>
-				<view class="btn-row">
-					<button type="primary" class="primary login-page-btn" formType="submit">登陆</button>
-					<button type="default" class="login-page-btn" formType="reset">重置</button>
+	<view class="dialog">
+		<view class="loginPage">
+			<h1 style="font-family: 'PingFang SC'; font-size: 14upx; text-align: center; margin-bottom: 2upx">登录</h1>
+			<el-form @submit="formSubmit" @reset="formReset">
+				<el-form-item label="SVN用户名">
+					<el-input type="text" id="user" v-model="userForm.userName" @blur="onInputBlur" autofocus></el-input>
+					<p>{{userNameErrorInfo}}</p>
+				</el-form-item>
+				<el-form-item label="密码">
+					<el-input type="password" id="password" v-model="userForm.password" @blur="onInputBlur"></el-input>
+					<p>{{passwordErrorInfo}}</p>
+				</el-form-item>
+				
+				<view class="buttonGroup">
+					<el-button type="primary" @click="formSubmit" v-bind:disabled="!isFormValid">提交</el-button>
+					<el-button @click="formReset">重置</el-button>
 				</view>
-			</form>
+			</el-form>
 		</view>
 	</view>
 </template>
@@ -26,10 +24,16 @@
 <script>
 	import utils from '../../common/util.js'
 	import msg from '../../common/msg.js'
-	export default {
+	export default {	
 		data() {
 			return {
-				
+				userForm: {
+					userName: '',
+					password: ''
+				},
+				isFormValid: false,
+				userNameErrorInfo: '',
+				passwordErrorInfo: ''
 			}
 		},
 		onLoad() {
@@ -54,21 +58,50 @@
 				}
 			})
 		},
+		mounted: function() {
+			this.setDefaultValues()
+		},
 		methods: {
+			setDefaultValues: function() {
+				this.userForm.userName = 'zhangzeqiang'
+				this.userForm.password = 'GNT8EYkz'
+				this.isFormValid = true
+			},
+			onInputBlur: function() {
+				if (this.userForm.userName == '') {
+					this.userNameErrorInfo = '用户名不能为空'
+				} else {
+					this.userNameErrorInfo = ''
+				}
+				
+				if (this.userForm.password == '') {
+					this.passwordErrorInfo = '密码不能为空'
+				} else {
+					this.passwordErrorInfo = ''
+				}
+				
+				if (this.userForm.userName != '' && this.userForm.password != '') {
+					this.isFormValid = true
+				} else {
+					this.isFormValid = false
+				}
+			},
 			// 登陆
-			formSubmit(e) {
-				var name = e.detail.value['input-name']
-				var pwd = e.detail.value['input-pwd']
+			formSubmit: function() {
+				var name = this.userForm.userName
+				var pwd = this.userForm.password
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
 					data: msg.login(name, pwd),
 					success: res => {
 						// 登陆成功
+						// TODO: Notification
 						if (res.data['ret']) {
 							var token = res.data['token']
 							this.onLogin(token)
 						} else {
+							// TODO: NOtification
 							uni.showModal({
 								title: '错误',
 								content: '登陆失败！'
@@ -79,10 +112,10 @@
 					complete: () => {}
 				});
 			},
-			formReset(e) {
-				console.log('清空数据')
+			formReset: function() {
+				this.setDefaultValues()
 			},
-			onLogin(token) {
+			onLogin: function(token) {
 				uni.setStorageSync('token', token)
 				this.$store.state.hasLogin = true
 				this.$store.state.token = token
@@ -99,38 +132,39 @@
 </script>
 
 <style>
-	.uni-form-item .title {
-		padding: 5upx 0;
+	.dialog {
+        width: 100%;
+        height: 93vh;
+        background: rgba(0,0,0,.8);
+    }
+    .loginPage {
+        position: absolute;
+        top: 35%;
+        left: 50%;
+        margin-top: -150px;
+        margin-left: -175px;
+        width: 350px;
+        min-height: 300px;
+        padding: 30px 20px 20px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        background-color: #fff;
+    }
+    .loginPage p {
+        color: red;
+        text-align: left;
+		font-size: 5upx;
+		height: auto;
+    }
+	.el-form-item:first-child {
+		margin-bottom: 0upx;
 	}
-	
-	.login-input-field {
-		margin-left: 30upx;
-		margin-right: 30upx;
-		border-style: solid;
-		border-width: 2upx;
-		padding: 8upx;
+	.el-form-item:nth-child(2) {
+		margin-bottom: 5upx;
 	}
-	
-	.login-input-hint {
-		margin-left: 30upx;
-		padding: 5upx;
-	}
-	
-	.login-fields {
-		margin-left: 30upx;
-		margin-right: 30upx;
-		padding-bottom: 10upx;
-	}
-	
-	.login-fields:first-child {
-		padding-top: 30upx;
-		margin-left: 30upx;
-		margin-right: 30upx;
-	}
-	
-	.login-page-btn {
-		margin-top: 20upx;
-		width: 35%;
-		font-size: 30upx;
+	.buttonGroup {
+		position: relative;
+		top: 50%;
+		left: 50%;
 	}
 </style>

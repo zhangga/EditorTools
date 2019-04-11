@@ -265,7 +265,6 @@
 				// 每个主菜单项目的高度为56px
 				// 每个子菜单项目的高度为64px(50px height + 14px item_group_title height)
 				// 每页（对齐后）有11个子菜单项目，也即如果要保持激活菜单项在中间位置的话，其前面应该有4或5个菜单项
-				console.log("Activated Index: " + activatedIndex)
 				const topLevelItemHeight = 56
 				const subLevelItemHeight = 64
 				var splittedIndex = activatedIndex.split('.')

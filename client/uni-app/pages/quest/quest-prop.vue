@@ -138,8 +138,8 @@
 		},
 		methods: {
 			refreshDefaultValues: function() {
-				document.getElementById("questName").defaultValue = this.tableRowData['questName']
-				document.getElementById("questDesc").defaultValue = this.tableRowData['questDescription']
+				this.inputQuestName = this.tableRowData['questName']
+				this.inputQuestDesc = this.tableRowData['questDescription']
 				
 				if (this.tableRowData['questType'] != null) {
 					this.selectedQuestType = this.questTypes[parseInt(this.tableRowData['questType'], 10) - 1]
