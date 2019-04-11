@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
+		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative;top: -12upx;">
 		</el-autocomplete>
 	</view>
 </template>
@@ -87,6 +87,6 @@
 
 <style>
 	view{
-		height: 30upx;
+		height: 15upx;
 	}
 </style>
