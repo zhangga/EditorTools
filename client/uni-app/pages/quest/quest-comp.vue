@@ -7,17 +7,17 @@
 			
 			<el-form ref="form" :model="form" label-width="100px">
 				<el-form-item label="任务奖励">
-					<textInput :datas="DropGroup" placeholder='任务奖励' :method='loadDropGroup' :select="setQuestReward" :value='questReward'>
+					<textInput :datas="DropGroup" placeholder='任务奖励' :method='loadDropGroup' :select="setQuestReward" :value='questReward' id='questReward'>
 					</textInput>
 				</el-form-item>
-				
+							
 				<el-form-item label="奖励经验">
 					<el-input type="number" placeholder="奖励经验" v-model="exp" id="exp" @blur="setExp" style="width: 120upx;">
 					</el-input>
 				</el-form-item>
 				
 				<el-form-item label-width="10upx">
-					<el-checkbox v-model="bind">奖励道具是否绑定</el-checkbox>
+					<el-checkbox v-model="bind" @change="setBind">奖励道具是否绑定</el-checkbox>
 				</el-form-item>
 				
 				<!-- 用于触发数据同步与更新 -->
@@ -37,6 +37,7 @@
 				DropGroup:[],
 				exp:0,
 				bind:false,
+				questReward:'',
 				
 				/* 全局相关 */
 				hasSetDefaultValue: false,
@@ -45,7 +46,6 @@
 		},
 		props:['tableRowData'],
 		mounted() {
-			console.log("Mounted")
 			this.refreshDefaultValues()
 		},
 		updated() {
@@ -89,9 +89,13 @@
 			},
 			setQuestReward(item){
 				this.questReward = item.value
+				//util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
+			},
+			setBind(){
+				util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase())
 			},
 			setExp(){
-				console.log('blurblur')
+				util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp)
 			},
 			refreshDefaultValues(){
 				this.questReward = this.tableRowData['questReward']
