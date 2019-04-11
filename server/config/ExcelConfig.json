@@ -45,6 +45,16 @@
       "redis_table": "NPC",
       // Redis hash的key值
       "redis_key": "sn"
+    },
+    {
+      // excel表名
+      "excel": "DropConfig.xlsm",
+      // sheet名
+      "sheet": "掉落组|DropGroup",
+      // Redis hash的表名
+      "redis_table": "DROPGROUP",
+      // Redis hash的key值
+      "redis_key": "sn"
     }
   ],
   "triggers": [
