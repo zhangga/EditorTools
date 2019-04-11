@@ -39,11 +39,11 @@
 				</el-form-item>
 
 				<el-form-item label-width="10upx">
-					<el-checkbox v-model="showAcceptedEffect">是否显示接受特效</el-checkbox>
+					<el-checkbox v-model="showAcceptedEffect" @change="setShowAcceptedEffect">是否显示接受特效</el-checkbox>
 				</el-form-item>
 
 				<el-form-item label-width="10upx">
-					<el-checkbox v-model="showFinishedEffect">是否显示完成任务特效</el-checkbox>
+					<el-checkbox v-model="showFinishedEffect" @change="setShowFinishedEffect">是否显示完成任务特效</el-checkbox>
 				</el-form-item>
 			</el-form>
 		</el-card>
@@ -163,21 +163,41 @@
 			},
 			setStartNPC(item) {
 				this.startNpc = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
 			},
 			setEndNPC(item) {
 				this.endNpc = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
 			},
 			setBeforeAcceptPlot(item) {
 				this.beforeAcceptPlot = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
 			},
 			setAfterAcceptPlot(item) {
 				this.afterAcceptPlot = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
 			},
 			setBeforeEndPlot(item) {
 				this.beforeEndPlot = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
 			},
 			setAfterEndPlot(item) {
 				this.afterEndPlot = item.value
+				util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+			},
+			setShowAcceptedEffect(){
+				var val = '0'
+				if(this.showAcceptedEffect){
+					val = '1'
+				}
+				util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+			},
+			setShowFinishedEffect(){
+				var val = '0'
+				if(this.showFinishedEffect){
+					val = '1'
+				}
+				util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
 			},
 			refreshDefaultValues() {
 				this.startNpc = this.findNPC(this.tableRowData['acceptNPC'])
