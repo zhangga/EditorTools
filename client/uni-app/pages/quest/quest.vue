@@ -4,6 +4,7 @@
 			
 			<!-- 导航栏 -->
 			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
+			<!-- <el-aside width="30%" style="background-color: rgb(48, 64, 87)">	 -->
 				<el-header height="80px">
 					<el-row>
 						<el-col :span="8">
@@ -21,16 +22,16 @@
 						active-text-color="#ffd04b" 
 						ref="menu"
 						@open="handleOpen">
-						<el-submenu v-for="index in items.length" :index='String(index)' >
+						<el-submenu v-for="index in items.length" :index='String(index)'>
 							<template slot="title">
 								<i class="el-icon-menu"></i>
 								<span>{{items[index - 1]['text']}}</span>
 								<span class="dot">{{items[index - 1].children.length > 999 ? "999+" : items[index - 1].children.length}}</span>
 							</template>
-							<el-menu-item-group v-for="subIndex in items[index - 1].children.length" :index="String(index)">
-								<el-menu-item :index="String(index) + '.'+ String(subIndex) + '.' + items[index - 1].children[subIndex-1]['id']"
+							<el-menu-item-group v-for="(subItem, subIndex) in items[index - 1].children">
+								<el-menu-item :index="String(index) + '.'+ String(subIndex + 1) + '.' + subItem['id']"
 								 @click="onItemClick">
-									{{items[index - 1].children[subIndex - 1]['text']}}
+									{{subItem['text']}}
 								</el-menu-item>
 							</el-menu-item-group>
 						</el-submenu>
@@ -165,6 +166,7 @@
 				this.mainActiveIndex = index;
 			},
 			onItemClick: function(e) {
+				console.log(e.index)
 				this.triggerItemClick(e.index)
 			},
 			triggerItemClick: function(index) {
@@ -391,10 +393,10 @@
 	
 	.float {
 		position:fixed;
-		margin-top: 5upx;
-		top:30upx;
-		right:30upx;
-		text-align:center;
+		margin-top: 25upx;
+		top: 30upx;
+		right: 30upx;
+		text-align: center;
 		box-shadow: 2px 2px 3px #999;
 		z-index: 10;
 	}
