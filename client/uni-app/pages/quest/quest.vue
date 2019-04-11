@@ -301,14 +301,42 @@
 				this.inputAddQuestName = ''
 			},
 			submitAddQuestForm: function() {
-				console.log("提交新增任务记录请求")
+				// 检查数据
+				var errorMsg = ''
+				if (this.selectedAddQuestType > 3 || this.selectedAddQuestType < 0) {
+					errorMsg = '请检查选择的任务类型'
+				}
+				if (!this.isAddQuestSNValid) {
+					errorMsg = errorMsg == '' ? '请输入合法的任务ID' : errorMsg + '，输入的任务ID'
+				}
 				
-				// 隐藏弹窗
-				this.isPopoverVisible = false
+				if (this.inputAddQuestName == '') {
+					errorMsg = errorMsg == '' ? '请输入合法的任务名称' : errorMsg + '及任务名称'
+				}
 				
-				// 刷新页面
-				
-				// 激活对应的任务
+				if (errorMsg != '') {
+					this.$message({
+						showClose: true,
+						message: errorMsg,
+						type: 'error'
+					});
+				}
+				else {
+					// 弹窗提示
+					this.$message({
+						showClose: true,
+						message: '新增任务记录成功！',
+						type: 'success'
+					});
+					// 提交表单
+					
+					// 隐藏弹窗
+					this.isPopoverVisible = false
+					
+					// 刷新页面
+					
+					// 激活对应的任务
+				}
 			}
 		}
 	}
