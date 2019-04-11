@@ -171,11 +171,11 @@
 			},
 			setBeforeAcceptPlot(item) {
 				this.beforeAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlotId.split(':')[0])
+				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
 			},
 			setAfterAcceptPlot(item) {
 				this.afterAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlotId.split(':')[0])
+				util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
 			},
 			setBeforeEndPlot(item) {
 				this.beforeEndPlot = item.value
