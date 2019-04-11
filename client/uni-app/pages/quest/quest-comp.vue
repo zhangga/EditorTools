@@ -89,7 +89,7 @@
 			},
 			setQuestReward(item){
 				this.questReward = item.value
-				//util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
+				util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
 			},
 			setBind(){
 				util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase())

@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative;top: -12upx;">
+		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" @blur="blur" :placeholder="placeholder" style="position: relative;top: -12upx;">
 		</el-autocomplete>
 	</view>
 </template>
@@ -78,8 +78,12 @@
 					return (state.value.indexOf(queryString) !== -1);
 				};
 			},
-			handleSelect(item) {
-				this.$emit("",item.value)
+			blur(){
+				if(this.value === ''){
+					var item = new Object()
+					item.value = ''
+					this.select(item)
+				}
 			}
 		}
 	}
