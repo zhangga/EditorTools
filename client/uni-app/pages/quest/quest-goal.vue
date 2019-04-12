@@ -1,48 +1,56 @@
 <template>
-	<view class="content">
-		<el-row :gutter="12">
-			<el-col>
-				<el-card shadow="hover" class="box-card1">
-					<el-form label-width="100px">
-						<el-form-item label="任务限时(秒)">
-							<el-input placeholder="时间限制" v-model="timeLimit" clearable></el-input>
-						</el-form-item>
-						<el-form-item label="显示时间信息">
-							<el-checkbox v-model="showTimeLimit" disabled></el-checkbox>
-						</el-form-item>
-					</el-form>
-					<el-checkbox v-model="canAutomaticDeliver">【可交】后自动完成</el-checkbox>
-				</el-card>
-			</el-col>
-		</el-row>
-		<el-row :gutter="12">
-			<el-col>
-				<el-card shadow="hover" class="box-card2">
-					<div slot="header" class="clearfix">
-						<span>任务目标</span>
-						<el-switch style="display: block; float: right; padding-top: 20upx; padding-right: 20upx"
-							v-model="goalNull" @change="onGoalNullChange"
-							active-color="#ff4949" inactive-color="#13ce66"
-							active-text="无目标" inactive-text="有目标">
-						</el-switch>
-					</div>
-				</el-card>
-			</el-col>
-		</el-row>
+	<view>
+		<!-- 任务目标 -->
+		<el-card class="box-card">
+			<view slot="header" class="clearfix">
+				<span class="header">任务目标</span>
+			</view>
+			<el-form label-width="30upx">
+				<el-form-item label="任务名称">
+				</el-form-item>
+			</el-form>
+		</el-card>
+		
+		<!-- 用于触发数据同步与更新 -->
+		<span style="display:none"> {{tableRowData['questName']}} </span>
 	</view>
 </template>
 
 <script>
+	import config from '../../common/config.js'
+	
 	export default {
 		data() {
 			return {
+				/* 全局相关 */
+				hasSetDefaultValue: false,
+				prevTableRowData: null,
 				canAutomaticDeliver: false,
-				goalNull: true,
-				timeLimit: 0,
-				showTimeLimit: true
+				goalNull: true
 			};
 		},
+		props: ['tableRowData'],
+		mounted: function() {
+			this.refreshDefaultValues()
+		},
+		updated: function() {	
+			// 如果是用户输入触发的更新，不刷新默认值
+			if (this.hasSetDefaultValue) {
+				// 如果是由于切换任务导致的更新，刷新默认值
+				if (this.prevTableRowData != this.tableRowData) {
+					this.refreshDefaultValues()
+					this.prevTableRowData = this.tableRowData
+				}
+			} else {
+				// 如果还未设置过默认值，执行设置
+				this.refreshDefaultValues()
+				this.hasSetDefaultValue = true;
+				this.prevTableRowData = this.tableRowData;
+			}
+		},
 		methods: {
+			refreshDefaultValues: function() {
+			},
 			onGoalNullChange: function(e) {
 				console.log(e)
 			}
@@ -51,19 +59,26 @@
 </script>
 
 <style>
-  .content {
-	padding-top: 30upx;
+  .box-card {
+  	  width: 470upx;
+  	  margin-bottom: 10upx;
   }
-  .el-row {
-	margin-bottom: 10upx;
-	&:last-child {
-	  margin-bottom: 0;
-	}
+  .el-form {
+  	align: middle;
   }
-  .box-card1 {
-    width: 200upx;
+  .el-form-item {
+  	height: 20upx;
   }
-  .box-card2 {
-    width: 400upx;
+  .text {
+  	  font-size: 6upx;
+  	  font-family: "PingFang SC"
+  }
+  .el-input {
+  	  font-size: 6upx;
+  	  font-family: "PingFang SC"
+  }
+  .clearfix {
+  	  font-size: 10upx;
+  	  font-weight: bold
   }
 </style>

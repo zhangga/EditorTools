@@ -4,7 +4,7 @@
 			<view slot="header" class="clearfix">
 				<span class="header">任务接受与结束</span>
 			</view>
-			<el-form ref="form" :model="form" label-width="100px">
+			<el-form label-width="100px">
 				<el-form-item label="接受NPC">
 					<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
 					</textInput>
