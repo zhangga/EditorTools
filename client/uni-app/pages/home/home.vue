@@ -50,7 +50,7 @@
 					}],
 				tables: [],
 				filters: [{
-					prop: 'excel',
+					prop: ['excel', 'sheet'],
 					value: ''
 				}],
 				actionCol: {
