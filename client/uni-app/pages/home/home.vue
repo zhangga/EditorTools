@@ -1,27 +1,31 @@
 <template>
-	<view>
-		<view style="margin-bottom: 10px">
-			<el-row>
-				<el-col :span="8">
-					<el-button type="primary" round @click="refreshTableData">更新服务器表格数据</el-button>
-				</el-col>
-
-				<el-col :span="12">
-					<el-input placeholder="搜索表格" v-model="filters[0].value"></el-input>
-				</el-col>
-				
-				<el-col :span="4">
-					<el-button type="primary" icon="el-icon-share" @click="onAbout"></el-button>
-				</el-col>
-			</el-row>
+	<view class="dialog">
+		<view>
+			<view style="margin-bottom: 10px">
+				<el-row>
+					<el-col :span="8">
+						<el-button type="primary" round @click="refreshTableData">更新服务器表格数据</el-button>
+					</el-col>
+			
+					<el-col :span="12">
+						<el-input placeholder="搜索表格" v-model="filters[0].value"></el-input>
+					</el-col>
+					
+					<el-col :span="4">
+						<el-button type="primary" icon="el-icon-share" @click="onAbout"></el-button>
+					</el-col>
+				</el-row>
+			</view>
+			
+			<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" 
+						style="margin-left: 20upx; margin-right: 20upx" @selection-change="onSelectionChange"  class="mainContent">
+				<!-- <el-table-column type="selection" width="55"></el-table-column> -->
+				<el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom"></el-table-column>
+			</data-tables>
+			
+			<vue-canvas-nest :config="{color:'255,0,0', opacity:'0.8'}"></vue-canvas-nest>
 		</view>
-
-	<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" 
-				style="margin-left: 20upx; margin-right: 20upx" @selection-change="onSelectionChange">
-		<!-- <el-table-column type="selection" width="55"></el-table-column> -->
-		<el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom"></el-table-column>
-	</data-tables>
-  </view>
+	</view>
 </template>
 
 <script>

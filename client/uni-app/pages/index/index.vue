@@ -11,19 +11,24 @@
 					<el-input type="password" id="password" v-model="userForm.password" @blur="onInputBlur"></el-input>
 					<p>{{passwordErrorInfo}}</p>
 				</el-form-item>
-				
-				<view class="buttonGroup">
-					<el-button type="primary" @click="formSubmit" v-bind:disabled="!isFormValid">提交</el-button>
-					<el-button @click="formReset">重置</el-button>
-				</view>
+				<el-form-item>
+					<el-row>
+						<el-col :span="10" :offset="14">
+							<el-button type="primary" @click="formSubmit" v-bind:disabled="!isFormValid">提交</el-button>
+							<el-button @click="formReset">重置</el-button>
+						</el-col>
+					</el-row>
+				</el-form-item>
 			</el-form>
 		</view>
+		<vue-canvas-nest :config="{color:'255,0,0', opacity:'0.8'}"></vue-canvas-nest>
 	</view>
 </template>
 
 <script>
 	import utils from '../../common/util.js'
 	import msg from '../../common/msg.js'
+	
 	export default {	
 		data() {
 			return {
@@ -132,21 +137,16 @@
 </script>
 
 <style>
-	.dialog {
-        width: 100%;
-        height: 93vh;
-        background: rgba(0,0,0,.8);
-    }
     .loginPage {
         position: absolute;
         top: 35%;
         left: 50%;
-        margin-top: -150px;
-        margin-left: -175px;
-        width: 350px;
-        min-height: 300px;
-        padding: 30px 20px 20px;
-        border-radius: 8px;
+        margin-top: -70upx;
+        margin-left: -90upx;
+        width: 180upx;
+        min-height: 150upx;
+        padding: 10upx;
+        border-radius: 8upx;
         box-sizing: border-box;
         background-color: #fff;
     }
@@ -156,15 +156,17 @@
 		font-size: 5upx;
 		height: auto;
     }
-	.el-form-item:first-child {
-		margin-bottom: 0upx;
+	.el-form-item {
+		margin-bottom: 6upx;
 	}
-	.el-form-item:nth-child(2) {
-		margin-bottom: 5upx;
+	.el-form-item:last-child {
+		margin-top: 15upx;
+		margin-bottom: 3upx;
+		padding: 0upx;
 	}
-	.buttonGroup {
+	/* .buttonGroup {
 		position: relative;
 		top: 50%;
-		left: 50%;
-	}
+		left: 60%;
+	} */
 </style>

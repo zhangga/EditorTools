@@ -1,10 +1,9 @@
 <template>
 	<view>
+		<vue-canvas-nest :config="{color:'255,0,0', opacity:'0.8'}"></vue-canvas-nest>
 		<el-container v-bind:style="{height: screenHeight}" v-if="dataLoadComplete" class="nav-bar" ref="navbar">
-			
 			<!-- 导航栏 -->
-			<el-aside width="30%" style="background-color: rgb(238, 241, 246)">
-			<!-- <el-aside width="30%" style="background-color: rgb(48, 64, 87)">	 -->
+			<el-aside width="30%" style="background-color: rgb(76,76,76)">
 				<el-header height="80px">
 					<el-row>
 						<el-col :span="8">
@@ -19,7 +18,9 @@
 				</el-header>
 				<el-scrollbar ref="scrollBar" style="height: 100%;">
 					<el-menu
+						background-color="#4C4C4C"
 						active-text-color="#ffd04b" 
+						text-color="#fff"
 						ref="menu"
 						@open="handleOpen">
 						<el-submenu v-for="index in items.length" :index='String(index)'>

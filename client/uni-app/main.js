@@ -3,6 +3,8 @@ import App from './App'
 
 import pageHead from './components/page-head.vue'
 import pageFoot from './components/page-foot.vue'
+Vue.component('page-head', pageHead)
+Vue.component('page-foot', pageFoot)
 
 import store from './store'
 
@@ -159,6 +161,9 @@ import { DataTables, DataTablesServer } from './vue-data-tables';
 Vue.use(DataTables)
 Vue.use(DataTablesServer)
 
+import vueCanvasNest from './vue-canvas-nest/src/vueCanvasNest.vue'
+Vue.component('vue-canvas-nest', vueCanvasNest)
+
 Vue.config.productionTip = false
 
 Vue.prototype.$store = store
@@ -167,9 +172,6 @@ Vue.prototype.$backgroundAudioData = {
 	playTime: 0,
 	formatedPlayTime: '00:00:00'
 }
-
-Vue.component('page-head', pageHead)
-Vue.component('page-foot', pageFoot)
 
 App.mpType = 'app'
 
