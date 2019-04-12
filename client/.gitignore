@@ -31,6 +31,9 @@ uni-app/node_modules/*
 */regenerator-runtime/*
 */vant/*
 */vue-lazyload/*
+*/canvas-nest.js/*
+*/vue-canvas-nest/*
+*/size-sensor/*
 */dependencies.txt
 
 # logs
