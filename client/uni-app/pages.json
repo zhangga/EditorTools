@@ -3,7 +3,7 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "登陆界面"
+				"navigationBarTitleText": ""
 			}
 		}
 		,{
@@ -43,8 +43,7 @@
         ,{
             "path" : "pages/quest/quest",
             "style" : {
-				"navigationBarTitleText": "任务界面",
-				"navigationBarTextStyle": "black"
+				"navigationBarTitleText": "任务界面"
 			}
         }
         ,{
@@ -104,9 +103,10 @@
 	    ]
 	},
 	"globalStyle": {
-		"navigationBarTextStyle": "black",
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarBackgroundColor": "#4C4C4C",
+		"backgroundColor": "#4C4C4C"
 	}
 }

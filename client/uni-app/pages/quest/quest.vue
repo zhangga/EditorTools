@@ -138,7 +138,7 @@
 		},
 		updated: function() {
 			// 保持container高度为屏幕尺寸的93%
-			this.screenHeight = "93vh"
+			this.screenHeight = "100vh"
 			
 			// 更新滚动条位置
 			if (this.currentActivatedIndex != '') {
@@ -186,6 +186,11 @@
 					success: res => {
 						this.currSelectedQuestData = JSON.parse(res.data['data'])
 						this.hasSelectedRowData = true
+						
+						// 更新页面导航栏文字
+						uni.setNavigationBarTitle({
+							title: "当前操作任务：" + this.currSelectedQuestData['questName']
+						});
 					},
 					fail: res => {
 						uni.showToast({
