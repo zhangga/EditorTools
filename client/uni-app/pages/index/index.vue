@@ -101,16 +101,14 @@
 					data: msg.login(name, pwd),
 					success: res => {
 						// 登陆成功
-						// TODO: Notification
 						if (res.data['ret']) {
 							var token = res.data['token']
 							this.onLogin(token)
 						} else {
-							// TODO: NOtification
-							uni.showModal({
-								title: '错误',
-								content: '登陆失败！'
-							})
+							this.$notify.error({
+								title: '登陆失败！',
+								message: '请检查输入的用户名和密码'
+							});
 						}
 					},
 					fail: () => {},
