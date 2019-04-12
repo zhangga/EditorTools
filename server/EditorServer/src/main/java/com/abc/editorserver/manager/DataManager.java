@@ -313,7 +313,7 @@ public class DataManager {
             }
         }
         catch(Exception e){
-            LogEditor.serv.error("行号："+rowNum,e);
+            LogEditor.serv.error("表名" + tableName + " 行号：" + rowNum, e);
         }
     }
 
