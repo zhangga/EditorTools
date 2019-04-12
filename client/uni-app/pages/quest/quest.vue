@@ -74,7 +74,11 @@
 				<el-main>
 					<el-tabs v-model="activeTab" class="quest-details">
 						<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
-							<quest-prop v-bind:tableRowData="currSelectedQuestData" v-bind:questTypes="questTypes" v-if="hasSelectedRowData"/>
+							<quest-prop 
+								v-bind:tableRowData="currSelectedQuestData" 
+								v-bind:questTypes="questTypes" 
+								v-bind:currTableName="currentTableName" 
+								v-if="hasSelectedRowData"/>
 						</el-tab-pane>
 						<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'>
 							<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
@@ -105,6 +109,7 @@
 	export default {
 		data() {
 			return {
+				currentTableName: '',
 				screenHeight: '',
 				tabConfig: [],
 				items: [],
@@ -145,7 +150,10 @@
 				this.$refs.scrollBar.wrap.scrollTop = this.getScrollPosition(this.currentActivatedIndex)
 			}
 		},
-		onLoad: function() {
+		onLoad: function(option) {
+			// 接受页面跳转传递的参数
+			this.currentTableName = option.table_name
+			
 			// 任务页签的配置
 			this.tabConfig = config.ExcelConfig()['QuestTab']
 			this.onLoadQuestBrief()
@@ -167,7 +175,6 @@
 				this.mainActiveIndex = index;
 			},
 			onItemClick: function(e) {
-				console.log(e.index)
 				this.triggerItemClick(e.index)
 			},
 			triggerItemClick: function(index) {
@@ -193,10 +200,9 @@
 						});
 					},
 					fail: res => {
-						uni.showToast({
-							title: '获取不到对应的任务数据！',
-							icon: 'none',
-							duration: 2000
+						this.$notify.error({
+							title: '获取失败',
+							message: '获取不到对应的任务数据！'
 						});
 					}
 				});
