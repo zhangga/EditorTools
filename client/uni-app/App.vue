@@ -15,7 +15,7 @@
 	
 	.dialog {
 	    width: 100%;
-	    height: 93vh;
+	    height: 100vh;
 	    background: rgba(0,0,0,.7);
 	}
 	
