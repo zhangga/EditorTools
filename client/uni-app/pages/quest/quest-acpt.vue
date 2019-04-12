@@ -6,35 +6,35 @@
 			</view>
 			<el-form label-width="100px">
 				<el-form-item label="接受NPC">
-					<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
+					<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" v-bind:value='startNpc' id="startNPC" >
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束NPC">
-					<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :value='endNpc' id="endNPC">
+					<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' v-bind:value="endNpc" :select="setEndNPC" id="endNPC" >
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="接受前对话">
-					<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :value='beforeAcceptPlot'
+					<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' v-bind:value="beforeAcceptPlot" :select="setBeforeAcceptPlot" 
 					 id="beforeAcceptPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="接受后对话">
-					<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :value='afterAcceptPlot'
+					<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" v-bind:value='afterAcceptPlot'
 					 id="afterAcceptPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束前对话">
-					<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :value='beforeEndPlot'
+					<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" v-bind:value='beforeEndPlot'
 					 id="beforeEndPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束后对话">
-					<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :value='afterEndPlot' id="afterEndPlot">
+					<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" v-bind:value='afterEndPlot' id="afterEndPlot">
 					</textInput>
 				</el-form-item>
 
