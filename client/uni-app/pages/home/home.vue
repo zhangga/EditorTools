@@ -108,11 +108,16 @@
 				})
 			},
 			refreshTableData: function (tableName) {
-				uni.showLoading({
-					title: '更新中...',
-					mask: true,
-					icon: 'none',
-				});
+				const loading = this.$loading({
+					lock: true,
+					text: '更新中...',
+					spinner: 'el-icon-loading',
+					background: 'rgba(0, 0, 0, 0.7)'
+				})
+				
+				setTimeout(() => {
+					loading.close()
+				}, 2000)
 				
 				uni.request({
 					url: msg.url(),
@@ -120,30 +125,23 @@
 					data: msg.update_table_data_from_svn(this.$store.state.token),
 					success: res => {
 						var result = res.data['result'];
-						uni.hideLoading();
+						loading.close()
 						if (result == 1) {
-							uni.showToast({
-								title: '更新成功！',
-								icon: 'none',
-								mask: true,
-								duration: 1500
-							});
+							this.$message({
+								message: '更新成功！',
+								type: 'success'
+							})
 						}
 						else {
-							uni.showToast({
-								title: res.data['desc'],
-								icon: 'none',
-								mask: true,
-								duration: 1500
+							this.$alert('原因：' + res.data['desc'], '更新失败', {
+								confirmButtonText: '确认',
 							});
 						}
 					},
 					fail: res => {
-						uni.hideLoading();
-						uni.showToast({
-							title: '操作超时，更新失败！',
-							icon: 'none',
-							duration: 2000
+						loading.close()
+						this.$alert('操作超时，更新失败！', '更新失败', {
+							confirmButtonText: '确认',
 						});
 					}
 				});
