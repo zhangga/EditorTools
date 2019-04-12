@@ -1,8 +1,6 @@
 import Vue from 'vue'
 import msg from '../common/msg.js'
-import Element from 'element-ui'
 import store from '../store/index.js'
-Vue.use(Element)
 
 function updateDataField(table,sn,field,value){
 	uni.request({
