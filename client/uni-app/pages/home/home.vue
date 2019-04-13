@@ -95,16 +95,13 @@
 						complete: () => {}
 				})
 			},
-			onSelectionChange: function(rows) {
+			onSelectionChange: function (rows) {
 				this.selectedRows = rows;
 				console.log(this.selectedRows.length);
 			},
-			onAbout: function() {
+			onAbout: function () {
 				uni.navigateTo({
-						url: "../about/about",
-						success: res => {},
-						fail: () => {},
-						complete: () => {}
+						url: "../about/about"
 				})
 			},
 			refreshTableData: function (tableName) {

@@ -4,7 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.abc.editorserver.module.excel.UpdateTableDataFromSVN;
+import com.abc.editorserver.module.excel.AddTableDataAction;
+import com.abc.editorserver.module.excel.UpdateTableDataFromSVNAction;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
 import com.abc.editorserver.module.excel.GetTableDataAction;
@@ -24,9 +25,10 @@ public enum GameActionsJson {
 	Test("测试信息", 1, TestAction.class),
 	GetTableData("获取表数据", 2, GetTableDataAction.class),
 	GetAllQuestBrief("获取所有任务的简述", 3, GetAllQuestBriefAction.class),
-	UpdateTableDataFromSVN("从SVN更新表格数据", 4, UpdateTableDataFromSVN.class),
+	UpdateTableDataFromSVN("从SVN更新表格数据", 4, UpdateTableDataFromSVNAction.class),
 	GetTableDataBySn("获取某条数据", 5, GetTableDataBySnAction.class),
 	UpdateTableData("更新数据表数据", 6, UpdateTableDataAction.class),
+	AddTableData("新增数据表数据", 7, AddTableDataAction.class),
 	;
 	
 	/**
