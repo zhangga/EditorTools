@@ -107,23 +107,38 @@
 			},
 			setQuestReward(item){
 				this.questReward = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
+				}
 			},
 			setBind(){
-				util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase())
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase())
+				}
 			},
 			setExp(){
-				util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp)
+				}
 			},
 			setTimeLimit(){
-				util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit)
+				}
 			},
 			setShowTimeLimit(){
 			},
 			refreshDefaultValues(){
-				this.questReward = this.tableRowData['questReward']
-				this.bind = this.tableRowData['bind'].toLowerCase() === 'true'
-				this.exp = this.tableRowData['exp']
+				if (this.tableRowData['questReward'] != null) {
+					this.questReward = this.tableRowData['questReward']
+				}
+				if (this.tableRowData['bind'] != null) {
+					this.bind = this.tableRowData['bind'].toLowerCase() === 'true'
+				}
+				
+				if (this.tableRowData['exp'] != null) {
+					this.exp = this.tableRowData['exp']
+				}
 			}
 		},
 		components:{

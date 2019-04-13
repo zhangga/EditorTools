@@ -312,7 +312,7 @@
 				
 				for (var i = 1; i < this.questTypes.length; i++) {
 					occupiedIDbyQuest = this.occupiedQuestSNs[i]['sn']
-					maxSn = Math.max(maxSn, parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1]))
+					maxSn = Math.max(maxSn, occupiedIDbyQuest.length == 0 ? 0 : parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1]))
 				}
 				
 				this.inputAddQuestSN = maxSn + 1

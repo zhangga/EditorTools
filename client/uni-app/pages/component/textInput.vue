@@ -9,6 +9,7 @@
 
 <script>
 	import msg from '../../common/msg.js'
+	
 	export default {
 		data() {
 			return {

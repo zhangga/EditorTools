@@ -85,7 +85,6 @@
 		},
 		props: ['tableRowData'],
 		mounted() {
-			console.log("Mounted")
 			this.refreshDefaultValues()
 		},
 		updated() {
@@ -163,51 +162,74 @@
 			},
 			setStartNPC(item) {
 				this.startNpc = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
+				}
 			},
 			setEndNPC(item) {
 				this.endNpc = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
+				}
 			},
 			setBeforeAcceptPlot(item) {
 				this.beforeAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
+				}
 			},
 			setAfterAcceptPlot(item) {
 				this.afterAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
+				}
 			},
 			setBeforeEndPlot(item) {
 				this.beforeEndPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
+				}
 			},
 			setAfterEndPlot(item) {
 				this.afterEndPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+				}
 			},
 			setShowAcceptedEffect(){
 				var val = '0'
 				if(this.showAcceptedEffect){
 					val = '1'
 				}
-				util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+				}
 			},
 			setShowFinishedEffect(){
 				var val = '0'
 				if(this.showFinishedEffect){
 					val = '1'
 				}
-				util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
+				}
 			},
 			refreshDefaultValues() {
-				this.startNpc = this.findNPC(this.tableRowData['acceptNPC'])
-				this.endNpc = this.findNPC(this.tableRowData['endNPC'])
-				this.beforeAcceptPlot = this.findPlot(this.tableRowData['beforeAcceptPlotId'])
-				this.afterAcceptPlot = this.findPlot(this.tableRowData['afterAcceptPlotId'])
-				this.beforeEndPlot = this.findPlot(this.tableRowData['beforeEndPlotId'])
-				this.afterEndPlot = this.findPlot(this.tableRowData['afterEndPlotId'])
-				this.showAcceptedEffect = this.tableRowData['showAcceptedEffect'] !== '0'
-				this.showFinishedEffect = this.tableRowData['showFinishedEffect'] !== '0'
+				this.startNpc = this.tableRowData['acceptNPC'] != null ? this.findNPC(this.tableRowData['acceptNPC']) : this.startNpc
+				this.endNpc = this.tableRowData['endNPC'] != null ? this.findNPC(this.tableRowData['endNPC']) : this.endNpc
+				this.beforeAcceptPlot = this.tableRowData['beforeAcceptPlotId'] != null ? this.findPlot(this.tableRowData['beforeAcceptPlotId']) : this.beforeAcceptPlot
+				this.afterAcceptPlot = this.tableRowData['afterAcceptPlotId'] != null ? this.findPlot(this.tableRowData['afterAcceptPlotId']) : this.afterAcceptPlot
+				this.beforeEndPlot = this.tableRowData['beforeEndPlotId'] != null ? this.findPlot(this.tableRowData['beforeEndPlotId']) : this.beforeEndPlot
+				this.afterEndPlot = this.tableRowData['afterEndPlotId'] != null ? this.findPlot(this.tableRowData['afterEndPlotId']) : this.afterEndPlot
+				
+				if (this.tableRowData['showAcceptedEffect'] != null) {
+					this.showAcceptedEffect = this.tableRowData['showAcceptedEffect'] !== '0'
+				}
+				
+				if (this.tableRowData['showFinishedEffect'] != null) {
+					this.showFinishedEffect = this.tableRowData['showFinishedEffect'] !== '0'
+				}
+				
 			},
 			findNPC(NpcID) {
 				if (NpcID == '') {
