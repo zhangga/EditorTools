@@ -150,8 +150,6 @@
 			this.screenHeight = "100vh"
 			
 			// 更新滚动条位置
-			console.log("Update时的激活index为：" + this.currentActivatedIndex)
-			
 			if (this.currentActivatedIndex != '') {
 				this.$refs.scrollBar.wrap.scrollTop = this.getScrollPosition(this.currentActivatedIndex)
 			}
@@ -240,8 +238,6 @@
 							
 							this.occupiedQuestSNs.push(occupiedSN)
 						}
-						
-						console.log("更新了占用SN表")
 						
 						this.activeTab = this.tabConfig[0]
 						this.dataLoadComplete = true

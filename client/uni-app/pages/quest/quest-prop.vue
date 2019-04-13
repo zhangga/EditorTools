@@ -182,7 +182,7 @@
 				this.inputQuestName = this.tableRowData['questName']
 				
 				if (this.tableRowData['questDescription'] != null) {
-					this.this.inputQuestDesc = this.tableRowData['questDescription']
+					this.inputQuestDesc = this.tableRowData['questDescription']
 				}
 				
 				if (this.tableRowData['questType'] != null) {
