@@ -5,6 +5,7 @@ import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.manager.DataManager;
 import com.abc.editorserver.manager.GlobalManager;
 import com.abc.editorserver.manager.SVNManager;
+import com.abc.editorserver.manager.VersionManager;
 import com.abc.editorserver.net.HttpServer;
 import com.abc.editorserver.support.LogEditor;
 
@@ -26,6 +27,8 @@ public class EditorServer {
         SVNManager.init();
         // 初始化数据
         DataManager.getInstance().init();
+        // 初始化版本号信息
+        VersionManager.getInstance().init();
         // 启动一个守护线程
         GlobalManager.init();
         // DB
