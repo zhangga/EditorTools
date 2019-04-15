@@ -45,10 +45,12 @@
 		updated: function() {
 			if (this.prevContent == this.content) {
 				console.log("prevContent == content")
-				if (this.content != '') {
-					this.content = this.value;
-					this.prevContent = this.content;
-				}
+				this.content = this.value;
+				this.prevContent = this.content;
+// 				if (this.content != '') {
+// 					this.content = this.value;
+// 					this.prevContent = this.content;
+// 				}
 			} else {
 				this.prevContent = this.content
 				console.log("当前content为：" + this.content)
