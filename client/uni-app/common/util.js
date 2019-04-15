@@ -8,13 +8,15 @@ function updateDataField(table, sn, field, value) {
 		method: 'GET',
 		data: msg.update_table_data(store.state.token, table, sn, field, value),
 		success: res => {
-// 			Vue.prototype.$message({
-// 				message: '这是一条成功消息',
-// 				type: 'success'
-// 			});
+			var resultCode = res['result']
+			var hint = res['hint']
+			
+			if (resultCode == RESULT_FAILED) {
+				Vue.prototype.$message.error('更新失败！' + hint)
+			}
 		},
 		fail: () => {
-			Vue.prototype.$message.error(table+'表'+sn+'行'+field+'字段保存失败')
+			Vue.prototype.$message.error(table + '表' + sn + '行' + field + '字段保存失败')
 		},
 		complete: () => {}
 	});
