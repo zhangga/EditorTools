@@ -56,6 +56,14 @@ public class UserManager {
         return user.getUid();
     }
 
+    /**
+     * 获取当前在线用户量
+     * @return
+     */
+    public static long getActiveUserCount() {
+        return userIdMap.size();
+    }
+
     public static long getUserId() {
         long uid = JedisManager.getInstance().incr(EditorConst.USER_ID_MAX);
         return uid;
