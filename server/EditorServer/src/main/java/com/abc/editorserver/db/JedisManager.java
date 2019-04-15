@@ -12,6 +12,7 @@ import java.util.Set;
  * Created by U-Demon
  * Date: 2019/3/30
  */
+
 public class JedisManager {
 
     private static JedisManager mgr = new JedisManager();
