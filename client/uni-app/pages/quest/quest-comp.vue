@@ -27,13 +27,17 @@
 				<span class="header">完成信息</span>
 			</view>
 			
-			<el-form ref="form" label-width="40upx">
+			<el-form ref="form" label-width="100upx">
 				<el-form-item label="任务限时(秒)">
 					<el-input placeholder="时间限制" v-model="timeLimit" id="timeLimit" @blur="setTimeLimit" style="width: 100upx;" clearable></el-input>
 				</el-form-item>
 				
 				<el-form-item label="显示时间信息">
 					<el-checkbox v-model="showTimeLimit" @change="setShowTimeLimit" disabled></el-checkbox>
+				</el-form-item>
+				
+				<el-form-item label="是否【可交】后自动完成">
+					<el-checkbox v-model="canAutomaticDeliver" @change="setAutoDeliver"></el-checkbox>
 				</el-form-item>
 			</el-form>
 		</el-card>
@@ -56,6 +60,7 @@
 				questReward:'',
 				timeLimit:0,
 				showTimeLimit:true,
+				canAutomaticDeliver: false,
 				
 				/* 全局相关 */
 				hasSetDefaultValue: false,
@@ -118,12 +123,17 @@
 			setTimeLimit(){
 				util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit)
 			},
+			setAutoDeliver(){
+				util.updateDataField('QUEST',this.tableRowData['sn'],'canAutomaticDeliver',this.canAutomaticDeliver)
+			},
 			setShowTimeLimit(){
 			},
 			refreshDefaultValues(){
 				this.questReward = this.tableRowData['questReward']
 				this.bind = this.tableRowData['bind'].toLowerCase() === 'true'
 				this.exp = this.tableRowData['exp']
+				this.timeLimit = this.tableRowData['timeLimit']
+				this.canAutomaticDeliver = this.tableRowData['canAutomaticDeliver'].toLowerCase() === 'true'
 			}
 		},
 		components:{
