@@ -7,7 +7,8 @@ const store = new Vuex.Store({
 	state: {
 		hasLogin: false,
 		loginProvider: "",
-		token: ''
+		token: '',
+		verNum: '',
 	},
 	mutations: {
 		login(state, provider) {

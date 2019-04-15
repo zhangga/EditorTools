@@ -428,13 +428,15 @@ public class DataManager {
      * @param value
      * @return
      */
-    public int updateTableData(String table, String sn, String field, String value) {
+    public long updateTableData(String table, String sn, String field, String value) {
         ExcelConfig config = ExcelManager.getInstance().getConfig(table);
         if (config == null) {
             return -1;
         }
+
         String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
         JSONObject jo = null;
+
         if (json == null) {
             jo = new JSONObject();
         }
@@ -442,8 +444,10 @@ public class DataManager {
             jo = JSON.parseObject(json);
         }
         jo.put(field, value);
+
         JedisManager.getInstance().hset(config.getRedis_table(), sn, jo.toJSONString());
-        return 1;
+
+        return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
     }
 
     /**

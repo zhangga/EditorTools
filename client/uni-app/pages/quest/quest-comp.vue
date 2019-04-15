@@ -113,26 +113,26 @@
 			setQuestReward(item){
 				this.questReward = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setBind(){
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase())
+					util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase(), this.$store.state.verNum, this)
 				}
 			},
 			setExp(){
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp, this.$store.state.verNum, this)
 				}
 			},
 			setTimeLimit(){
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit, this.$store.state.verNum, this)
 				}
 			},
 			setAutoDeliver(){
-				util.updateDataField('QUEST',this.tableRowData['sn'],'canAutomaticDeliver',this.canAutomaticDeliver)
+				util.updateDataField('QUEST',this.tableRowData['sn'],'canAutomaticDeliver',this.canAutomaticDeliver, this.$store.state.verNum, this)
 			},
 			setShowTimeLimit(){
 			},

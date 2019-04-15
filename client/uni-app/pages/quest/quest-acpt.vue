@@ -163,37 +163,37 @@
 			setStartNPC(item) {
 				this.startNpc = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setEndNPC(item) {
 				this.endNpc = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setBeforeAcceptPlot(item) {
 				this.beforeAcceptPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setAfterAcceptPlot(item) {
 				this.afterAcceptPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setBeforeEndPlot(item) {
 				this.beforeEndPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setAfterEndPlot(item) {
 				this.afterEndPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
 			setShowAcceptedEffect(){
@@ -202,7 +202,7 @@
 					val = '1'
 				}
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val, this.$store.state.verNum, this)
 				}
 			},
 			setShowFinishedEffect(){
@@ -211,7 +211,7 @@
 					val = '1'
 				}
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val, this.$store.state.verNum, this)
 				}
 			},
 			refreshDefaultValues() {

@@ -23,24 +23,25 @@ public class UpdateTableDataAction extends GameActionJson {
 
         JSONObject replyMsg = new JSONObject();
 
-        if (versionNum != null) {
-            VersionManager versionManager = VersionManager.getInstance();
-            if (versionManager.hasTableDataVersionChanged(table, sn, versionNum)) {
-                replyMsg.put("result", EditorConst.RESULT_FAILED);
-                replyMsg.put("hint", "当前表格数据已被更改，请刷新重试");
-            }
+        VersionManager versionManager = VersionManager.getInstance();
+        if (versionManager.hasTableDataVersionChanged(table, sn, versionNum)) {
+            replyMsg.put("result", EditorConst.RESULT_FAILED);
+            replyMsg.put("hint", "当前表格数据已被更改，请刷新重试");
+            sendMsg(request.ctx, replyMsg);
+            return;
         }
 
         String field = request.msg.getString("field");
         String value = request.msg.getString("value");
 
-        int ret = DataManager.getInstance().updateTableData(table, sn, field, value);
+        long ret = DataManager.getInstance().updateTableData(table, sn, field, value);
 
         LogEditor.serv.info("更新【" + table + "】表中SN为【" + sn + "】的记录的【" + field + "】列为：" + value);
+        LogEditor.serv.info("返回版本号：" + ret);
 
         replyMsg.put("result", EditorConst.RESULT_OK);
         replyMsg.put("hint", "更新成功");
-        replyMsg.put("data", ret);
+        replyMsg.put("data", Long.toString(ret));
         sendMsg(request.ctx, replyMsg);
     }
 

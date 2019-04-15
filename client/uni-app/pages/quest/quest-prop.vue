@@ -205,13 +205,13 @@
 				
 				if (currItem == 'questName' || currItem == 'questDescription') {
 					console.log("向" + currItem + "提交值：" + updatedValue)
-					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, updatedValue)
+					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, updatedValue, this.$store.state.verNum, this)
 				} else if (currItem == 'questType') {
 					console.log("向" + currItem + "提交值：" + parseInt(this.questTypes.indexOf(updatedValue) + 1))
-					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, parseInt(this.questTypes.indexOf(updatedValue) + 1))
+					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, parseInt(this.questTypes.indexOf(updatedValue) + 1), this.$store.state.verNum, this)
 				} else if (currItem == 'hidden' || currItem == 'canAutomaticDeliver' || currItem == 'canAutomaticAccept') {
 					console.log("向" + currItem + "提交值：" + (updatedValue ? "TRUE" : "FALSE"))
-					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "TRUE" : "FALSE"))
+					util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "TRUE" : "FALSE"), this.$store.state.verNum, this)
 				}
 			},
 			// 获取当前点击表单组件的id
@@ -229,7 +229,7 @@
 			// el-input-number类型的组件较为特殊，原生的click方法会在@change方法之后被调用，导致方法的执行顺序出错
 			onUpdateQuestLevel: function(updatedValue) {
 				console.log("向" + "questLevel" + "提交值：" + updatedValue)
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], "questLevel", updatedValue)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], "questLevel", updatedValue, this.$store.state.verNum, this)
 			}
 		}
 	}

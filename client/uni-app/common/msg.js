@@ -59,11 +59,11 @@ export default {
 		};
 	},
 	// 更新任务表数据
-	update_quest_data(token, sn, field, value) {
-		return update_table_data(token, 'QUEST', sn, field, value);
+	update_quest_data(token, sn, field, value, verNum) {
+		return update_table_data(token, 'QUEST', sn, field, value, verNum);
 	},
 	// 更新数据表数据
-	update_table_data(token, table, sn, field, value) {
+	update_table_data(token, table, sn, field, value, verNum) {
 		return {
 			'cmd': 6,
 			'token': token,
@@ -71,6 +71,7 @@ export default {
 			'sn': sn,
 			'field': field,
 			'value': value,
+			'verNum': verNum
 		};
 	},
 	// 新增表格数据

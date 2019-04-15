@@ -204,6 +204,9 @@
 						uni.setNavigationBarTitle({
 							title: "当前操作任务：" + this.currSelectedQuestData['questName']
 						});
+						
+						// 更新版本号缓存信息
+						this.$store.state.verNum = this.currSelectedQuestData['verNum']
 					},
 					fail: res => {
 						this.$notify.error({

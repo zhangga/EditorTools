@@ -2,17 +2,21 @@ import Vue from 'vue'
 import msg from '../common/msg.js'
 import store from '../store/index.js'
 
-function updateDataField(table, sn, field, value) {
+function updateDataField(table, sn, field, value, verNum, caller) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
-		data: msg.update_table_data(store.state.token, table, sn, field, value),
+		data: msg.update_table_data(store.state.token, table, sn, field, value, verNum),
 		success: res => {
-			var resultCode = res['result']
-			var hint = res['hint']
+			var resultCode = res.data['result']
+			var hint = res.data['hint']
 			
-			if (resultCode == RESULT_FAILED) {
+			if (resultCode == msg.RESULT_FAILED) {
 				Vue.prototype.$message.error('更新失败！' + hint)
+			}
+			else if (resultCode == msg.RESULT_OK) {
+				// 更新当前缓存版本号
+				caller.$store.state.verNum = res.data['data']
 			}
 		},
 		fail: () => {
