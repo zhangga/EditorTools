@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" @blur="blur" :placeholder="placeholder" style="position: relative;top: -12upx;">
+		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative;top: -12upx;">
 		</el-autocomplete>
 		<!-- 用于触发数据同步与更新 -->
 		<span style="display:none"> {{value}} </span>
@@ -14,7 +14,8 @@
 		data() {
 			return {
 				Items:[],
-				content: ''
+				content: '',
+				prevContent: '',
 			};
 		},
 		props:{
@@ -39,10 +40,26 @@
 			value:{
 				type:String,
 				required:true
-			}
+			},
 		},
 		updated: function() {
-			this.content = this.value
+			if (this.prevContent == this.content) {
+				console.log("prevContent == content")
+				if (this.content != '') {
+					this.content = this.value;
+					this.prevContent = this.content;
+				}
+			} else {
+				this.prevContent = this.content
+				console.log("当前content为：" + this.content)
+				
+				if(this.content === ''){
+					console.log("保存空值")
+					var item = new Object()
+					item.value = ''
+					this.select(item)
+				}
+			}
 		},
 		methods: {
 			loadAll() {
@@ -84,13 +101,6 @@
 				return (state) => {
 					return (state.value.indexOf(queryString) !== -1);
 				};
-			},
-			blur(){
-				if(this.value === ''){
-					var item = new Object()
-					item.value = ''
-					this.select(item)
-				}
 			}
 		}
 	}
