@@ -63,6 +63,7 @@ public class VersionManager {
 
         // Lazy instantiation
         if (versionNumber == null) {
+            JedisManager.getInstance().hset(versionTableName, tableNameWithSn, Long.toString(1L));
             tableDataVersions.put(tableNameWithSn, new AtomicLong(1L));
             return String.valueOf(1L);
         }
@@ -81,7 +82,8 @@ public class VersionManager {
         AtomicLong versionNumber = tableDataVersions.get(tableNameWithSn);
 
         if (versionNumber == null) {
-            return String.valueOf(tableDataVersions.put(tableNameWithSn, new AtomicLong(2L)));
+            JedisManager.getInstance().hset(versionTableName, tableNameWithSn, Long.toString(1L));
+            return String.valueOf(tableDataVersions.put(tableNameWithSn, new AtomicLong(1L)));
         }
         else {
             return String.valueOf(tableDataVersions.compute(tableNameWithSn, (k, v) -> {
