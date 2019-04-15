@@ -1,16 +1,20 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="value" :fetch-suggestions="querySearch" @select="select" @blur="blur" :placeholder="placeholder" style="position: relative;top: -12upx;">
+		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" @blur="blur" :placeholder="placeholder" style="position: relative;top: -12upx;">
 		</el-autocomplete>
+		<!-- 用于触发数据同步与更新 -->
+		<span style="display:none"> {{value}} </span>
 	</view>
 </template>
 
 <script>
 	import msg from '../../common/msg.js'
+	
 	export default {
 		data() {
 			return {
 				Items:[],
+				content: ''
 			};
 		},
 		props:{
@@ -36,6 +40,9 @@
 				type:String,
 				required:true
 			}
+		},
+		updated: function() {
+			this.content = this.value
 		},
 		methods: {
 			loadAll() {

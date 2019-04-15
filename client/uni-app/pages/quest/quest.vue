@@ -1,5 +1,5 @@
 <template>
-	<view>
+	<view ref="quest">
 		<vue-canvas-nest :config="{color:'255,0,0', opacity:'0.8'}"></vue-canvas-nest>
 		<el-container v-bind:style="{height: screenHeight}" v-if="dataLoadComplete" class="nav-bar" ref="navbar">
 			<!-- 导航栏 -->
@@ -100,6 +100,7 @@
 <script>
 	import msg from '../../common/msg.js'
 	import config from '../../common/config.js'
+	import util from '../../common/util.js'
 	
 	import questProp from './quest-prop.vue'
 	import questAcpt from './quest-acpt.vue'
@@ -108,29 +109,32 @@
 	
 	export default {
 		data() {
-			return {
-				currentTableName: '',
-				screenHeight: '',
-				tabConfig: [],
+			return {	
+				/* 本地数据缓存 */
 				items: [],
-				mainActiveIndex: 0,
-				activeSn: 0,
-				activeTab: 0,
-				dataLoadComplete: false,
-				hasSelectedRowData: false,
+				tabConfig: [],
 				questTypes: [],
 				occupiedQuestSNs: [],
-				currSelectedQuestData: null,
 				navmenuSearchOptions: [],
-				searchedMenuItem: null,
-				currentActivatedIndex: '',
 				
 				/* 新增任务用 */
 				selectedAddQuestType: 0,
 				inputAddQuestSN: 0,
 				inputAddQuestName: '',
 				isAddQuestSNValid: true,
-				isPopoverVisible: false
+				isPopoverVisible: false,
+				
+				/* 状态描述用 */
+				currentTableName: '',
+				screenHeight: '',
+				dataLoadComplete: false,
+				activeSn: 0,
+				activeTab: 0,
+				mainActiveIndex: 0,
+				currSelectedQuestData: null,
+				currentActivatedIndex: '',
+				searchedMenuItem: null,
+				hasSelectedRowData: false,
 			};
 		},
 		computed: {
@@ -151,7 +155,7 @@
 			}
 		},
 		onLoad: function(option) {
-			// 接受页面跳转传递的参数
+			// 接受页面跳转传递的参数（uni-app跳转传参）
 			this.currentTableName = option.table_name
 			
 			// 任务页签的配置
@@ -178,9 +182,11 @@
 				this.triggerItemClick(e.index)
 			},
 			triggerItemClick: function(index) {
+				// 更新当前激活记录的ID
+				this.currentActivatedIndex = index
+				
 				// 解析点击项ID
 				var splittedIndex = index.split('.')
-				this.currentActivatedIndex = index
 				this.activeSn = splittedIndex[2]
 				
 				// 打开对应顶级菜单
@@ -207,13 +213,16 @@
 					}
 				});
 			},
-			onLoadQuestBrief: function() {
+			onLoadQuestBrief: function(callback = null) {
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
 					data: msg.get_all_quest_brief(this.$store.state.token),
 					success: res => {
+						// TODO: Error Handling
 						this.items = res.data['data']
+						this.occupiedQuestSNs = []
+						this.questTypes = []
 						// 排序
 						for (let i = 0; i < this.items.length; i++) {
 							this.questTypes.push(this.items[i]['text'])
@@ -233,11 +242,20 @@
 						this.activeTab = this.tabConfig[0]
 						this.dataLoadComplete = true
 						
+						// 预处理操作，用于任务搜索
 						this.formatSearchOptions();
+						
+						// 执行回调方法
+						if (callback != null) {
+							callback()
+						}
 					}
 				});
 			},
 			formatSearchOptions: function() {
+				// 初始化
+				this.navmenuSearchOptions = []
+				
 				if (this.items.length == 0) {
 					return
 				}
@@ -285,30 +303,38 @@
 			},
 			generateNextQuestID: function(questIndex) {
 				// 获取当前最大的任务ID
-				var occupiedSNs = this.occupiedQuestSNs[questIndex]['sn']
-				this.inputAddQuestSN = occupiedSNs[occupiedSNs.length - 1] + 1
+				var occupiedIDbyQuest = this.occupiedQuestSNs[0]['sn']
+				var maxSn = parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1])
+				
+				for (var i = 1; i < this.questTypes.length; i++) {
+					occupiedIDbyQuest = this.occupiedQuestSNs[i]['sn']
+					maxSn = Math.max(maxSn, occupiedIDbyQuest.length == 0 ? 0 : parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1]))
+				}
+				
+				this.inputAddQuestSN = maxSn + 1
 			},
 			onAddQuestButtonClicked: function() {
 				this.resetAddQuestForm()
 			},
 			onAddQuestIDUpdated: function() {
 				// 检查输入的任务ID是否合法
-				if (this.occupiedQuestSNs[this.selectedAddQuestType]['sn'].indexOf(this.inputAddQuestSN) > -1) {
-					this.isAddQuestSNValid = false
+				for (var i = 0; i < this.questTypes.length; i++) {
+					if (this.occupiedQuestSNs[i]['sn'].indexOf(this.inputAddQuestSN) > -1) {
+						this.isAddQuestSNValid = false
+						return
+					}
 				}
-				else {
-					this.isAddQuestSNValid = true
-				}
+				this.isAddQuestSNValid = true
 			},
 			onAddQuestTypeChanged: function() {
-				this.onAddQuestIDUpdated()
+				// this.isAddQuestSNValid = (this.occupiedQuestSNs[this.selectedAddQuestType]['sn'].indexOf(this.inputAddQuestSN) == -1)
 			},
 			resetAddQuestForm: function() {
 				// 设置默认新增的任务类型
 				this.selectedAddQuestType = 0
 				
-				// 找到默认任务类型的下一个可用任务ID
-				this.generateNextQuestID(0)
+				// 找到下一个可用任务ID
+				this.generateNextQuestID()
 				
 				// 清空描述域
 				this.inputAddQuestName = ''
@@ -335,21 +361,42 @@
 					});
 				}
 				else {
-					// 弹窗提示
-					this.$message({
-						showClose: true,
-						message: '新增任务记录成功！',
-						type: 'success'
-					});
+					// 显示loading界面
+					 let loadingInstance = this.$loading({
+						 lock: true,
+						 text: "新增记录中...",
+						 spinner: 'el-icon-loading',
+						 background: 'rgba(0, 0, 0, 0.7)'
+					 })
+					 
 					// 提交表单
-					
-					// 隐藏弹窗
-					this.isPopoverVisible = false
-					
-					// 刷新页面
-					
-					// 激活对应的任务
+					var addKeyValues = "\{\"questType\":" + parseInt(this.selectedAddQuestType + 1) 
+										+ ",\"questName\":\"" + this.inputAddQuestName 
+										+ "\",\"sn\":" + this.inputAddQuestSN + "\}"
+					util.addDataField(this.currentTableName, addKeyValues, loadingInstance, this)
 				}
+			},
+			onAddTableData: function(replyData) {
+				// 隐藏弹窗
+				this.isPopoverVisible = false
+				
+				// 刷新页面
+				this.onLoadQuestBrief(() => {
+					// 计算当前加入的任务在菜单中对应的index
+					let json = JSON.parse(replyData)
+					let questSn = json['sn']
+					let questType = json['questType']
+					let usedSNs = this.occupiedQuestSNs[parseInt(questType) - 1]['sn']
+					
+					let index = String(questType) + '.' + parseInt(usedSNs.indexOf(parseInt(questSn)) + 1) + '.' + questSn
+					
+					// 更新任务激活状态显示
+					this.$refs.menu.activeIndex = index
+					
+					// 触发任务点击事件
+					this.triggerItemClick(index)
+					
+				})
 			}
 		}
 	}

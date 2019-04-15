@@ -180,7 +180,10 @@
 		methods: {
 			refreshDefaultValues: function() {
 				this.inputQuestName = this.tableRowData['questName']
-				this.inputQuestDesc = this.tableRowData['questDescription']
+				
+				if (this.tableRowData['questDescription'] != null) {
+					this.inputQuestDesc = this.tableRowData['questDescription']
+				}
 				
 				if (this.tableRowData['questType'] != null) {
 					this.selectedQuestType = this.questTypes[parseInt(this.tableRowData['questType'], 10) - 1]

@@ -8,6 +8,7 @@ Vue.component('page-foot', pageFoot)
 
 import store from './store'
 
+// 按需引入element-ui
 import './element-ui/lib/theme-chalk/index.css';
 import Pagination from './element-ui/lib/pagination.js';
 import Dialog from './element-ui/lib/dialog.js';
@@ -83,6 +84,18 @@ import TimelineItem from './element-ui/lib/timeline-item.js';
 import locale from 'element-ui/src/locale';
 import CollapseTransition from 'element-ui/src/transitions/collapse-transition';
 
+// 对Element-ui中Message的按需引入做特殊处理(方便手动添加全局方法)
+Vue.prototype.$message = Message
+
+// 对Element-ui中Notification的按需引入做特殊处理(方便手动添加全局方法)
+Vue.prototype.$notify = Notification
+
+// 对Element-ui中MessageBox的按需引入做特殊处理(方便手动添加全局方法)
+Vue.prototype.$confirm = MessageBox
+Vue.prototype.$alert = MessageBox
+Vue.prototype.$msgbox = MessageBox
+Vue.prototype.$prompt = MessageBox
+
 Vue.use(Pagination)
 Vue.use(Dialog)
 Vue.use(Autocomplete)
@@ -157,10 +170,12 @@ Vue.use(TimelineItem)
 Vue.use(locale)
 Vue.use(CollapseTransition)
 
+// 引入vue-data-table
 import { DataTables, DataTablesServer } from './vue-data-tables';
 Vue.use(DataTables)
 Vue.use(DataTablesServer)
 
+// 引入vue-canvas-nest
 import vueCanvasNest from './vue-canvas-nest/src/vueCanvasNest.vue'
 Vue.component('vue-canvas-nest', vueCanvasNest)
 

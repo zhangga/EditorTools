@@ -6,35 +6,35 @@
 			</view>
 			<el-form label-width="100px">
 				<el-form-item label="接受NPC">
-					<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" :value='startNpc' id="startNPC">
+					<textInput :datas="NPC" placeholder='接受NPC' :method='loadNpc' :select="setStartNPC" v-bind:value='startNpc' id="startNPC" >
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束NPC">
-					<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' :select="setEndNPC" :value='endNpc' id="endNPC">
+					<textInput :datas="NPC" placeholder='结束NPC' :method='loadNpc' v-bind:value="endNpc" :select="setEndNPC" id="endNPC" >
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="接受前对话">
-					<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' :select="setBeforeAcceptPlot" :value='beforeAcceptPlot'
+					<textInput :datas="Plot" placeholder='接受前对话' :method='loadPlot' v-bind:value="beforeAcceptPlot" :select="setBeforeAcceptPlot" 
 					 id="beforeAcceptPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="接受后对话">
-					<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" :value='afterAcceptPlot'
+					<textInput :datas="Plot" placeholder='接受后对话' :method='loadPlot' :select="setAfterAcceptPlot" v-bind:value='afterAcceptPlot'
 					 id="afterAcceptPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束前对话">
-					<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" :value='beforeEndPlot'
+					<textInput :datas="Plot" placeholder='结束前对话' :method='loadPlot' :select="setBeforeEndPlot" v-bind:value='beforeEndPlot'
 					 id="beforeEndPlot">
 					</textInput>
 				</el-form-item>
 
 				<el-form-item label="结束后对话">
-					<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" :value='afterEndPlot' id="afterEndPlot">
+					<textInput :datas="Plot" placeholder='结束后对话' :method='loadPlot' :select="setAfterEndPlot" v-bind:value='afterEndPlot' id="afterEndPlot">
 					</textInput>
 				</el-form-item>
 
@@ -85,7 +85,6 @@
 		},
 		props: ['tableRowData'],
 		mounted() {
-			console.log("Mounted")
 			this.refreshDefaultValues()
 		},
 		updated() {
@@ -163,51 +162,74 @@
 			},
 			setStartNPC(item) {
 				this.startNpc = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'acceptNPC',this.startNpc.split(':')[0])
+				}
 			},
 			setEndNPC(item) {
 				this.endNpc = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'endNPC',this.endNpc.split(':')[0])
+				}
 			},
 			setBeforeAcceptPlot(item) {
 				this.beforeAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeAcceptPlotId',this.beforeAcceptPlot.split(':')[0])
+				}
 			},
 			setAfterAcceptPlot(item) {
 				this.afterAcceptPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0])
+				}
 			},
 			setBeforeEndPlot(item) {
 				this.beforeEndPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0])
+				}
 			},
 			setAfterEndPlot(item) {
 				this.afterEndPlot = item.value
-				util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0])
+				}
 			},
 			setShowAcceptedEffect(){
 				var val = '0'
 				if(this.showAcceptedEffect){
 					val = '1'
 				}
-				util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showAcceptedEffect',val)
+				}
 			},
 			setShowFinishedEffect(){
 				var val = '0'
 				if(this.showFinishedEffect){
 					val = '1'
 				}
-				util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'showFinishedEffect',val)
+				}
 			},
 			refreshDefaultValues() {
-				this.startNpc = this.findNPC(this.tableRowData['acceptNPC'])
-				this.endNpc = this.findNPC(this.tableRowData['endNPC'])
-				this.beforeAcceptPlot = this.findPlot(this.tableRowData['beforeAcceptPlotId'])
-				this.afterAcceptPlot = this.findPlot(this.tableRowData['afterAcceptPlotId'])
-				this.beforeEndPlot = this.findPlot(this.tableRowData['beforeEndPlotId'])
-				this.afterEndPlot = this.findPlot(this.tableRowData['afterEndPlotId'])
-				this.showAcceptedEffect = this.tableRowData['showAcceptedEffect'] !== '0'
-				this.showFinishedEffect = this.tableRowData['showFinishedEffect'] !== '0'
+				this.startNpc = this.tableRowData['acceptNPC'] != null ? this.findNPC(this.tableRowData['acceptNPC']) : this.startNpc
+				this.endNpc = this.tableRowData['endNPC'] != null ? this.findNPC(this.tableRowData['endNPC']) : this.endNpc
+				this.beforeAcceptPlot = this.tableRowData['beforeAcceptPlotId'] != null ? this.findPlot(this.tableRowData['beforeAcceptPlotId']) : this.beforeAcceptPlot
+				this.afterAcceptPlot = this.tableRowData['afterAcceptPlotId'] != null ? this.findPlot(this.tableRowData['afterAcceptPlotId']) : this.afterAcceptPlot
+				this.beforeEndPlot = this.tableRowData['beforeEndPlotId'] != null ? this.findPlot(this.tableRowData['beforeEndPlotId']) : this.beforeEndPlot
+				this.afterEndPlot = this.tableRowData['afterEndPlotId'] != null ? this.findPlot(this.tableRowData['afterEndPlotId']) : this.afterEndPlot
+				
+				if (this.tableRowData['showAcceptedEffect'] != null) {
+					this.showAcceptedEffect = this.tableRowData['showAcceptedEffect'] !== '0'
+				}
+				
+				if (this.tableRowData['showFinishedEffect'] != null) {
+					this.showFinishedEffect = this.tableRowData['showFinishedEffect'] !== '0'
+				}
+				
 			},
 			findNPC(NpcID) {
 				if (NpcID == '') {

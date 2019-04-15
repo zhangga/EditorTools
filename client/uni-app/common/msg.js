@@ -1,7 +1,13 @@
 // 服务器地址
 var SERVER_URL = 'http://127.0.0.1:28100';
+// 操作成功代码
+const RESULT_OK = "1";
+// 操作失败代码
+const RESULT_FAILED = "0";
 
 export default {
+	RESULT_OK,
+	RESULT_FAILED,
 	url() {
 		return SERVER_URL;
 	},
@@ -67,4 +73,13 @@ export default {
 			'value': value,
 		};
 	},
+	// 新增表格数据
+	add_table_data(token, table, keyValues) {
+		return {
+			'cmd': 7,
+			'token': token,
+			'table': table,
+			'kv': keyValues
+		};
+	}
 }

@@ -15,12 +15,12 @@ import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
 /**
- * UpdateTableDataFromSVN
+ * UpdateTableDataFromSVNAction
  * Created by Marco
  * Date: 2019/4/8 11:06
  */
 
-public class UpdateTableDataFromSVN extends GameActionJson {
+public class UpdateTableDataFromSVNAction extends GameActionJson {
 
     @Override
     public void doAction(User user, RequestData request) {

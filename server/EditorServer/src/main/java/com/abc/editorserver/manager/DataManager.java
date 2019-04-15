@@ -459,4 +459,30 @@ public class DataManager {
         String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
         return json;
     }
+
+    /**
+     * 检查表中是否有对应SN的记录
+     * @param tableName
+     * @param sn
+     * @return
+     */
+    public boolean SnExistsInTable(String tableName, String sn) {
+        return getTableDataBySn(tableName, sn) != null;
+    }
+
+    /**
+     * 在数据表中新增一条数据
+     * @param tableName
+     * @param params
+     * @return
+     */
+    public int addTableData(String tableName, JSONObject params) {
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
+        if (config == null) {
+            return -1;
+        }
+
+        JedisManager.getInstance().hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
+        return 1;
+    }
 }

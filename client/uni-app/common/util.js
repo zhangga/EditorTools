@@ -2,11 +2,11 @@ import Vue from 'vue'
 import msg from '../common/msg.js'
 import store from '../store/index.js'
 
-function updateDataField(table,sn,field,value){
+function updateDataField(table, sn, field, value) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
-		data: msg.update_table_data(store.state.token,table,sn,field,value),
+		data: msg.update_table_data(store.state.token, table, sn, field, value),
 		success: res => {
 // 			Vue.prototype.$message({
 // 				message: '这是一条成功消息',
@@ -19,6 +19,43 @@ function updateDataField(table,sn,field,value){
 		complete: () => {}
 	});
 }
+
+function addDataField(table, keyValues, loadingInstance, caller) {
+	uni.request({
+		url: msg.url(),
+		method: 'GET',
+		data: msg.add_table_data(store.state.token, table, keyValues),
+		success: res => {
+			var resultCode = res.data['result']
+			var hint = res.data['hint']
+			var replyData = res.data['data']
+			
+			if (resultCode == msg.RESULT_OK) {
+				if (loadingInstance != null) {
+					loadingInstance.close()
+				}
+				
+				Vue.prototype.$message.success('新增任务记录成功')
+				
+				if (caller != null) {
+					caller.onAddTableData(replyData)
+				}
+			}
+			else {
+				Vue.prototype.$message.error('向' + table + '表新增记录失败，【原因】：' + hint)
+			}
+		},
+		fail: () => {
+			Vue.prototype.$message.error('向' + table + '表新增数据失败')
+		},
+		complete: () => { {
+			if (loadingInstance != null) {
+				loadingInstance.close()
+			}
+		}}
+	});
+}
+
 function formatTime(time) {
 	if (typeof time !== 'number' || time < 0) {
 		return time
@@ -50,6 +87,7 @@ function formatLocation(longitude, latitude) {
 		latitude: latitude.toString().split('.')
 	}
 }
+
 var dateUtils = {
 	UNITS: {
 		'年': 31557600000,
@@ -92,4 +130,5 @@ module.exports = {
 	formatLocation: formatLocation,
 	dateUtils: dateUtils,
 	updateDataField: updateDataField,
+	addDataField: addDataField,
 }
