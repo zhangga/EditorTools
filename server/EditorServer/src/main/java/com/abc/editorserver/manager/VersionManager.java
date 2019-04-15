@@ -1,19 +1,10 @@
 package com.abc.editorserver.manager;
 
-import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
-import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.support.LogEditor;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,7 +17,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class VersionManager {
 
     private static VersionManager manager = new VersionManager();
-    private Set<String> tableSN = new HashSet<>();
     private Map<String, AtomicLong> tableDataVersions = new ConcurrentHashMap<>();
 
     private VersionManager() {}
@@ -35,53 +25,11 @@ public class VersionManager {
         return manager;
     }
 
-    public static final String redisTableName = "VERSION";
+    public static final String versionTableName = "VERSION";
 
     public void init() {
         LogEditor.serv.info("======开始加载版本号信息======");
-        initTableData();
         initTableDataVersion();
-    }
-
-    /**
-     * 从Excel中加载所有的人物数据
-     */
-    private void initTableData() {
-        try {
-            ExcelConfig[] configs = ExcelManager.getInstance().getConfigs();
-
-            for (ExcelConfig config : configs) {
-                String excelName = config.getExcel();
-                String excelNameWOExtension = excelName.substring(0, excelName.lastIndexOf("."));
-                String excelPath = EditorConfig.svn_export + "/" + excelName;
-                String sheetName = config.getSheet();
-
-                XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(excelPath));
-                XSSFSheet sheet = workbook.getSheet(sheetName);
-
-                ExcelManager excelManager = ExcelManager.getInstance();
-
-                for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
-
-                    if (rowIndex < excelManager.getDefaultNames().length) {
-                        continue;
-                    }
-
-                    XSSFCell cell = sheet.getRow(rowIndex).getCell(0);
-
-                    if (cell == null) {
-                        continue;
-                    }
-
-                    String rowSN = cell.toString();
-                    rowSN = rowSN.substring(0, rowSN.length() - 2);
-                    tableSN.add(excelNameWOExtension + "|" + sheetName + "|" + rowSN);
-                }
-            }
-        } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -90,80 +38,82 @@ public class VersionManager {
     private void initTableDataVersion() {
         JedisManager redisManager = JedisManager.getInstance();
 
-        Iterator<String> iter = tableSN.iterator();
-        String sn, dataVersion;
+        Map<String, String> redisData = redisManager.hgetAll(versionTableName);
+        Iterator<String> iter = redisData.keySet().iterator();
+
+        String dataKey, dataVersion;
 
         while (iter.hasNext()) {
-            sn = iter.next();
-            dataVersion = redisManager.hget(redisTableName, sn);
+            dataKey = iter.next();
+            dataVersion = redisData.get(dataKey);
 
-            if (dataVersion != null) {
-                tableDataVersions.put(sn, new AtomicLong(Long.valueOf(dataVersion)));
-            }
-            else {
-                redisManager.hset(redisTableName, sn, "0");
-                tableDataVersions.put(sn, new AtomicLong(1L));
-            }
+            tableDataVersions.put(dataKey, new AtomicLong(Long.valueOf(dataVersion)));
         }
     }
 
     /**
      * 获取指定的版本号信息
-     * @param excelName
-     * @param sheetName
+     * @param redisTableName
      * @param sn
      * @return
      */
-    public String getTableDataVersion(String excelName, String sheetName, String sn) {
-        String tableNameWithSn = excelName + "|" + sheetName + "|" + sn;
+    public String getTableDataVersion(String redisTableName, String sn) {
+        String tableNameWithSn = redisTableName + ":" + sn;
+        AtomicLong versionNumber = tableDataVersions.get(tableNameWithSn);
 
-        if (!tableDataVersions.containsKey(tableNameWithSn)) {
-            LogEditor.serv.info("获取版本号信息失败：无法获取表信息" + tableNameWithSn);
-            return null;
+        // Lazy instantiation
+        if (versionNumber == null) {
+            tableDataVersions.put(tableNameWithSn, new AtomicLong(1L));
+            return String.valueOf(1L);
         }
-        else {
-            return tableDataVersions.get(tableNameWithSn).toString();
-        }
+
+        return String.valueOf(versionNumber.get());
     }
 
     /**
      * 自增版本号
-     * @param excelName
-     * @param sheetName
+     * @param redisTableName
      * @param sn
      * @return
      */
-    public long incrementTableDataVersion(String excelName, String sheetName, String sn) {
-        String tableNameWithSn = excelName + "|" + sheetName + "|" + sn;
+    public String incrementTableDataVersion(String redisTableName, String sn) {
+        String tableNameWithSn = redisTableName + ":" + sn;
+        AtomicLong versionNumber = tableDataVersions.get(tableNameWithSn);
 
-        if (!tableDataVersions.containsKey(tableNameWithSn)) {
-            LogEditor.serv.info("自增版本号失败：无法获取表信息" + tableNameWithSn);
-            return -1;
+        if (versionNumber == null) {
+            return String.valueOf(tableDataVersions.put(tableNameWithSn, new AtomicLong(2L)));
         }
         else {
-            return tableDataVersions.compute(tableNameWithSn, (k, v) -> {
+            return String.valueOf(tableDataVersions.compute(tableNameWithSn, (k, v) -> {
                 v.incrementAndGet();
                 return v;
-            }).get();
+            }).get());
         }
     }
 
     /**
      * 检查当前数据版本号与提供的版本号是否一致
-     * @param excelName
-     * @param sheetName
+     * @param redisTableName
      * @param sn
      * @param verNum
      * @return
      */
-    public boolean hasTableDataVersionChanged(String excelName, String sheetName, String sn, String verNum) {
-        String currVerNum = getTableDataVersion(excelName, sheetName, sn);
+    public boolean hasTableDataVersionChanged(String redisTableName, String sn, String verNum) {
+        String currVerNum = getTableDataVersion(redisTableName, sn);
+        return !currVerNum.equals(verNum);
+    }
 
-        if (verNum == null || currVerNum == null) {
-            return false;
-        }
-        else {
-            return !currVerNum.equals(verNum);
+    /**
+     * 将缓存版本号信息写入Redis
+     */
+    public void versionCacheToRedis() {
+        JedisManager redisManager = JedisManager.getInstance();
+        Iterator<String> iter = tableDataVersions.keySet().iterator();
+        String tableWithSn;
+
+        while (iter.hasNext()) {
+            tableWithSn = iter.next();
+            redisManager.hset(versionTableName, tableWithSn, tableDataVersions.get(tableWithSn).toString());
         }
     }
 }
