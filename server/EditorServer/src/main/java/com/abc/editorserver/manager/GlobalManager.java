@@ -1,8 +1,12 @@
 package com.abc.editorserver.manager;
 
+import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.support.LogEditor;
 import com.abc.editorserver.utils.Task;
+import com.abc.editorserver.utils.Timer;
 import com.alibaba.fastjson.JSONObject;
+import org.tmatesoft.svn.core.SVNDepth;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -27,7 +31,13 @@ public class GlobalManager {
 
     private static ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
 
+    private static Timer updateTimer = new Timer();
+
+    private static DataManager dataManager = DataManager.getInstance();
+
     public static void init() {
+        updateTimer.startTimer(Timer.FIFTEEN_MINUTES);
+
         pulseExecutor.scheduleAtFixedRate(() -> {
             lastTime = System.currentTimeMillis();
             try {
@@ -60,6 +70,17 @@ public class GlobalManager {
      * 心跳
      */
     private static void pulse() {
+        if (updateTimer.isDue()) {
+            LogEditor.serv.info("定时执行SVN更新");
+            SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
+        }
+
+        if (dataManager.getTimer().isDue()) {
+            LogEditor.serv.info("数据定时器被触发，将缓存刷新至Excel中...");
+
+        }
+
+        // 处理任务队列
         while (!taskQueue.isEmpty()) {
             taskExecutor.execute(getNextTask());
         }
