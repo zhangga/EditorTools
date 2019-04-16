@@ -2,6 +2,8 @@ package com.abc.editorserver.manager;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
@@ -12,6 +14,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.parser.Feature;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -25,6 +29,7 @@ public class DataManager {
 
     private static DataManager mgr = new DataManager();
     public static DataManager getInstance(){ return mgr; }
+    private static Map<String, List<String>> columnSeqMap = new HashMap<>();
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
 
     private Timer timer = new Timer();
@@ -40,11 +45,11 @@ public class DataManager {
     public void init(){
         loadExcelConfig();
 
-        LogEditor.serv.info("======开始加载Trigger表======");
-        initTriggers();
-
+//        LogEditor.serv.info("======开始加载Trigger表======");
+//        initTriggers();
+//
         excelToRedis();
-        redisToExcel();
+//        redisToExcel();
     }
 
     /**
@@ -158,6 +163,8 @@ public class DataManager {
                     }
                 }
 
+                columnSeqMap.put(conf.getRedis_table(),colNames);
+
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
                     XSSFRow row = sheet.getRow(i);
@@ -197,8 +204,17 @@ public class DataManager {
             return value.replaceAll("\"", "@q@");
         }
         if(value.endsWith(".0")){
-            return value.substring(0,value.length()-2);
+            value = value.substring(0,value.length()-2);
         }
+
+        Pattern ptr = Pattern.compile("^\\d+[.]\\d+[E]\\d+");
+        Matcher matcher = ptr.matcher(value);
+
+        if (matcher.find()) {
+            /// 统一数字格式
+            return String.valueOf(String.format("%.0f", Double.parseDouble(value)));
+        }
+
         return value;
     }
 
@@ -210,8 +226,12 @@ public class DataManager {
             return value.replaceAll("@q@", "\"");
         }
         if(value.endsWith(".0")){
-            return value.substring(0,value.length()-2);
+            value = value.substring(0,value.length()-2);
+
+            /// 统一数字格式
+            return String.valueOf(String.format("%.0f", Double.parseDouble(value)));
         }
+
         return value;
     }
 
@@ -312,14 +332,15 @@ public class DataManager {
     private void makeRow(String value, XSSFSheet sheet, int rowNum, String tableName){
         try{
             XSSFRow row = sheet.createRow(rowNum);
-            JSONObject jo = JSON.parseObject(value, Feature.OrderedField); // 生成有序的JSON对象
-            List<String> keys = new ArrayList<>(jo.keySet());
-            int cellIndex = 0;
+            JSONObject jo = JSON.parseObject(value);
+            int cellNum = 0;
             XSSFCell cell;
-
-            for (String key : keys) {
-                cell = row.createCell(cellIndex++);
-                cell.setCellValue(convertToBR(jo.getString(key)));
+            while (jo.size() > 0) {
+                String columnKey = columnSeqMap.get(tableName).get(cellNum);
+                cell = row.createCell(cellNum);
+                cell.setCellValue(convertToBR(jo.getString(columnKey) == null ? "" : jo.getString(columnKey)));
+                cellNum++;
+                jo.remove(columnKey);
             }
         }
         catch(Exception e){
@@ -358,13 +379,12 @@ public class DataManager {
      */
     public JSONArray getTableColumnName(String tableName) {
         String value = JedisManager.getInstance().hget(tableName,"cnName");
+        JSONObject jo = JSONObject.parseObject(value);
         JSONArray ret = new JSONArray();
+        List<String> columnName = columnSeqMap.get(tableName);
 
-        JSONObject jo = JSONObject.parseObject(value, Feature.OrderedField);    // 获取有序的JSON对象
-        List<String> keys = new ArrayList<>(jo.keySet());
-
-        for(String key : keys) {
-            ret.add("{\"prop\":\"" + key + "\",\"label\":\"" + convertToBR(jo.getString(key)) + "\"}");
+        for(String name : columnName){
+            ret.add("{\"prop\":\"" + name +"\",\"label\":\""+ convertToBR(jo.getString(name))+ "\"}");
         }
 
         return ret;
@@ -506,5 +526,166 @@ public class DataManager {
         timer.reStartTimer();
 
         return 1;
+    }
+
+    /**
+     * 将本地缓存的改动写入至Excel表格中
+     * @param shouldPersistAll：是否需要写入配置中指定的所有表格
+     * @param redisTables: 指定需要写入的表格
+     */
+    public void persistData(boolean shouldPersistAll, String[] redisTables) {
+
+        /// Redis操作相关变量
+        String redisTableName, redisRowData, redisHashKey;
+        Map<String, String> redisHash;
+        LinkedList<String> redisHashKeys;
+        int redisHashNum;
+
+        /// Excel操作相关变量
+        XSSFWorkbook workbook;
+        XSSFSheet sheet;
+        XSSFCell cell;
+        XSSFRow row;
+        String excelName, sheetName, excelPath;
+        List<String> columnNames;
+
+        /// 解析相关变量
+        JSONObject json;
+        List<String> colKeys;
+        int rowIndex, colIndex;
+
+        /// IO相关变量
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+
+        ExcelConfig[] excelConfigs = ExcelManager.getInstance().getConfigs();
+        JedisManager jedisManager = JedisManager.getInstance();
+
+        /// Excel数据格式相关变量
+        DataFormat dataFormat;
+        CellStyle cellStyle;
+
+        /// 预处理需要写入的表格
+        Set<String> targetTables = Set.of(redisTables);
+
+        try {
+            for (ExcelConfig config : excelConfigs) {
+                redisTableName = config.getRedis_table();
+
+                /// 跳过不需要持久化的表格
+                if (!shouldPersistAll && !targetTables.contains(redisTableName)) {
+                    continue;
+                }
+
+                excelName = config.getExcel();
+                sheetName = config.getSheet();
+                excelPath = EditorConfig.svn_export + "/" + excelName;
+                columnNames = columnSeqMap.get(redisTableName);
+
+                LogEditor.serv.info("开始写入表格：" + redisTableName);
+
+                fis = new FileInputStream(excelPath);
+                workbook = new XSSFWorkbook(fis);
+                sheet = workbook.getSheet(sheetName);
+                colKeys = null;
+
+                redisHash = jedisManager.hgetAll(redisTableName);
+                String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
+                redisHashNum = redisHash.size();
+
+                /// 初始化格式
+                dataFormat = workbook.createDataFormat();
+                cellStyle = workbook.createCellStyle();
+                cellStyle.setDataFormat(dataFormat.getFormat("@"));
+
+                LogEditor.serv.info("总写入行数：" + redisHashNum);
+
+                for (rowIndex = 0; rowIndex < redisHashNum; rowIndex++) {
+                    row = sheet.getRow(rowIndex);
+
+                    if (rowIndex < defaultNames.length) {
+                        redisHashKey = defaultNames[rowIndex];
+                    }
+                    else {
+                        redisHashKey = (row == null ? null : row.getCell(0).toString());
+
+                        /// 统一数字格式
+                        if (redisHashKey != null) {
+                            redisHashKey = String.valueOf(String.format("%.0f", Double.parseDouble(redisHashKey)));
+                        }
+                    }
+
+                    if (redisHashKey == null || redisHashKey.length() == 0) {
+                        break;
+                    }
+
+                    redisRowData = redisHash.get(redisHashKey);
+
+                    if (redisRowData != null) {
+                        json = JSON.parseObject(redisRowData, Feature.OrderedField);
+
+                        colKeys = (colKeys == null ? new ArrayList<>(json.keySet()) : colKeys);
+
+                        for (colIndex = 0; colIndex < colKeys.size(); colIndex++) {
+                            cell = row.getCell(colIndex);
+
+                            if (cell == null) {
+                                cell = row.createCell(colIndex);
+                            }
+
+                            cell.setCellStyle(cellStyle);
+                            cell.setCellValue(String.valueOf(json.get(colKeys.get(colIndex))));
+                        }
+                    }
+                    /// 记录被删除，需在Excel中删去对应行
+                    else {
+                        sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
+                    }
+
+                    /// 记录已经遍历过的key
+                    redisHash.remove(redisHashKey);
+                }
+
+                /// 处理新增的表记录
+                if (redisHash.size() > 0) {
+                    LogEditor.serv.info("开始写入新增的表记录...");
+
+                    /// 保持记录按照sn增序排列
+                    redisHashKeys = new LinkedList<>(redisHash.keySet());
+                    Collections.sort(redisHashKeys);
+
+                    while (!redisHashKeys.isEmpty()) {
+                        row = sheet.createRow(rowIndex++);
+                        redisHashKey = redisHashKeys.poll();
+                        redisRowData = redisHash.get(redisHashKey);
+                        json = JSON.parseObject(redisRowData);
+
+                        for (colIndex = 0; colIndex < json.size(); colIndex++) {
+                            cell = row.createCell(colIndex);
+                            cell.setCellStyle(cellStyle);
+                            cell.setCellValue(String.valueOf(json.get(columnNames.get(colIndex))));
+                        }
+                    }
+                }
+
+                fos = new FileOutputStream(excelPath);
+                workbook.write(fos);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+                if (fos != null) {
+                    fos.flush();
+                    fos.close();
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
