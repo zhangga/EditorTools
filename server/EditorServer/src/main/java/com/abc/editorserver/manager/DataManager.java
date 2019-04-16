@@ -11,10 +11,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
+import com.alibaba.fastjson.parser.Feature;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import com.abc.editorserver.utils.Timer;
 
 /**
  * 数据管理器
@@ -23,10 +25,15 @@ public class DataManager {
 
     private static DataManager mgr = new DataManager();
     public static DataManager getInstance(){ return mgr; }
-    private static Map<String, List<String>> columnSeqMap = new HashMap<>();
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
 
+    private Timer timer = new Timer();
+
     private DataManager(){ }
+
+    public Timer getTimer() {
+        return this.timer;
+    }
 
     private static final String ConfigPath = "ExcelConfig.json";
 
@@ -151,8 +158,6 @@ public class DataManager {
                     }
                 }
 
-                columnSeqMap.put(conf.getRedis_table(),colNames);
-
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
                     XSSFRow row = sheet.getRow(i);
@@ -169,7 +174,6 @@ public class DataManager {
                         valueList.add("");
                     }
 
-                    //System.out.println(toJSON(keyList, valueList));
                     String key = valueList.get(0);
                     if (i < ExcelManager.getInstance().getDefaultNames().length) {
                         key = ExcelManager.getInstance().getDefaultNames()[i];
@@ -298,18 +302,24 @@ public class DataManager {
         }
     }
 
+    /**
+     * 写入Excel的一行数据
+     * @param value
+     * @param sheet
+     * @param rowNum
+     * @param tableName
+     */
     private void makeRow(String value, XSSFSheet sheet, int rowNum, String tableName){
         try{
             XSSFRow row = sheet.createRow(rowNum);
-            JSONObject jo = JSON.parseObject(value);
-            int cellNum = 0;
+            JSONObject jo = JSON.parseObject(value, Feature.OrderedField); // 生成有序的JSON对象
+            List<String> keys = new ArrayList<>(jo.keySet());
+            int cellIndex = 0;
             XSSFCell cell;
-            while(jo.size() > 0) {
-                String columnKey = columnSeqMap.get(tableName).get(cellNum);
-                cell = row.createCell(cellNum);
-                cell.setCellValue(convertToBR(jo.getString(columnKey)));
-                cellNum++;
-                jo.remove(columnKey);
+
+            for (String key : keys) {
+                cell = row.createCell(cellIndex++);
+                cell.setCellValue(convertToBR(jo.getString(key)));
             }
         }
         catch(Exception e){
@@ -348,12 +358,13 @@ public class DataManager {
      */
     public JSONArray getTableColumnName(String tableName) {
         String value = JedisManager.getInstance().hget(tableName,"cnName");
-        JSONObject jo = JSONObject.parseObject(value);
         JSONArray ret = new JSONArray();
-        List<String> columnName = columnSeqMap.get(tableName);
 
-        for(String name : columnName){
-            ret.add("{\"prop\":\"" + name +"\",\"label\":\""+ convertToBR(jo.getString(name))+ "\"}");
+        JSONObject jo = JSONObject.parseObject(value, Feature.OrderedField);    // 获取有序的JSON对象
+        List<String> keys = new ArrayList<>(jo.keySet());
+
+        for(String key : keys) {
+            ret.add("{\"prop\":\"" + key + "\",\"label\":\"" + convertToBR(jo.getString(key)) + "\"}");
         }
 
         return ret;
@@ -435,7 +446,7 @@ public class DataManager {
         }
 
         String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
-        JSONObject jo = null;
+        JSONObject jo;
 
         if (json == null) {
             jo = new JSONObject();
@@ -446,6 +457,9 @@ public class DataManager {
         jo.put(field, value);
 
         JedisManager.getInstance().hset(config.getRedis_table(), sn, jo.toJSONString());
+
+        // 刷新计时器
+        timer.reStartTimer();
 
         return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
     }
@@ -487,6 +501,10 @@ public class DataManager {
         }
 
         JedisManager.getInstance().hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
+
+        // 刷新计时器
+        timer.reStartTimer();
+
         return 1;
     }
 }
