@@ -44,19 +44,13 @@
 		},
 		updated: function() {
 			if (this.prevContent == this.content) {
-				console.log("prevContent == content")
 				this.content = this.value;
 				this.prevContent = this.content;
-// 				if (this.content != '') {
-// 					this.content = this.value;
-// 					this.prevContent = this.content;
-// 				}
 			} else {
 				this.prevContent = this.content
-				console.log("当前content为：" + this.content)
 				
+				// 保存空值的情况
 				if(this.content === ''){
-					console.log("保存空值")
 					var item = new Object()
 					item.value = ''
 					this.select(item)
