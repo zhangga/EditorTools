@@ -93,6 +93,10 @@
 				</el-main>
 			</el-container>
 		</el-container>
+		
+		<el-container v-if="isSessionTimeout">
+			<span class="timeoutHint">当前用户Session已过期，请重新登录！</span>
+		</el-container>
 
 	</view>
 </template>
@@ -135,6 +139,7 @@
 				currentActivatedIndex: '',
 				searchedMenuItem: null,
 				hasSelectedRowData: false,
+				isSessionTimeout: false,
 			};
 		},
 		computed: {
@@ -226,6 +231,12 @@
 						this.items = res.data['data']
 						this.occupiedQuestSNs = []
 						this.questTypes = []
+						
+						if (this.items == null) {
+							this.isSessionTimeout = true;
+							return;
+						}
+						
 						// 排序
 						for (let i = 0; i < this.items.length; i++) {
 							this.questTypes.push(this.items[i]['text'])
@@ -464,6 +475,18 @@
 	
 	.clearfix {
 		  font-size: 12upx;
-		  font-weight: bold
+		  font-weight: bold;
+	}
+	
+	.timeoutHint {
+		width: 180upx;
+		height: 20upx;
+		font-size: 15upx; 
+		text-align: center;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		margin-left: -90upx;
+		margin-top: -120upx;
 	}
 </style>
