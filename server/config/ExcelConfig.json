@@ -2,6 +2,30 @@
   "configs": [
     {
       // excel表名
+      "excel": "CharacterMonster.xlsx",
+      // sheet名
+      "sheet": "怪物|Character",
+      // Redis hash的表名
+      "redis_table": "CHARACTER",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Item.xlsx",
+      // sheet名
+      "sheet": "物品|Item",
+      // Redis hash的表名
+      "redis_table": "ITEM",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
       "excel": "Quest.xlsx",
       // sheet名
       "sheet": "任务|Quest",

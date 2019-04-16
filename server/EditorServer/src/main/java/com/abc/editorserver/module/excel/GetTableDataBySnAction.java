@@ -22,12 +22,16 @@ public class GetTableDataBySnAction extends GameActionJson {
         String json = DataManager.getInstance().getTableDataBySn(table, sn);
 
         String verNum = VersionManager.getInstance().getTableDataVersion(table, sn);
-        JSONObject jo = JSONObject.parseObject(json);
-        jo.put("verNum", verNum);
+        String ret = null;
+        if (json != null) {
+            JSONObject jo = JSONObject.parseObject(json);
+            jo.put("verNum", verNum);
+            ret = jo.toJSONString();
+        }
 
         JSONObject msg = new JSONObject();
         msg.put("result", EditorConst.RESULT_OK);
-        msg.put("data", jo.toJSONString());
+        msg.put("data", ret);
         sendMsg(request.ctx, msg);
     }
 

@@ -82,5 +82,12 @@ export default {
 			'table': table,
 			'kv': keyValues
 		};
+	},
+	// 任务目标数据
+	get_quest_goal_info(token) {
+		return {
+			'cmd': 8,
+			'token': token
+		};
 	}
 }

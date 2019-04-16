@@ -2,6 +2,10 @@ import Vue from 'vue'
 import msg from '../common/msg.js'
 import store from '../store/index.js'
 
+function updateDataFieldNV(table, sn, field, value, caller) {
+	updateDataField(table, sn, field, value, store.state.verNum, caller)
+}
+
 function updateDataField(table, sn, field, value, verNum, caller) {
 	uni.request({
 		url: msg.url(),
@@ -136,5 +140,6 @@ module.exports = {
 	formatLocation: formatLocation,
 	dateUtils: dateUtils,
 	updateDataField: updateDataField,
+	updateDataFieldNV: updateDataFieldNV,
 	addDataField: addDataField,
 }

@@ -72,6 +72,10 @@
             "path" : "pages/component/textInput",
             "style" : {}
         }
+        ,{
+            "path" : "pages/goalEditor/goalEditor",
+            "style" : {}
+        }
     ],
 	 "tabBar": {
 	    "color": "#cdcdcd",

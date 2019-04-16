@@ -101,6 +101,9 @@ public class VersionManager {
      * @return
      */
     public boolean hasTableDataVersionChanged(String redisTableName, String sn, String verNum) {
+        if (verNum.equals("ignore")) {
+            return false;
+        }
         String currVerNum = getTableDataVersion(redisTableName, sn);
         return !currVerNum.equals(verNum);
     }

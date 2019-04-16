@@ -12,6 +12,7 @@ import com.abc.editorserver.module.excel.GetTableDataAction;
 import com.abc.editorserver.module.excel.GetAllQuestBriefAction;
 import com.abc.editorserver.module.excel.UpdateTableDataAction;
 import com.abc.editorserver.module.excel.GetTableDataBySnAction;
+import com.abc.editorserver.module.excel.GetQuestGoalInfoAction;
 
 /**
  * 消息注册类
@@ -29,6 +30,7 @@ public enum GameActionsJson {
 	GetTableDataBySn("获取某条数据", 5, GetTableDataBySnAction.class),
 	UpdateTableData("更新数据表数据", 6, UpdateTableDataAction.class),
 	AddTableData("新增数据表数据", 7, AddTableDataAction.class),
+	GetQuestGoalInfo("任务目标数据", 8, GetQuestGoalInfoAction.class),
 	;
 	
 	/**
