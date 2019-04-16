@@ -1,20 +1,63 @@
 <template>
-	<view>
+	<view style="flex-direction: column;">
 		<!-- 任务目标 -->
 		<el-card class="box-card">
 			<view slot="header" class="clearfix">
 				<span class="header">任务目标</span>
 			</view>
-			<el-form label-width="50upx">
-				<el-form-item label="目标ID: ">
-					<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:content="goal">
+			<el-form label-width="60upx">
+				<el-form-item label="目标ID:">
+					<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:value="goal">
 					</textInput>
 				</el-form-item>
 				<el-form-item label="策划备注: ">
-					<el-input placeholder="请输入任务目标备注" v-model="this.goalInfo.desc">
-					</el-input>
+					<span class="goal-desc">{{this.goalDesc}}</span>
 				</el-form-item>
 			</el-form>
+			
+			<el-popover placement="right-start" width="800" trigger="click" v-model="isEditorGoal">
+				<el-button slot="reference" type='success' round class="float" @click="onEditorBtn">编辑目标</el-button>
+				<el-card class="box-card">
+					<view slot="header" class="clearfix">
+						<span class="header">编辑目标========><span style="color:#F00">{{goal}}</span></span>
+					</view>
+					<el-form label-width="60upx">
+						<el-form-item label="组合类型">
+							<el-select v-model="combinationType" size="medium" id="combinationType" @change="onEditorBtn">
+								<el-option v-for="index in ConfigCombinType.length" :key="index" :value="index-1" 
+									:label="ConfigCombinType[index-1]"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="关系类型" label-width="200upx" v-if="combinationType==1">
+							<el-select v-model="relationType" size="medium" id="relationType" @change="onEditorBtn">
+								<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
+									:label="ConfigRelationType[index-1]"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-card class="box-card" v-for="goalIndex in combinGoal.length">
+							<el-form label-width="60upx">
+								<el-form-item label="关系类型">
+									<el-select v-model="combinGoal[goalIndex].relationType" size="medium" @change="onEditorBtn">
+										<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
+											:label="ConfigRelationType[index-1]"></el-option>
+									</el-select>
+								</el-form-item>
+							</el-form>
+						</el-card>
+					</el-form>
+				</el-card>
+			</el-popover>
+			
+			<el-popover placement="left-start" width="800" trigger="click" v-model="isAddGoal">
+				<el-button slot="reference" type='warning' style="float: right" @click="onEditorBtn">新增目标</el-button>
+				<el-card class="box-card">
+					<view slot="header" class="clearfix">
+						<span class="header">新增目标</span>
+					</view>
+					<el-form label-width="60upx">
+					</el-form>
+				</el-card>
+			</el-popover>
 		</el-card>
 		
 		<!-- 用于触发数据同步与更新 -->
@@ -36,12 +79,25 @@
 				/** 任务目标表数据 */
 				questGoalTable: new Map(),
 				questGoalSearch: [],
-				goal: "",
-				goalInfo: {}
+				goal: '',
+				goalInfo: '',
+				goalDesc: '',
+				combinationType: 0,
+				relationType: 0,
+				combinGoal: [],
+				combinRelationType: [],
+				/** 编辑任务目标 */
+				isEditorGoal: false,
+				isAddGoal: false,
+				/** 关系类型 */
+				ConfigCombinType: [],
+				ConfigRelationType: [],
 			};
 		},
 		props: ['tableRowData'],
 		mounted: function() {
+			this.ConfigRelationType = config.ExcelConfig()['RelationType']
+			this.ConfigCombinType = config.ExcelConfig()['CombinType']
 			uni.request({
 				url: msg.url(),
 				method: 'GET',
@@ -93,48 +149,75 @@
 					})
 				}
 			},
+			// 更新任务目标
+			updateGoalSn: function(sn) {
+				this.goal = sn
+				this.goalInfo = this.questGoalTable.get(this.goal)
+				if (this.goalInfo == null) {
+					this.goal = ''
+					this.goalDesc = '没有任务目标！'
+					this.combinationType = 0
+					this.relationType = 0
+					this.combinationGoal = []
+				} else {
+					this.goalDesc = this.goalInfo.desc
+					this.relationType = this.ConfigRelationType[this.goalInfo.relationType]
+					this.combinationType = this.ConfigCombinType[this.goalInfo.combinationType-1]
+					this.parseCombinGoal()
+				}
+			},
+			parseCombinGoal: function() {
+				/** 组合目标 */
+				if (this.goalInfo.combinationType == 2) {
+					for (var i = 0; i < this.goalInfo.condList.length; i++) {
+						this.parseBaseGoal(this.goalInfo.condList[i], i)
+					}
+				} else {
+					this.parseBaseGoal(this.goal, 0)
+				}
+			},
+			// 解析基础目标
+			parseBaseGoal: function(sn, index) {
+				let data = this.questGoalTable.get(sn)
+				this.combinGoal[index] = data
+				this.combinRelationType[index] = data.relationType
+				console.log(this.combinRelationType.data[index])
+			},
 			// 设置任务目标
 			setQuestGoal: function (item) {
+				console.log("设置任务目标")
 				// let sn = item.value.substring(0, item.value.lastIndexOf(':'))
 				// this.updateGoalSn(sn)
 			},
 			onGoalNullChange: function(e) {
 				console.log(e)
 			},
-			updateGoalSn: function(sn) {
-				this.goal = sn
-				this.goalInfo = this.questGoalTable.get(this.goal)
-				if (this.goalInfo == null) {
-					this.goal = ''
-					this.goalInfo = {desc: ''}
-				}
+			onEditorBtn: function(e) {
+				
 			}
 		}
 	}
 </script>
 
 <style>
-  .box-card {
-  	  width: 470upx;
-  	  margin-bottom: 10upx;
+  view {
+  	//border: #000000 solid 1upx;
+  	font-size: 15upx;
+  	margin: 2upx;
+  
+  	display: flex;
+  	flex-direction: row;
   }
+  
   .el-form {
   	align: middle;
   }
+  
   .el-form-item {
   	height: 20upx;
-	padding: 5upx;
   }
-  .text {
-  	  font-size: 8upx;
-  	  font-family: "PingFang SC"
-  }
-  .el-input {
-  	  font-size: 6upx;
-  	  font-family: "PingFang SC"
-  }
-  .clearfix {
-  	  font-size: 10upx;
-  	  font-weight: bold
+  
+  .goal-desc {
+	font-size: 18px;
   }
 </style>
