@@ -300,6 +300,9 @@ public class DataManager {
 
     private void makeRow(String value, XSSFSheet sheet, int rowNum, String tableName){
         try{
+            if(rowNum == 222){
+                int a = 0;
+            }
             XSSFRow row = sheet.createRow(rowNum);
             JSONObject jo = JSON.parseObject(value);
             int cellNum = 0;
@@ -307,7 +310,7 @@ public class DataManager {
             while(jo.size() > 0) {
                 String columnKey = columnSeqMap.get(tableName).get(cellNum);
                 cell = row.createCell(cellNum);
-                cell.setCellValue(convertToBR(jo.getString(columnKey)));
+                cell.setCellValue(convertToBR(jo.getString(columnKey)==null ? "" : jo.getString(columnKey)));
                 cellNum++;
                 jo.remove(columnKey);
             }
