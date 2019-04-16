@@ -6,16 +6,25 @@ package com.abc.editorserver.utils;
  * Date: 2019/4/15 20:00
  */
 public class Timer {
+
     private long interval = 0L;
     private long nextDue = 0L;
     private long currTime = 0L;
     private boolean isRunning = false;
 
-    public Timer() {}
-
     public static final long ONE_MINUTE = 60 * 1000;
     public static final long FIVE_MINUTES = 5 * 60 * 1000;
     public static final long FIFTEEN_MINUTES = 15 * 60 * 1000;
+
+    public Timer() {}
+
+    public Timer(long interval) {
+        this.interval = interval;
+    }
+
+    public void setInterval(long interval) {
+        this.interval = interval;
+    }
 
     /**
      * 配置并启动定时器
@@ -76,7 +85,7 @@ public class Timer {
     /**
      * 停止定时器
      */
-    public void stop() {
+    public void stopTimer() {
         isRunning = false;
     }
 }

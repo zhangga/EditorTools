@@ -9,6 +9,7 @@ import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
+import com.abc.editorserver.utils.Task;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -31,25 +32,29 @@ public class DataManager {
     public static DataManager getInstance(){ return mgr; }
     private static Map<String, List<String>> columnSeqMap = new HashMap<>();
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
+    private Map<String, Timer> tableTimers = new HashMap<>();
 
-    private Timer timer = new Timer();
+    private final long dataPersistInterval = Timer.FIFTEEN_MINUTES;
 
     private DataManager(){ }
-
-    public Timer getTimer() {
-        return this.timer;
-    }
 
     private static final String ConfigPath = "ExcelConfig.json";
 
     public void init(){
+        LogEditor.serv.info("======初始化Excel配置数据======");
         loadExcelConfig();
 
-//        LogEditor.serv.info("======开始加载Trigger表======");
-//        initTriggers();
-//
+        LogEditor.serv.info("======开始加载Trigger表======");
+        initTriggers();
+
+        LogEditor.serv.info("======初始化计时器中======");
+        initTimers(dataPersistInterval);
+
+        LogEditor.serv.info("======从Excel写入Redis中======");
         excelToRedis();
-//        redisToExcel();
+
+        LogEditor.serv.info("======拆分表格写入Excel中======");
+        redisToExcel();
     }
 
     /**
@@ -71,9 +76,20 @@ public class DataManager {
     }
 
     /**
+     * 为每个表格初始化计时器
+     */
+    private void initTimers(long interval) {
+        ExcelConfig[] excelConfigs = ExcelManager.getInstance().getConfigs();
+
+        for (ExcelConfig config : excelConfigs) {
+            tableTimers.put(config.getRedis_table(), new Timer(interval));
+        }
+    }
+
+    /**
      * 读取ExcelConfig中配置的Trigger表，缓存表格内容
      */
-    public void initTriggers() {
+    private void initTriggers() {
 
         XSSFRow row;
         XSSFCell cell;
@@ -207,7 +223,7 @@ public class DataManager {
             value = value.substring(0,value.length()-2);
         }
 
-        Pattern ptr = Pattern.compile("^\\d+[.]\\d+[E]\\d+");
+        Pattern ptr = Pattern.compile("^\\d+[.]\\d+[E]\\d+");   ///匹配科学计数格式表达的ID/SN
         Matcher matcher = ptr.matcher(value);
 
         if (matcher.find()) {
@@ -479,7 +495,7 @@ public class DataManager {
         JedisManager.getInstance().hset(config.getRedis_table(), sn, jo.toJSONString());
 
         // 刷新计时器
-        timer.reStartTimer();
+        tableTimers.get(table).reStartTimer();
 
         return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
     }
@@ -523,9 +539,57 @@ public class DataManager {
         JedisManager.getInstance().hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
 
         // 刷新计时器
-        timer.reStartTimer();
+        tableTimers.get(tableName).reStartTimer();
 
         return 1;
+    }
+
+    /**
+     * 查询当前是否有表格的定时器被触发，需要的时候向SVN提交commit
+     */
+    public void dataPersistHandler() {
+        Iterator<Map.Entry<String, Timer>> iter = tableTimers.entrySet().iterator();
+        Map.Entry<String, Timer> entry;
+        List<String> targetTables = new ArrayList<>();
+
+        while (iter.hasNext()) {
+            entry = iter.next();
+
+            if (entry.getValue().isDue()) {
+                targetTables.add(entry.getKey());
+            }
+        }
+
+        LogEditor.serv.info("数据定时器被触发，将缓存刷新至Excel中...");
+
+        JSONObject params = new JSONObject();
+        params.put("tables", targetTables);
+        params.put("timers", tableTimers);
+
+        // 提交至任务队列中
+        GlobalManager.addTask(new Task(var -> {
+            List<String> tables = (List<String>) var.get("tables");
+            Map<String, Timer> timers = (Map<String, Timer>)var.get("timers");
+
+            // 将本地缓存的改动写入至Excel表格中
+            persistData(false, tables);
+
+            // 更新至SVN
+            if (!GlobalManager.isDevMode) {
+                SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
+            }
+
+            // 停止定时器
+            Timer timer;
+
+            for (String table : tables) {
+                timer = timers.get(table);
+
+                if (timer.isDue()) {
+                    timers.get(table).stopTimer();
+                }
+            }
+        }, params));
     }
 
     /**
@@ -533,7 +597,9 @@ public class DataManager {
      * @param shouldPersistAll：是否需要写入配置中指定的所有表格
      * @param redisTables: 指定需要写入的表格
      */
-    public void persistData(boolean shouldPersistAll, String[] redisTables) {
+    public void persistData(boolean shouldPersistAll, List<String> redisTables) {
+
+        LogEditor.serv.info("=========开始将Redis数据写入Excel中========");
 
         /// Redis操作相关变量
         String redisTableName, redisRowData, redisHashKey;
@@ -566,7 +632,7 @@ public class DataManager {
         CellStyle cellStyle;
 
         /// 预处理需要写入的表格
-        Set<String> targetTables = Set.of(redisTables);
+        Set<String> targetTables = new HashSet<>(redisTables);
 
         try {
             for (ExcelConfig config : excelConfigs) {
