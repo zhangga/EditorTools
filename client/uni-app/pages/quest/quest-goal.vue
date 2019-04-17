@@ -16,7 +16,7 @@
 				<view slot="header">
 					<el-row>
 						<el-col :span="10">
-							<span class="header">策划备注</span>
+							<span class="header">备注</span>
 						</el-col>
 						<el-col :span="14">
 							<el-input type="textarea" v-model="baseGoal.desc" placeholder="备注信息" @change="onGoalDescChange($event)"></el-input>
@@ -27,7 +27,7 @@
 					<el-form-item label="组合类型">
 						<el-select v-model="baseGoal.combinationType" size="medium" id="combinationType" @change="onSelectCombinationType">
 							<el-option v-for="index in ConfigCombinType.length" :key="index" :value="index-1" 
-								:label="ConfigCombinType[index-1]"></el-option>
+								:label="ConfigCombinType[index-1]" :disabled="index>1"></el-option>
 						</el-select>
 					</el-form-item>
 					<el-form-item label="关系类型" label-width="200upx" v-if="baseGoal.combinationType==1">
@@ -38,32 +38,56 @@
 					</el-form-item>
 					<el-card class="box-card" v-for="goalIndex in combinGoal.length">
 						<el-form label-width="60upx">
-							<el-form-item label="关系类型" label-width="220upx">
-								<el-select v-model="combinGoal[goalIndex-1].relationType" size="medium" @change="onSelectGoalRelate($event, goalIndex-1)">
-									<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
-										:label="ConfigRelationType[index-1]"></el-option>
-								</el-select>
-							</el-form-item>
-							<el-form-item label="目标类型" v-for="condIndex in combinGoal[goalIndex-1].condList.length" label-width="40upx">
-								<el-row>
-									<el-col :span="8">
-										<el-autocomplete placeholder="请输入内容"
-											v-model="combinGoal[goalIndex-1].condList[condIndex-1]" 
-											:fetch-suggestions="queryEnumGoal"  @select="onSelectEnumGoal">
-										</el-autocomplete>
-									</el-col>
-									<el-col :span="2">
-										<span class="item-text">参数</span>
-									</el-col>
-									<el-col :span="8">
-										<el-input v-model="combinGoal[goalIndex-1].params" placeholder="请输入参数"></el-input>
-									</el-col>
-									<el-col :span="6">
-										<el-input type="textarea" :disabled="true"
-											v-model="enumGoalTable.get(combinGoal[goalIndex-1].condList[condIndex-1]).param"></el-input>
-									</el-col>
-								</el-row>
-							</el-form-item>
+							<el-row>
+								<el-col :span="20">
+									<el-form-item label="关系类型" label-width="180upx">
+										<el-select v-model="combinGoal[goalIndex-1].relationType" size="medium" @change="onSelectGoalRelate($event, goalIndex-1)">
+											<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
+												:label="ConfigRelationType[index-1]"></el-option>
+										</el-select>
+									</el-form-item>
+								</el-col>
+								<el-col :span="4">
+									<el-button round type="success" icon="el-icon-circle-plus" @click="onAddGoal(goalIndex-1)">新增目标列</el-button>
+								</el-col>
+							</el-row>
+							<el-container v-for="condIndex in combinGoal[goalIndex-1].condList.length">
+								<el-main>
+									<el-row>
+										<el-col :span="12">
+											<el-form-item label="目标类型">
+												<el-autocomplete placeholder="请输入内容"
+													v-model="combinGoal[goalIndex-1].condList[condIndex-1]" 
+													:fetch-suggestions="queryEnumGoal"  @select="onSelectEnumGoal($event, goalIndex-1, condIndex-1)">
+												</el-autocomplete>
+											</el-form-item>
+										</el-col>
+										<el-col :span="12">
+											<el-form-item label="参数">
+												<el-input v-model="combinGoal[goalIndex-1].params[condIndex-1]" @change="onParamsChange($event, goalIndex-1, condIndex-1)" 
+													placeholder="请输入参数"></el-input>
+											</el-form-item>
+										</el-col>
+									</el-row>
+									<el-row>
+										<el-col :span="12">
+											<el-form-item label="目标位置">
+												<el-input v-model="combinGoal[goalIndex-1].targetPos[condIndex-1]" @change="onPosChange($event, goalIndex-1, condIndex-1)" 
+													placeholder="请输入参数"></el-input>
+											</el-form-item>
+										</el-col>
+										<el-col :span="10">
+											<el-form-item label="参数说明">
+												<el-input :disabled="true"
+													v-model="enumGoalTable.get(combinGoal[goalIndex-1].condList[condIndex-1]).param"></el-input>
+											</el-form-item>
+										</el-col>
+										<el-col :span="2">
+											<el-button type="danger" icon="el-icon-remove" @click="onRemoveGoal(goalIndex-1, condIndex-1)">删除</el-button>
+										</el-col>
+									</el-row>
+								</el-main>
+							</el-container>
 						</el-form>
 					</el-card>
 				</el-form>
@@ -116,7 +140,7 @@
 		</el-card>
 		
 		<el-popover placement="right-start" width="500" trigger="click" v-model="showAddGoal">
-			<el-button slot="reference" type='info' round class="float" style="float: right" @click="onClickAddGoal">新增任务目标</el-button>
+			<el-button slot="reference" type='info' round class="float" style="float: right" @click="onClickAddQuestGoal">新增任务目标</el-button>
 			<el-card class="box-card">
 				<view slot="header" class="clearfix">
 					<span class="header">新增任务目标</span>
@@ -129,7 +153,7 @@
 						<el-input v-model="newGoalDesc"></el-input>
 					</el-form-item>
 					<el-form-item>
-						<el-button type='primary' style="float: right" @click="onAddGoal">提交</el-button>
+						<el-button type='primary' style="float: right" @click="onAddQuestGoal">提交</el-button>
 					</el-form-item>
 				</el-form>
 			</el-card>
@@ -165,7 +189,7 @@
 				enumGoalSearch: [],
 				newGoalId: 0,
 				newGoalDesc: '新任务目标',
-				goalVerNum: 'ignore',
+				goalVerNum: '-1',
 				// 目标组
 				goalSn: '',
 				baseGoal: {combinationType: 0,
@@ -329,7 +353,8 @@
 							let goalInfo = JSON.parse(json)
 							this.questGoalTable.set(goalInfo.sn, goalInfo)
 							this.goalSn = sn
-							this.goalVerNum = goalInfo.verNum
+							// this.goalVerNum = goalInfo.verNum
+							this.goalVerNum = 'ignore'
 							this.baseGoal = goalInfo
 							this.baseGoal.combinationType = parseInt(goalInfo.combinationType)-1
 							this.baseGoal.relationType = parseInt(goalInfo.relationType)
@@ -358,6 +383,12 @@
 				if (typeof(data.condList) === typeof('')) {
 					data.condList = data.condList.split(",")
 				}
+				if (typeof(data.params) === typeof('')) {
+					data.params = data.params.split(';')
+				}
+				if (typeof(data.targetPos) === typeof('')) {
+					data.targetPos = data.targetPos.split(';')
+				}
 				this.combinGoal[index] = data
 			},
 			// 设置任务目标
@@ -379,22 +410,138 @@
 			},
 			// 修改目标关系类型
 			onSelectGoalRelate: function(selectIndex, goalIndex) {
-				console.log(this.baseGoal.combinationType)
+				let sn = this.combinGoal[goalIndex].sn
+				this.combinGoal[goalIndex].relationType = selectIndex
+				util.updateDataField(this.QUESTGOAL, sn, 'relationType', selectIndex, this.goalVerNum, this)
 			},
-			onGoalNullChange: function(e) {
-				console.log(e)
+			// 修改目标类型
+			onSelectEnumGoal: function(e, goalIndex, condIndex) {
+				let condList = this.combinGoal[goalIndex].condList
+				if (condIndex < condList.length) {
+					let sn = this.combinGoal[goalIndex].sn
+					let type = e.value.split(':')[0]
+					condList[condIndex] = type
+					let value = condList.join(',')
+					util.updateDataField(this.QUESTGOAL, sn, 'condList', value, this.goalVerNum, this)
+				}
+			},
+			// 修改目标参数
+			onParamsChange: function(value, goalIndex, condIndex) {
+				let params = this.combinGoal[goalIndex].params
+				// 填充
+				for (let i = params.length; i <= condIndex; i++) {
+					params.push('')
+					console.log('填充'+i)
+				}
+				if (condIndex < params.length) {
+					let sn = this.combinGoal[goalIndex].sn
+					params[condIndex] = value
+					let str = params.join(';')
+					util.updateDataField(this.QUESTGOAL, sn, 'params', str, this.goalVerNum, this)
+				}
+			},
+			// 修改目标位置
+			onPosChange: function(value, goalIndex, condIndex) {
+				let pos = this.combinGoal[goalIndex].targetPos
+				// 填充
+				for (let i = pos.length; i <= condIndex; i++) {
+					pos.push('')
+					console.log('填充'+i)
+				}
+				if (condIndex < pos.length) {
+					let sn = this.combinGoal[goalIndex].sn
+					pos[condIndex] = value
+					let str = pos.join(';')
+					util.updateDataField(this.QUESTGOAL, sn, 'targetPos', str, this.goalVerNum, this)
+				}
+			},
+			// 移除目标列
+			onRemoveGoal: function(goalIndex, condIndex) {
+				let goalData = this.combinGoal[goalIndex]
+				let sn = goalData.sn
+				if (condIndex < goalData.condList.length) {
+					goalData.condList.splice(condIndex, 1)
+					let str = goalData.condList.join(',')
+					util.updateDataField(this.QUESTGOAL, sn, 'condList', str, this.goalVerNum, this)
+				}
+				if (condIndex < goalData.params.length) {
+					goalData.params.splice(condIndex, 1)
+					let str = goalData.params.join(';')
+					util.updateDataField(this.QUESTGOAL, sn, 'params', str, this.goalVerNum, this)
+				}
+				if (condIndex < goalData.targetPos.length) {
+					goalData.targetPos.splice(condIndex, 1)
+					let str = goalData.targetPos.join(';')
+					util.updateDataField(this.QUESTGOAL, sn, 'targetPos', str, this.goalVerNum, this)
+				}
+			},
+			// 新增目标列
+			onAddGoal: function(goalIndex) {
+				let goalData = this.combinGoal[goalIndex]
+				goalData.condList.push('0')
+				let sn = goalData.sn
+				let value = goalData.condList.join(',')
+				util.updateDataField(this.QUESTGOAL, sn, 'condList', value, this.goalVerNum, this)
+			},
+			// 新增任务目标
+			onAddQuestGoal: function(e) {
+				if (this.newGoalId.length == 0 || this.newGoalId != Math.floor(this.newGoalId) 
+					|| Math.floor(this.newGoalId) <= 0) {
+					this.$notify.error({
+						title: '提交错误',
+						message: '任务目标ID必须为正数!!!'
+					});
+					return;
+				}
+				// 检查sn
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.get_table_data_by_sn(this.$store.state.token, this.QUESTGOAL, this.newGoalId),
+					success: res => {
+						let json = res.data['data']
+						if (typeof(json) == typeof('')) {
+							this.$notify.error({
+								title: '提交错误',
+								message: '任务目标ID已存在请修改!!!'
+							});
+						}
+						else {
+							this.showAddGoal = false
+							this.$notify.success({
+								title: '成功',
+								message: '新增任务目标: ' + this.newGoalId
+							});
+							let goalInfo = {
+								sn: this.newGoalId,
+								desc: this.newGoalDesc,
+								combinationType: 1,
+								relationType: 0,
+								condList: '0',
+								params: '',
+								targetPos: '',
+								lookAtPos: ''
+							}
+							util.addDataField(this.QUESTGOAL, JSON.stringify(goalInfo), null, this)
+							goalInfo.condList = ['0']
+							goalInfo.params['']
+							goalInfo.targetPos['']
+							this.questGoalTable.set(goalInfo.sn, goalInfo)
+							this.questGoalSearch.push({
+								value: goalInfo.sn + ':' + goalInfo.desc
+							})
+						}
+					}
+				});
+			},
+			onAddTableData: function(e) {
+				
 			},
 			onEditorBtn: function(e) {
 				console.log(e)
 			},
-			onSelectEnumGoal: function(e) {
-				
-			},
-			onClickAddGoal: function(e) {
-				this.newGoalId = this.goal
-			},
-			onAddGoal: function(e) {
-				
+			onClickAddQuestGoal: function(e) {
+				this.newGoalId = this.goalSn
 			},
 			onSelect: function(e) {
 				
