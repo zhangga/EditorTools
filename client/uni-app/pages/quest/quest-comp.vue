@@ -28,6 +28,24 @@
 			</view>
 			
 			<el-form ref="form" label-width="100upx">
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="提交任务后行为" label-width="50upx">
+							<el-input placeholder="Sn逗号分隔" v-model="submitAct" id="submitAct" @change="setSubmitAct($event)" clearable></el-input>
+						</el-form-item>
+					</el-col>
+					<el-col :span="16">
+						<el-form-item label="行为查询">
+							<textInput :datas="Actions" placeholder='查询' :method='loadActions' :select="onSelect" :value='noValue'>
+							</textInput>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				
+				<el-form-item label="是否【可交】后自动完成">
+					<el-checkbox v-model="canAutomaticDeliver" @change="setAutoDeliver"></el-checkbox>
+				</el-form-item>
+				
 				<el-form-item label="任务限时(秒)">
 					<el-input placeholder="时间限制" v-model="timeLimit" id="timeLimit" @blur="setTimeLimit" style="width: 100upx;" clearable></el-input>
 				</el-form-item>
@@ -36,9 +54,6 @@
 					<el-checkbox v-model="showTimeLimit" @change="setShowTimeLimit" disabled></el-checkbox>
 				</el-form-item>
 				
-				<el-form-item label="是否【可交】后自动完成">
-					<el-checkbox v-model="canAutomaticDeliver" @change="setAutoDeliver"></el-checkbox>
-				</el-form-item>
 			</el-form>
 		</el-card>
 		
@@ -55,9 +70,12 @@
 		data() {
 			return {
 				DropGroup:[],
+				Actions: [],
+				noValue: '',
 				exp:0,
 				bind:false,
 				questReward:'',
+				submitAct: '',
 				timeLimit:0,
 				showTimeLimit:true,
 				canAutomaticDeliver: false,
@@ -110,10 +128,35 @@
 					});
 				}
 			},
+			loadActions(){
+				if(this.Actions.length === 0){
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.get_table_data(this.$store.state.token, "ACTION"),
+						success: res => {
+							var items = res.data['data']
+							for (let i = 0; i < items.length; i++) {
+								var item = JSON.parse(items[i])
+								this.Actions[i] = {
+									value: item.sn + ':' + item.comment
+								};
+							}
+						}
+					});
+				}
+			},
 			setQuestReward(item){
 				this.questReward = item.value
 				if (this.tableRowData['sn'] != null) {
 					util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0], this.$store.state.verNum, this)
+				}
+			},
+			setSubmitAct(value){
+				console.log(value)
+				this.submitAct = value
+				if (this.tableRowData['sn'] != null) {
+					util.updateDataField('QUEST',this.tableRowData['sn'],'submitAct',this.submitAct, this.$store.state.verNum, this)
 				}
 			},
 			setBind(){
@@ -136,9 +179,15 @@
 			},
 			setShowTimeLimit(){
 			},
+			onSelect() {
+				
+			},
 			refreshDefaultValues(){
 				if (this.tableRowData['questReward'] != null) {
 					this.questReward = this.tableRowData['questReward']
+				}
+				if (this.tableRowData['submitAct'] != null) {
+					this.submitAct = this.tableRowData['submitAct']
 				}
 				if (this.tableRowData['bind'] != null) {
 					this.bind = this.tableRowData['bind'].toLowerCase() === 'true'
