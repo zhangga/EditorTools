@@ -37,39 +37,87 @@ var ExcelConfig_json =
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "CharacterMonster.xlsx",
+      // sheet名
+      "sheet": "怪物|Character",
+      // Redis hash的表名
+      "redis_table": "CHARACTER",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Item.xlsx",
+      // sheet名
+      "sheet": "物品|Item",
+      // Redis hash的表名
+      "redis_table": "ITEM",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Npc.xlsx",
+      // sheet名
+      "sheet": "Npc|Npc",
+      // Redis hash的表名
+      "redis_table": "NPC",
+      // Redis hash的key值
+      "redis_key": "sn",
+	  // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "DropConfig.xlsm",
+      // sheet名
+      "sheet": "掉落组|DropGroup",
+      // Redis hash的表名
+      "redis_table": "DROPGROUP",
+      // Redis hash的key值
+      "redis_key": "sn",
+	  // 点击跳转的导航页
+      "navigateTo": "../table/table"
     }
   ],
   "triggers": [
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "ERegionTriggerType"
-//    },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EItemUseScript"
-//    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "ERegionTriggerType"
+    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EItemUseScript"
+    },
     {
       // excel表名
       "excel": "Trigger.xlsx",
       // sheet名
       "sheet": "EConditionType"
     },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EnumQuestGoalType"
-//    },
-//    {
-//      // excel表名
-//      "excel": "Trigger.xlsx",
-//      // sheet名
-//      "sheet": "EActionType"
-//    }
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EnumQuestGoalType"
+    },
+    {
+      // excel表名
+      "excel": "Trigger.xlsx",
+      // sheet名
+      "sheet": "EActionType"
+    }
   ],
   // 任务类型
   "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],

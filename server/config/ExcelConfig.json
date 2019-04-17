@@ -2,30 +2,6 @@
   "configs": [
     {
       // excel表名
-      "excel": "CharacterMonster.xlsx",
-      // sheet名
-      "sheet": "怪物|Character",
-      // Redis hash的表名
-      "redis_table": "CHARACTER",
-      // Redis hash的key值
-      "redis_key": "sn",
-      // 点击跳转的导航页
-      "navigateTo": "../table/table"
-    },
-    {
-      // excel表名
-      "excel": "Item.xlsx",
-      // sheet名
-      "sheet": "物品|Item",
-      // Redis hash的表名
-      "redis_table": "ITEM",
-      // Redis hash的key值
-      "redis_key": "sn",
-      // 点击跳转的导航页
-      "navigateTo": "../table/table"
-    },
-    {
-      // excel表名
       "excel": "Quest.xlsx",
       // sheet名
       "sheet": "任务|Quest",
@@ -62,13 +38,39 @@
     },
     {
       // excel表名
+      "excel": "CharacterMonster.xlsx",
+      // sheet名
+      "sheet": "怪物|Character",
+      // Redis hash的表名
+      "redis_table": "CHARACTER",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Item.xlsx",
+      // sheet名
+      "sheet": "物品|Item",
+      // Redis hash的表名
+      "redis_table": "ITEM",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
       "excel": "Npc.xlsx",
       // sheet名
       "sheet": "Npc|Npc",
       // Redis hash的表名
       "redis_table": "NPC",
       // Redis hash的key值
-      "redis_key": "sn"
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
     },
     {
       // excel表名
@@ -78,7 +80,9 @@
       // Redis hash的表名
       "redis_table": "DROPGROUP",
       // Redis hash的key值
-      "redis_key": "sn"
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
     }
   ],
   "triggers": [
@@ -115,6 +119,12 @@
   ],
   // 任务类型
   "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],
+  // 任务页签
+  "QuestTab": ["任务属性", "任务接取", "任务目标", "任务完成"],
+  // 任务目标组合类型
+  "CombinType": ["基础目标", "复合目标"],
+  // 任务目标关系类型
+  "RelationType": ["单个", "且关系", "或关系"],
   // 基础配置
   "defaultNames": [
     "cs",
