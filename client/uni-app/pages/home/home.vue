@@ -69,7 +69,7 @@
 						label: '编辑'
 					},{
 						handler: (row) => {
-							console.log("下载：【Excel】" + row.excel + " 【表格】"  + row.sheet)
+							//console.log("下载：【Excel】" + row.excel + " 【表格】"  + row.sheet)
 							this.downloadTable(row.excel, row.sheet)
 						},
 						label: '下载表格'
@@ -140,7 +140,7 @@
 			},
 			onSelectionChange: function(rows) {
 				this.selectedRows = rows;
-				console.log(this.selectedRows.length);
+				// console.log(this.selectedRows.length);
 			},
 			onAbout: function() {
 				uni.navigateTo({
