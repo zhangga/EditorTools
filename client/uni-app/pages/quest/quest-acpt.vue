@@ -110,7 +110,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "NPC"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "NPC"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
@@ -133,7 +133,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "PLOT"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "PLOT"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {

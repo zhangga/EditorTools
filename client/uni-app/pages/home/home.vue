@@ -8,7 +8,6 @@
 					</el-col>
 			
 					<el-col :span="12">
-						<i class="el-icon-search"></i>
 						<el-input placeholder="搜索表格" v-model="filters[0].value"></el-input>
 					</el-col>
 					
@@ -32,6 +31,7 @@
 <script>
 	import config from '../../common/config.js'
 	import msg from '../../common/msg.js'
+	import util from '../../common/util.js'
 	
 	export default {
 		data() {
@@ -106,7 +106,7 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.download_table(this.$store.state.token, excelName, sheetName),
+					data: msg.download_table(util.getCurrentUserToken(), excelName, sheetName),
 					success: res => {
 						/// 考虑用户Session超时的情况
 						if (res.data['ret'] == false) {
@@ -162,7 +162,7 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.update_table_data_from_svn(this.$store.state.token),
+					data: msg.update_table_data_from_svn(util.getCurrentUserToken()),
 					success: res => {
 						var result = res.data['result'];
 						loading.close()
