@@ -561,29 +561,29 @@ public class DataManager {
 
         if (candidates.size() > 0) {
             LogEditor.serv.info("定时器被触发，将缓存刷新至Excel中...");
+
+            JSONObject params = new JSONObject();
+            params.put("candidates", candidates);
+            params.put("timers", tableTimers);
+
+            // 提交至任务队列中
+            GlobalManager.addTask(new Task(var -> {
+                List<String> tables = (List<String>) var.get("candidates");
+                Map<String, Timer> timers = (Map<String, Timer>)var.get("timers");
+
+                // 将本地缓存的改动写入至Excel表格中
+                persistData(false, tables);
+
+                // 停止定时器
+                tables.forEach(table -> {
+                    Timer timer = timers.get(table);
+
+                    if (timer.isDue()) {
+                        timer.stopTimer();
+                    }
+                });
+            }, params));
         }
-
-        JSONObject params = new JSONObject();
-        params.put("candidates", candidates);
-        params.put("timers", tableTimers);
-
-        // 提交至任务队列中
-        GlobalManager.addTask(new Task(var -> {
-            List<String> tables = (List<String>) var.get("candidates");
-            Map<String, Timer> timers = (Map<String, Timer>)var.get("timers");
-
-            // 将本地缓存的改动写入至Excel表格中
-            persistData(false, tables);
-
-            // 停止定时器
-            tables.forEach(table -> {
-                Timer timer = timers.get(table);
-
-                if (timer.isDue()) {
-                    timer.stopTimer();
-                }
-            });
-        }, params));
     }
 
     /**
