@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
@@ -34,7 +33,7 @@ public class DataManager {
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
 
-    private final long dataPersistInterval = Timer.FIFTEEN_MINUTES;
+    private final long dataPersistInterval = Timer.ONE_MINUTE;
 
     private DataManager(){ }
 
@@ -550,45 +549,40 @@ public class DataManager {
     public void dataPersistHandler() {
         Iterator<Map.Entry<String, Timer>> iter = tableTimers.entrySet().iterator();
         Map.Entry<String, Timer> entry;
-        List<String> targetTables = new ArrayList<>();
+        List<String> candidates = new ArrayList<>();
 
         while (iter.hasNext()) {
             entry = iter.next();
 
             if (entry.getValue().isDue()) {
-                targetTables.add(entry.getKey());
+                candidates.add(entry.getKey());
             }
         }
 
-        LogEditor.serv.info("数据定时器被触发，将缓存刷新至Excel中...");
+        if (candidates.size() > 0) {
+            LogEditor.serv.info("定时器被触发，将缓存刷新至Excel中...");
+        }
 
         JSONObject params = new JSONObject();
-        params.put("tables", targetTables);
+        params.put("candidates", candidates);
         params.put("timers", tableTimers);
 
         // 提交至任务队列中
         GlobalManager.addTask(new Task(var -> {
-            List<String> tables = (List<String>) var.get("tables");
+            List<String> tables = (List<String>) var.get("candidates");
             Map<String, Timer> timers = (Map<String, Timer>)var.get("timers");
 
             // 将本地缓存的改动写入至Excel表格中
             persistData(false, tables);
 
-            // 更新至SVN
-            if (!GlobalManager.isDevMode) {
-                SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
-            }
-
             // 停止定时器
-            Timer timer;
-
-            for (String table : tables) {
-                timer = timers.get(table);
+            tables.forEach(table -> {
+                Timer timer = timers.get(table);
 
                 if (timer.isDue()) {
-                    timers.get(table).stopTimer();
+                    timer.stopTimer();
                 }
-            }
+            });
         }, params));
     }
 

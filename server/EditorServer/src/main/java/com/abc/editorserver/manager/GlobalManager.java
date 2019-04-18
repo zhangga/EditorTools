@@ -33,6 +33,7 @@ public class GlobalManager {
     private static ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
 
     private static Timer updateTimer = new Timer();
+    private static Timer commitTimer = new Timer();
 
     private static DataManager dataManager = DataManager.getInstance();
 
@@ -40,6 +41,7 @@ public class GlobalManager {
 
     public static void init() {
         updateTimer.startTimer(Timer.ONE_MINUTE);
+        commitTimer.startTimer(Timer.FIFTEEN_MINUTES);
 
         pulseExecutor.scheduleAtFixedRate(() -> {
             lastTime = System.currentTimeMillis();
@@ -77,6 +79,7 @@ public class GlobalManager {
         while (!taskQueue.isEmpty()) {
             taskExecutor.execute(getNextTask());
         }
+
         // 定时从SVN更新
         if (updateTimer.isDue()) {
             taskQueue.add(new Task(var -> {
@@ -85,9 +88,16 @@ public class GlobalManager {
             }, null));
         }
 
+        // 定时将改动写入至Excel中
+        dataManager.dataPersistHandler();
+
         // 定时向SVN提交改动
-        if (!isDevMode) {
-            dataManager.dataPersistHandler();
+        if (!isDevMode && commitTimer.isDue()) {
+            taskQueue.add(new Task(var -> {
+                if (!GlobalManager.isDevMode) {
+                    SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
+                }
+            }, null));
         }
     }
 
