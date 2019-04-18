@@ -13,7 +13,7 @@
 					</el-col>
 					
 					<el-col :span="4">
-						<el-button type="primary" icon="el-icon-share" @click="onAbout"></el-button>
+						<el-button type="primary" round icon="el-icon-share" @click="onAbout"></el-button>
 					</el-col>
 				</el-row>
 			</view>
@@ -67,6 +67,12 @@
 							this.open_table(row.excel, row.sheet)
 						},
 						label: '编辑'
+					},{
+						handler: (row) => {
+							console.log("下载：【Excel】" + row.excel + " 【表格】"  + row.sheet)
+							this.downloadTable(row.excel, row.sheet)
+						},
+						label: '下载表格'
 					}]
 				},
 				tableProps: {
@@ -86,7 +92,7 @@
 			this.tables = config.ExcelConfig().configs
 		},
 		methods: {
-			open_table: function (excelName, sheetName) {
+			open_table: function(excelName, sheetName) {
 				var t_config = config.GetExcelConfig(excelName, sheetName)
 				console.log("打开表: " + t_config['excel'])
 				uni.navigateTo({
@@ -96,16 +102,52 @@
 						complete: () => {}
 				})
 			},
-			onSelectionChange: function (rows) {
+			downloadTable: function(excelName, sheetName) {
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.download_table(this.$store.state.token, excelName, sheetName),
+					success: res => {
+						/// 考虑用户Session超时的情况
+						if (res.data['ret'] == false) {
+							this.$message({
+								showClose: true,
+								message: "获取下载链接失败，请重试！",
+								type: 'error'
+							});
+						}
+						else {
+							this.startDownload(res.data['addr'], res.data['file_name'])
+						}
+					},
+					fail: () => {
+						this.$message({
+							showClose: true,
+							message: "获取下载链接失败，请重试！",
+							type: 'error'
+						});
+					},
+					complete: () => {}
+				});
+			},
+			startDownload: function(download_url, file_name) {
+				const link = document.createElement('a')
+				link.href = download_url
+				link.setAttribute('download', file_name)
+				document.body.appendChild(link)
+				link.click()
+				link.remove()
+			},
+			onSelectionChange: function(rows) {
 				this.selectedRows = rows;
 				console.log(this.selectedRows.length);
 			},
-			onAbout: function () {
+			onAbout: function() {
 				uni.navigateTo({
 						url: "../about/about"
 				})
 			},
-			refreshTableData: function (tableName) {
+			refreshTableData: function(tableName) {
 				const loading = this.$loading({
 					lock: true,
 					text: '更新中...',
@@ -158,6 +200,6 @@
 	}
 	
 	.el-input {
-		width: 45%;
+		width: 60%;
 	}
 </style>

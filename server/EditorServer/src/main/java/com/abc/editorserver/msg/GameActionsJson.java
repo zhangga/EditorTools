@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.abc.editorserver.module.excel.AddTableDataAction;
+import com.abc.editorserver.module.excel.DownloadTableAction;
 import com.abc.editorserver.module.excel.UpdateTableDataFromSVNAction;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
@@ -31,6 +32,7 @@ public enum GameActionsJson {
 	UpdateTableData("更新数据表数据", 6, UpdateTableDataAction.class),
 	AddTableData("新增数据表数据", 7, AddTableDataAction.class),
 	GetQuestGoalInfo("任务目标数据", 8, GetQuestGoalInfoAction.class),
+	DownloadTableAction("下载表格数据", 9, DownloadTableAction.class),
 	;
 	
 	/**

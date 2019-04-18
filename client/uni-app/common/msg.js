@@ -1,5 +1,5 @@
 // 服务器地址
-var SERVER_URL = 'http://127.0.0.1:28100';
+var SERVER_URL = 'http://172.17.145.176:28100';
 // 操作成功代码
 const RESULT_OK = "1";
 // 操作失败代码
@@ -58,10 +58,6 @@ export default {
 			'sn': sn
 		};
 	},
-	// 更新任务表数据
-	update_quest_data(token, sn, field, value, verNum) {
-		return update_table_data(token, 'QUEST', sn, field, value, verNum);
-	},
 	// 更新数据表数据
 	update_table_data(token, table, sn, field, value, verNum) {
 		return {
@@ -89,5 +85,17 @@ export default {
 			'cmd': 8,
 			'token': token
 		};
-	}
+	},
+	download_table(token, excelName, sheetName) {
+		return {
+			'cmd': 9,
+			'token': token,
+			'excel_name': excelName,
+			'sheet_name': sheetName
+		};
+	},
+	// 更新任务表数据
+	update_quest_data(token, sn, field, value, verNum) {
+		return update_table_data(token, 'QUEST', sn, field, value, verNum);
+	},
 }
