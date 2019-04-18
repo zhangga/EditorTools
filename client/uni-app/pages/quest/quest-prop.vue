@@ -215,14 +215,8 @@
 				}
 			},
 			// 获取当前点击表单组件的id
-			updateCurrentFocusedItem: function(event) {
-				var paths = event.path
-				for (var i = 0; i < paths.length; i++) {
-					if (paths[i].id != '') {
-						this.currentClickedFormItem = paths[i].id
-						break
-					}
-				}
+			updateCurrentFocusedItem: function(event) {				
+				this.currentClickedFormItem = event.target.id
 				console.log("点击了表单组件：" + this.currentClickedFormItem)
 			},
 			
