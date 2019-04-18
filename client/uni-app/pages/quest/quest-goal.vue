@@ -78,8 +78,11 @@
 										</el-col>
 										<el-col :span="10">
 											<el-form-item label="参数说明">
-												<el-input :disabled="true"
-													v-model="enumGoalTable.get(combinGoal[goalIndex-1].condList[condIndex-1]).param"></el-input>
+												<text>
+													{{enumGoalDesc.get(combinGoal[goalIndex-1].condList[condIndex-1])}}
+												</text>
+												<!-- <el-input :disabled="true"
+													v-model="enumGoalDesc.get(combinGoal[goalIndex-1].condList[condIndex-1])"></el-input> -->
 											</el-form-item>
 										</el-col>
 										<el-col :span="2">
@@ -187,6 +190,7 @@
 				questGoalSearch: [],
 				enumGoalTable: new Map(),
 				enumGoalSearch: [],
+				enumGoalDesc: new Map(),
 				newGoalId: 0,
 				newGoalDesc: '新任务目标',
 				goalVerNum: '-1',
@@ -224,6 +228,7 @@
 					for (let i = 0; i < enumGoal.length; i++) {
 						let item = enumGoal[i]
 						this.enumGoalTable.set(item.sn.toString(), item)
+						this.enumGoalDesc.set(item.sn, item.param)
 						this.enumGoalSearch[i] = {value: item.sn + ':' + item.desc}
 					}
 					console.log('读取任务目标数据表完成')
