@@ -217,7 +217,7 @@
 			uni.request({
 				url: msg.url(),
 				method: 'GET',
-				data: msg.get_quest_goal_info(this.$store.state.token),
+				data: msg.get_quest_goal_info(util.getCurrentUserToken()),
 				success: res => {
 					var items = res.data['data']
 					for (let i = 0; i < items.length; i++) {
@@ -265,7 +265,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "NPC"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "NPC"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
@@ -283,7 +283,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "ITEM"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "ITEM"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
@@ -301,7 +301,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "CHARACTER"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "CHARACTER"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
@@ -344,7 +344,7 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.get_table_data_by_sn(this.$store.state.token, this.QUESTGOAL, sn),
+					data: msg.get_table_data_by_sn(util.getCurrentUserToken(), this.QUESTGOAL, sn),
 					success: res => {
 						let json = res.data['data']
 						if (typeof(json) != typeof('')) {
@@ -502,7 +502,7 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.get_table_data_by_sn(this.$store.state.token, this.QUESTGOAL, this.newGoalId),
+					data: msg.get_table_data_by_sn(util.getCurrentUserToken(), this.QUESTGOAL, this.newGoalId),
 					success: res => {
 						let json = res.data['data']
 						if (typeof(json) == typeof('')) {

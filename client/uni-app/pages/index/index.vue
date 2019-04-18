@@ -26,7 +26,7 @@
 </template>
 
 <script>
-	import utils from '../../common/util.js'
+	import util from '../../common/util.js'
 	import msg from '../../common/msg.js'
 	
 	export default {	
@@ -64,12 +64,12 @@
 			})
 		},
 		mounted: function() {
-			this.setDefaultValues()
+			// this.setDefaultValues()
 		},
 		methods: {
 			setDefaultValues: function() {
-				this.userForm.userName = 'zhangzeqiang'
-				this.userForm.password = 'GNT8EYkz'
+				this.userForm.userName = ''
+				this.userForm.password = ''
 				this.isFormValid = true
 			},
 			onInputBlur: function() {

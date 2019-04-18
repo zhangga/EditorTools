@@ -35,6 +35,9 @@ public class EditorConfig {
     public static final String svn_root;
     public static final String svn_export;
 
+    /** 服务器配置 */
+    public static final String server_ip;
+
     /** 配置文件路径 */
     public static String CONFIG_PATH;
 
@@ -76,6 +79,7 @@ public class EditorConfig {
         svn_pwd = prop.getProperty("svn_pwd");
         svn_root = prop.getProperty("svn_root");
         svn_export = prop.getProperty("svn_export");
+        server_ip = prop.getProperty("server_ip");
     }
 
 }

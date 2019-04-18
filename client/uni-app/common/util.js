@@ -2,15 +2,39 @@ import Vue from 'vue'
 import msg from '../common/msg.js'
 import store from '../store/index.js'
 
+function getCurrentUserToken() {
+	if (store.state.token != '') {
+		return store.state.token
+	}
+	
+	try {
+		const token = uni.getStorageSync('token')
+		if (token) {
+			store.state.token = token
+			return token;
+		} else {
+			this.$message({
+				message: '获取用户Token失败，请重新登录！',
+				type: 'error'
+			})
+		}
+	} catch (e) {
+		this.$message({
+			message: '获取用户Token失败，请重新登录！',
+			type: 'error'
+		})
+	}
+}
+
 function updateDataFieldNV(table, sn, field, value, caller) {
-	updateDataField(table, sn, field, value, store.state.verNum, caller)
+	updateDataField(table, sn, field, value, getCurrentUserToken(), caller)
 }
 
 function updateDataField(table, sn, field, value, verNum, caller) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
-		data: msg.update_table_data(store.state.token, table, sn, field, value, verNum),
+		data: msg.update_table_data(getCurrentUserToken(), table, sn, field, value, verNum),
 		success: res => {
 			var resultCode = res.data['result']
 			var hint = res.data['hint']
@@ -34,7 +58,7 @@ function addDataField(table, keyValues, loadingInstance, caller) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
-		data: msg.add_table_data(store.state.token, table, keyValues),
+		data: msg.add_table_data(getCurrentUserToken(), table, keyValues),
 		success: res => {
 			var resultCode = res.data['result']
 			var hint = res.data['hint']
@@ -142,4 +166,5 @@ module.exports = {
 	updateDataField: updateDataField,
 	updateDataFieldNV: updateDataFieldNV,
 	addDataField: addDataField,
+	getCurrentUserToken: getCurrentUserToken,
 }

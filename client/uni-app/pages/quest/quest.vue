@@ -200,7 +200,7 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.get_table_data_by_sn(this.$store.state.token, 'QUEST', this.activeSn),
+					data: msg.get_table_data_by_sn(util.getCurrentUserToken(), 'QUEST', this.activeSn),
 					success: res => {
 						this.currSelectedQuestData = JSON.parse(res.data['data'])
 						this.hasSelectedRowData = true
@@ -225,9 +225,8 @@
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
-					data: msg.get_all_quest_brief(this.$store.state.token),
+					data: msg.get_all_quest_brief(util.getCurrentUserToken()),
 					success: res => {
-						// TODO: Error Handling
 						this.items = res.data['data']
 						this.occupiedQuestSNs = []
 						this.questTypes = []

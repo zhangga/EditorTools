@@ -66,6 +66,7 @@
 	import textInput from '../component/textInput.vue'
 	import msg from '../../common/msg.js'
 	import util from '../../common/util.js'
+	
 	export default {
 		data() {
 			return {
@@ -111,7 +112,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "DROPGROUP"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "DROPGROUP"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
@@ -133,7 +134,7 @@
 					uni.request({
 						url: msg.url(),
 						method: 'GET',
-						data: msg.get_table_data(this.$store.state.token, "ACTION"),
+						data: msg.get_table_data(util.getCurrentUserToken(), "ACTION"),
 						success: res => {
 							var items = res.data['data']
 							for (let i = 0; i < items.length; i++) {
