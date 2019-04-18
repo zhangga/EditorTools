@@ -8,6 +8,7 @@
 					</el-col>
 			
 					<el-col :span="12">
+						<i class="el-icon-search"></i>
 						<el-input placeholder="搜索表格" v-model="filters[0].value"></el-input>
 					</el-col>
 					

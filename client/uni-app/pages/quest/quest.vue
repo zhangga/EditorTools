@@ -68,7 +68,7 @@
 							</view>
 						</el-form>
 					</el-card>
-					<el-button slot="reference" type='primary' round class="float" @click="onAddQuestButtonClicked">新增任务</el-button>
+					<el-button slot="reference" type='primary' round class="float" @click="onAddQuestButtonClicked" icon="el-icon-circle-plus">新增任务</el-button>
 				</el-popover>
 				
 				<el-main>

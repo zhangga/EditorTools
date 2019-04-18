@@ -94,7 +94,7 @@
 			</el-card>
 			
 			<el-popover placement="right-start" width="500" trigger="click" v-model="showItem">
-				<el-button slot="reference" type='success' style="float: left">查询物品</el-button>
+				<el-button slot="reference" type='success' style="float: left" icon="el-icon-search">查询物品</el-button>
 				<el-card class="box-card">
 					<view slot="header" class="clearfix">
 						<span class="header">查询物品</span>
@@ -109,7 +109,7 @@
 			</el-popover>
 			
 			<el-popover placement="right-start" width="500" trigger="click" v-model="showNpc">
-				<el-button slot="reference" type='warning' style="position: absolute; left: 120upx">查询NPC</el-button>
+				<el-button slot="reference" type='warning' style="position: absolute; left: 120upx" icon="el-icon-search">查询NPC</el-button>
 				<el-card class="box-card">
 					<view slot="header" class="clearfix">
 						<span class="header">查询NP</span>
@@ -124,7 +124,7 @@
 			</el-popover>
 			
 			<el-popover placement="right-start" width="500" trigger="click" v-model="showMonster">
-				<el-button slot="reference" type='danger' style="position: absolute; left: 240upx">查询怪物</el-button>
+				<el-button slot="reference" type='danger' style="position: absolute; left: 240upx" icon="el-icon-search">查询怪物</el-button>
 				<el-card class="box-card">
 					<view slot="header" class="clearfix">
 						<span class="header">查询怪物</span>
