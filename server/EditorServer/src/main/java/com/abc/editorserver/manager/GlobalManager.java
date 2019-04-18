@@ -2,8 +2,10 @@ package com.abc.editorserver.manager;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.support.LogEditor;
+import com.abc.editorserver.utils.Function;
 import com.abc.editorserver.utils.Task;
 import com.abc.editorserver.utils.Timer;
+import com.alibaba.fastjson.JSONObject;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
@@ -37,7 +39,7 @@ public class GlobalManager {
     public static final boolean isDevMode = true;
 
     public static void init() {
-        updateTimer.startTimer(Timer.FIFTEEN_MINUTES);
+        updateTimer.startTimer(Timer.ONE_MINUTE);
 
         pulseExecutor.scheduleAtFixedRate(() -> {
             lastTime = System.currentTimeMillis();
@@ -71,20 +73,21 @@ public class GlobalManager {
      * 心跳
      */
     private static void pulse() {
+        // 处理任务队列
+        while (!taskQueue.isEmpty()) {
+            taskExecutor.execute(getNextTask());
+        }
         // 定时从SVN更新
         if (updateTimer.isDue()) {
-            LogEditor.serv.info("定时执行SVN更新");
-            SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
+            taskQueue.add(new Task(var -> {
+                SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
+                LogEditor.serv.info("定时执行SVN更新");
+            }, null));
         }
 
         // 定时向SVN提交改动
         if (!isDevMode) {
             dataManager.dataPersistHandler();
-        }
-
-        // 处理任务队列
-        while (!taskQueue.isEmpty()) {
-            taskExecutor.execute(getNextTask());
         }
     }
 
