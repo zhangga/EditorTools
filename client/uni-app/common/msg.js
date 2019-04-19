@@ -1,5 +1,5 @@
 // 服务器地址
-var SERVER_URL = 'http://172.17.145.176:28100';
+var SERVER_URL = 'http://172.17.145.203:28100';
 // 操作成功代码
 const RESULT_OK = "1";
 // 操作失败代码
@@ -93,6 +93,13 @@ export default {
 			'excel_name': excelName,
 			'sheet_name': sheetName
 		};
+	},
+	get_table_status(token, redisTableNames) {
+		return {
+			'cmd': 10,
+			'token': token,
+			'table_names': redisTableNames
+		}
 	},
 	// 更新任务表数据
 	update_quest_data(token, sn, field, value, verNum) {

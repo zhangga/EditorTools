@@ -43,6 +43,10 @@ public class GetAllQuestBriefAction extends GameActionJson {
             JSONObject data = datas.getJSONObject(index);
             data.getJSONArray("children").add(brief);
         }
+
+        // 更新编辑历史
+        ExcelManager.getInstance().updateLastEdit("QUEST", user.getName());
+
         JSONObject msg = new JSONObject();
         msg.put("data", datas);
         sendMsg(request.ctx, msg);

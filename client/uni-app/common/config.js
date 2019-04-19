@@ -168,5 +168,12 @@ export default {
 				return config;
 			}
 		}
+	},
+	GetRedisTableNames() {
+		var redis_table_names = []
+		for (var i = 0; i < ExcelConfig_json['configs'].length; i++) {
+			redis_table_names.push(ExcelConfig_json['configs'][i]['redis_table'])
+		}
+		return redis_table_names
 	}
 }

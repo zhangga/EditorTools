@@ -84,7 +84,7 @@ public class GlobalManager {
         if (updateTimer.isDue()) {
             taskQueue.add(new Task(var -> {
                 SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
-                LogEditor.serv.info("定时执行SVN更新");
+                LogEditor.serv.info("定时执行了SVN更新");
             }, null));
         }
 

@@ -46,7 +46,7 @@
 						label: '表格名'
 					},
 					{
-						prop: 'Status',
+						prop: 'status',
 						label: '状态'
 					}],
 				tables: [],
@@ -69,7 +69,7 @@
 						label: '编辑'
 					},{
 						handler: (row) => {
-							//console.log("下载：【Excel】" + row.excel + " 【表格】"  + row.sheet)
+							console.log("下载：【Excel】" + row.excel + " 【表格】"  + row.sheet)
 							this.downloadTable(row.excel, row.sheet)
 						},
 						label: '下载表格'
@@ -85,11 +85,23 @@
 						'text-align': 'center'
 					}
 				},
-				selectedRows: []
+				selectedRows: [],
+				loading: null,
 			}
 		},
-		onLoad() {
-			this.tables = config.ExcelConfig().configs
+		onLoad() {	
+			this.loading = this.$loading({
+				lock: true,
+				text: '加载中...',
+				spinner: 'el-icon-loading',
+				background: 'rgba(0, 0, 0, 0.7)'
+			})
+			
+			setTimeout(() => {
+				this.loading.close()
+			}, 2000)
+			
+			this.get_table_status()
 		},
 		methods: {
 			open_table: function(excelName, sheetName) {
@@ -101,6 +113,42 @@
 						fail: () => {},
 						complete: () => {}
 				})
+			},
+			get_table_status: function() {
+				// 保证页面在刷新时能触发数据的刷新，从而获取最新的编辑历史信息
+				this.tables = []
+				
+				var redisTableNames = config.GetRedisTableNames()
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.get_table_status(util.getCurrentUserToken(), redisTableNames),
+					success: res => {
+						// 从配置文件中读取表格信息
+						this.tables = config.ExcelConfig().configs
+						
+						var editHistories = JSON.parse(res.data['data'])
+						
+						for (var index = 0; index < this.tables.length; index++) {
+							let editHistory = editHistories[this.tables[index]['redis_table']]
+							
+							if (editHistory.length == 0) {
+								this.tables[index].status = "暂无数据"
+							}
+							else {
+								this.tables[index].status = editHistory
+							}
+						}
+					},
+					fail: () => {
+						for (var index = 0; index < this.tables.length; index++) {
+							this.tables[index].status = "暂无数据"
+						}
+					},
+					complete: () => {
+						this.loading.close()
+					}
+				});
 			},
 			downloadTable: function(excelName, sheetName) {
 				uni.request({
@@ -140,7 +188,6 @@
 			},
 			onSelectionChange: function(rows) {
 				this.selectedRows = rows;
-				// console.log(this.selectedRows.length);
 			},
 			onAbout: function() {
 				uni.navigateTo({

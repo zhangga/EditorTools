@@ -1,7 +1,10 @@
 package com.abc.editorserver.manager;
 
+import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
+import com.abc.editorserver.utils.TableEditAction;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,10 @@ public class ExcelManager {
     private ExcelTrigger[] triggers;
     private String[] EnumQuestType;
 
+    // 用于统计表格当前被编辑用户数
+    private static final String EditHistoryRedisTableName = "EDIT_HISTORY";
+    private Map<String, TableEditAction> pastEdits;
+
     /**
      * 通过表名获取配置信息
      * @param tableName
@@ -41,13 +48,75 @@ public class ExcelManager {
         return configs;
     }
 
+    /**
+     * 通过表名获取上次表格操作详情
+     * @param tableName
+     * @return
+     */
+    public TableEditAction retrieveLastEdit(String tableName) {
+        if (tableName == null) {
+            return null;
+        }
+
+        return pastEdits.get(tableName.toUpperCase());
+    }
+
+    /**
+     * 更新表格操作详情
+     * @param tableName
+     * @return
+     */
+    public void updateLastEdit(String tableName, String userId) {
+        if (tableName == null || userId == null) {
+            return;
+        }
+
+        TableEditAction pastEdit = new TableEditAction(userId);
+        pastEdits.put(tableName, pastEdit);
+        JedisManager.getInstance().hset(EditHistoryRedisTableName, tableName, JSONObject.toJSONString(pastEdit));
+    }
+
+    public void updateLastEdit(String tableName, String userId, String dateTime) {
+        if (tableName == null || userId == null) {
+            return;
+        }
+        else if (dateTime == null) {
+            updateLastEdit(tableName, userId);
+        }
+        else {
+            TableEditAction pastEdit = new TableEditAction(userId, dateTime);
+            pastEdits.put(tableName, pastEdit);
+            JedisManager.getInstance().setKey(tableName, JSONObject.toJSONString(pastEdit));
+        }
+    }
+
     public void setConfigs(ExcelConfig[] configs) {
         this.configs = configs;
+
         Map<String, ExcelConfig> temp = new HashMap<>();
+        Map<String, TableEditAction> editHistoryTmp = new HashMap<>();
+
+        JedisManager jedisManager = JedisManager.getInstance();
+        String editHistoryJson;
+        TableEditAction editAction;
+
         for (ExcelConfig config : this.configs) {
             temp.put(config.getRedis_table().toUpperCase(), config);
+
+            // 加载编辑历史
+            editHistoryJson = jedisManager.hget(EditHistoryRedisTableName, config.getRedis_table());
+
+            if (editHistoryJson == null) {
+                editHistoryTmp.put(config.getRedis_table(), null);
+            }
+            else {
+                editAction = JSONObject.parseObject(editHistoryJson, TableEditAction.class);
+                editHistoryTmp.put(config.getRedis_table(), editAction);
+            }
         }
+
         this.configMap = temp;
+        this.pastEdits = editHistoryTmp;
     }
 
     public String[] getDefaultNames() {
