@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative;top: -12upx;">
+		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative; top: -12upx;">
 		</el-autocomplete>
 		<!-- 用于触发数据同步与更新 -->
 		<span style="display:none"> {{value}} </span>

@@ -1,166 +1,174 @@
 <template>
-	<view style="flex-direction: column;">
+	<view style="flex-direction: column">
+		
 		<!-- 任务目标 -->
 		<el-card class="box-card">
-			<view slot="header" class="clearfix">
-				<span class="header">任务目标</span>
-			</view>
-			<el-form label-width="60upx">
-				<el-form-item label="目标ID:">
-					<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:value="goalSn">
-					</textInput>
-				</el-form-item>
-			</el-form>
 			
-			<el-card class="box-card">
-				<view slot="header">
-					<el-row>
-						<el-col :span="10">
-							<span class="header">备注</span>
-						</el-col>
-						<el-col :span="14">
-							<el-input type="textarea" v-model="baseGoal.desc" placeholder="备注信息" @change="onGoalDescChange($event)"></el-input>
-						</el-col>
-					</el-row>
-				</view>
-				<el-form label-width="60upx">
-					<el-form-item label="组合类型">
-						<el-select v-model="baseGoal.combinationType" size="medium" id="combinationType" @change="onSelectCombinationType">
-							<el-option v-for="index in ConfigCombinType.length" :key="index" :value="index-1" 
-								:label="ConfigCombinType[index-1]" :disabled="index>1"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="关系类型" label-width="200upx" v-if="baseGoal.combinationType==1">
-						<el-select v-model="baseGoal.relationType" size="medium" id="relationType" @change="onEditorBtn">
-							<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
-								:label="ConfigRelationType[index-1]"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-card class="box-card" v-for="goalIndex in combinGoal.length">
-						<el-form label-width="60upx">
-							<el-row>
-								<el-col :span="20">
-									<el-form-item label="关系类型" label-width="180upx">
-										<el-select v-model="combinGoal[goalIndex-1].relationType" size="medium" @change="onSelectGoalRelate($event, goalIndex-1)">
-											<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
-												:label="ConfigRelationType[index-1]"></el-option>
-										</el-select>
-									</el-form-item>
-								</el-col>
-								<el-col :span="4">
-									<el-button round type="success" icon="el-icon-circle-plus" @click="onAddGoal(goalIndex-1)">新增目标列</el-button>
-								</el-col>
-							</el-row>
-							<el-container v-for="condIndex in combinGoal[goalIndex-1].condList.length">
-								<el-main>
-									<el-row>
-										<el-col :span="12">
-											<el-form-item label="目标类型">
-												<el-autocomplete placeholder="请输入内容"
-													v-model="combinGoal[goalIndex-1].condList[condIndex-1]" 
-													:fetch-suggestions="queryEnumGoal"  @select="onSelectEnumGoal($event, goalIndex-1, condIndex-1)">
-												</el-autocomplete>
-											</el-form-item>
-										</el-col>
-										<el-col :span="12">
-											<el-form-item label="参数">
-												<el-input v-model="combinGoal[goalIndex-1].params[condIndex-1]" @change="onParamsChange($event, goalIndex-1, condIndex-1)" 
-													placeholder="请输入参数"></el-input>
-											</el-form-item>
-										</el-col>
-									</el-row>
-									<el-row>
-										<el-col :span="12">
-											<el-form-item label="目标位置">
-												<el-input v-model="combinGoal[goalIndex-1].targetPos[condIndex-1]" @change="onPosChange($event, goalIndex-1, condIndex-1)" 
-													placeholder="请输入参数"></el-input>
-											</el-form-item>
-										</el-col>
-										<el-col :span="10">
-											<el-form-item label="参数说明">
-												<!-- <text>
-													{{enumGoalDesc.get(combinGoal[goalIndex-1].condList[condIndex-1])}}
-												</text> -->
-												<el-input :disabled="true"
-													v-model="enumGoalTable.get(combinGoal[goalIndex-1].condList[condIndex-1]).param"></el-input>
-											</el-form-item>
-										</el-col>
-										<el-col :span="2">
-											<el-button type="danger" icon="el-icon-remove" @click="onRemoveGoal(goalIndex-1, condIndex-1)">删除</el-button>
-										</el-col>
-									</el-row>
-								</el-main>
-							</el-container>
-						</el-form>
-					</el-card>
-				</el-form>
-			</el-card>
-			
-			<el-popover placement="right-start" width="500" trigger="click" v-model="showItem">
-				<el-button slot="reference" type='success' style="float: left" icon="el-icon-search">查询物品</el-button>
-				<el-card class="box-card">
-					<view slot="header" class="clearfix">
-						<span class="header">查询物品</span>
-					</view>
-					<el-form label-width="60upx">
-						<el-form-item label="物品信息">
-							<textInput :datas="itemSearch" placeholder='物品查询' :method='loadItem' :select="onSelect" v-bind:value="searchText">
-							</textInput>
-						</el-form-item>
-					</el-form>
-				</el-card>
-			</el-popover>
-			
-			<el-popover placement="right-start" width="500" trigger="click" v-model="showNpc">
-				<el-button slot="reference" type='warning' style="position: absolute; left: 120upx" icon="el-icon-search">查询NPC</el-button>
-				<el-card class="box-card">
-					<view slot="header" class="clearfix">
-						<span class="header">查询NP</span>
-					</view>
-					<el-form label-width="60upx">
-						<el-form-item label="NPC信息">
-							<textInput :datas="npcSearch" placeholder='NPC查询' :method='loadNpc' :select="onSelect" v-bind:value="searchText">
-							</textInput>
-						</el-form-item>
-					</el-form>
-				</el-card>
-			</el-popover>
-			
-			<el-popover placement="right-start" width="500" trigger="click" v-model="showMonster">
-				<el-button slot="reference" type='danger' style="position: absolute; left: 240upx" icon="el-icon-search">查询怪物</el-button>
-				<el-card class="box-card">
-					<view slot="header" class="clearfix">
-						<span class="header">查询怪物</span>
-					</view>
-					<el-form label-width="60upx">
-						<el-form-item label="怪物信息">
-							<textInput :datas="monsterSearch" placeholder='怪物查询' :method='loadMonster' :select="onSelect" v-bind:value="searchText">
-							</textInput>
-						</el-form-item>
-					</el-form>
-				</el-card>
-			</el-popover>
-		</el-card>
-		
-		<el-popover placement="right-start" width="500" trigger="click" v-model="showAddGoal">
-			<el-button slot="reference" type='info' round class="float" style="float: right" @click="onClickAddQuestGoal">新增任务目标</el-button>
-			<el-card class="box-card">
+			<el-button type='info' round class="float" @click="onClickAddQuestGoal">新增任务目标</el-button>
+			<el-dialog title="新增任务目标" width="42%" :visible.sync="showAddGoal" center>
 				<view slot="header" class="clearfix">
 					<span class="header">新增任务目标</span>
 				</view>
-				<el-form label-width="60upx">
+				<el-form label-width="60upx" style="width:85%">
 					<el-form-item label="任务目标ID">
 						<el-input v-model="newGoalId"></el-input>
 					</el-form-item>
 					<el-form-item label="策划备注">
 						<el-input v-model="newGoalDesc"></el-input>
 					</el-form-item>
-					<el-form-item>
-						<el-button type='primary' style="float: right" @click="onAddQuestGoal">提交</el-button>
-					</el-form-item>
 				</el-form>
-			</el-card>
-		</el-popover>
+				<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @click="onAddQuestGoal">提交</el-button>
+				</span>
+			</el-dialog>
+			
+			<view slot="header" class="clearfix">
+				<span class="header">任务目标</span>
+			</view>
+			<el-form label-width="40upx">
+			<el-row>
+				<el-col :span="8">
+					<el-form-item label="目标ID:">
+						<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:value="goalSn">
+						</textInput>
+					</el-form-item>
+				</el-col>
+				<el-col :offset="6" :span="8">
+					<el-form-item label="备注">
+						<el-input type="textarea" :rows="1" v-model="baseGoal.desc" placeholder="备注信息" @change="onGoalDescChange($event)"></el-input>
+					</el-form-item>
+				</el-col>
+			</el-row>
+			</el-form>
+			
+
+			<el-form label-width="30upx">
+				<el-card class="box-card" v-for="goalIndex in combinGoal.length" shadow="hover">
+					<view slot="header">
+						<el-row style="width: 100%">
+							<el-col :span="8">
+								<el-form-item label="组合类型">
+									<el-select v-model="baseGoal.combinationType" size="medium" id="combinationType" @change="onSelectCombinationType">
+										<el-option v-for="index in ConfigCombinType.length" :key="index" :value="index-1" 
+											:label="ConfigCombinType[index-1]" :disabled="index>1"></el-option>
+									</el-select>
+								</el-form-item>
+							</el-col>
+							<el-col :span="8" :offset="1">
+								<el-form-item label="关系类型">
+									<el-select v-model="combinGoal[goalIndex-1].relationType" size="medium" @change="onSelectGoalRelate($event, goalIndex-1)">
+										<el-option v-for="index in ConfigRelationType.length" :key="index" :value="index-1" 
+											:label="ConfigRelationType[index-1]"></el-option>
+									</el-select>
+								</el-form-item>
+							</el-col>
+							<el-col :span="4" :offset="3">
+								<el-form-item label-width="0upx">
+									<el-button round type="success" icon="el-icon-circle-plus" @click="onAddGoal(goalIndex-1)">新增目标列</el-button>
+								</el-form-item>
+							</el-col>
+						</el-row>
+					</view>
+					<el-form label-width="30upx">
+						<el-container v-for="condIndex in combinGoal[goalIndex-1].condList.length">
+							<el-main>
+								<el-row>
+									<el-col :span="9">
+										<el-form-item label="目标类型">
+											<el-autocomplete placeholder="请输入内容"
+												v-model="combinGoal[goalIndex-1].condList[condIndex-1]" 
+												:fetch-suggestions="queryEnumGoal"  @select="onSelectEnumGoal($event, goalIndex-1, condIndex-1)">
+											</el-autocomplete>
+										</el-form-item>
+									</el-col>
+									<el-col :span="9" :offset="2">
+										<el-form-item label="参数">
+											<el-input v-model="combinGoal[goalIndex-1].params[condIndex-1]" @change="onParamsChange($event, goalIndex-1, condIndex-1)" 
+												placeholder="请输入参数"></el-input>
+										</el-form-item>
+									</el-col>
+								</el-row>
+								<el-row>
+									<el-col :span="9">
+										<el-form-item label="目标位置">
+											<el-input v-model="combinGoal[goalIndex-1].targetPos[condIndex-1]" @change="onPosChange($event, goalIndex-1, condIndex-1)" 
+												placeholder="请输入参数"></el-input>
+										</el-form-item>
+									</el-col>
+									<el-col :span="9" :offset="2">
+										<el-form-item label="参数说明">
+											<el-input :disabled="true"
+												v-model="enumGoalTable.get(combinGoal[goalIndex-1].condList[condIndex-1]).param"></el-input>
+										</el-form-item>
+									</el-col>
+									<el-col :span="2" :offset="1">
+										<el-form-item label-width="0upx" style="">
+											<el-button type="danger" icon="el-icon-remove" @click="onRemoveGoal(goalIndex-1, condIndex-1)">删除</el-button>
+										</el-form-item>
+									</el-col>
+								</el-row>
+								
+								<div class="hr anim"></div>
+							</el-main>
+						</el-container>
+					</el-form>
+				</el-card>
+			</el-form>
+			
+			<el-row>
+				<el-col :span="4">
+					<el-button type='success' icon="el-icon-search" @click="showItem = true">查询物品</el-button>
+					<el-dialog title="查询物品" width="42%" :visible.sync="showItem" center>
+						<view slot="header" class="clearfix">
+							<span class="header">物品查询</span>
+						</view>
+						<el-form label-width="120upx">
+							<el-form-item label="物品信息">
+								<textInput :datas="itemSearch" placeholder='物品查询' :method='loadItem' :select="onSelect" v-bind:value="searchText">
+								</textInput>
+							</el-form-item>
+						</el-form>
+						<span slot="footer" class="dialog-footer">
+							<el-button type="primary" @click="showItem = false">完成</el-button>
+						</span>
+					</el-dialog>
+				</el-col>
+				<el-col :span="4" :offset="6">
+					<el-button type='warning' icon="el-icon-search" @click="showNpc = true">查询NPC</el-button>
+					<el-dialog title="NPC查询" width="42%" :visible.sync="showNpc" center>
+						<view slot="header" class="clearfix">
+							<span class="header">查询NP</span>
+						</view>
+						<el-form label-width="120upx">
+							<el-form-item label="NPC信息">
+								<textInput :datas="npcSearch" placeholder='NPC查询' :method='loadNpc' :select="onSelect" v-bind:value="searchText">
+								</textInput>
+							</el-form-item>
+						</el-form>
+						<span slot="footer" class="dialog-footer">
+							<el-button type="primary" @click="showNpc = false">完成</el-button>
+						</span>
+					</el-dialog>
+				</el-col>
+				<el-col :span="4" :offset="6">
+					<el-button type='danger' icon="el-icon-search" @click="showMonster = true">查询怪物</el-button>
+						<el-dialog title="怪物查询" width="42%" :visible.sync="showMonster" center>
+							<view slot="header" class="clearfix">
+								<span class="header">查询怪物</span>
+							</view>
+							<el-form label-width="120upx">
+								<el-form-item label="怪物信息">
+									<textInput :datas="monsterSearch" placeholder='怪物查询' :method='loadMonster' :select="onSelect" v-bind:value="searchText">
+									</textInput>
+								</el-form-item>
+							</el-form>
+							<span slot="footer" class="dialog-footer">
+								<el-button type="primary" @click="showMonster = false">完成</el-button>
+							</span>
+						</el-dialog>
+				</el-col>
+			</el-row>
+		</el-card>
 		
 		<!-- 用于触发数据同步与更新 -->
 		<span style="display:none"> {{tableRowData['questName']}} </span>
@@ -185,7 +193,7 @@
 				monsterSearch: [],
 				QUEST: 'QUEST',
 				QUESTGOAL: 'QUESTGOAL',
-				/** 任务目标表数据 */
+				/* 任务目标表数据 */
 				questGoalTable: new Map(),
 				questGoalSearch: [],
 				enumGoalTable: new Map(),
@@ -194,18 +202,18 @@
 				newGoalId: 0,
 				newGoalDesc: '新任务目标',
 				goalVerNum: '-1',
-				// 目标组
+				/* 目标组 */
 				goalSn: '',
 				baseGoal: {combinationType: 0,
 					relationType: 0,
 					desc: '没有任务目标！'},
 				combinGoal: [],
-				/** 编辑任务目标 */
+				/* 编辑任务目标 */
 				showItem: false,
 				showNpc: false,
 				showMonster: false,
 				showAddGoal: false,
-				/** 关系类型 */
+				/* 关系类型 */
 				ConfigCombinType: [],
 				ConfigRelationType: [],
 			};
@@ -232,6 +240,9 @@
 						this.enumGoalSearch[i] = {value: item.sn + ':' + item.desc}
 					}
 					console.log('读取任务目标数据表完成')
+					
+					console.log(this.enumGoalTable)
+					
 					this.refreshDefaultValues()
 				},
 				fail: () => {},
@@ -490,6 +501,7 @@
 			},
 			// 新增任务目标
 			onAddQuestGoal: function(e) {
+				this.showAddGoal = false
 				if (this.newGoalId.length == 0 || this.newGoalId != Math.floor(this.newGoalId) 
 					|| Math.floor(this.newGoalId) <= 0) {
 					this.$notify.error({
@@ -546,6 +558,7 @@
 				console.log(e)
 			},
 			onClickAddQuestGoal: function(e) {
+				this.showAddGoal = true
 				this.newGoalId = this.goalSn
 			},
 			onSelect: function(e) {
@@ -565,13 +578,17 @@
 
 <style>
   view {
-  	//border: #000000 solid 1upx;
   	font-size: 15upx;
   	margin: 2upx;
   
   	display: flex;
   	flex-direction: row;
   }
+  
+  /* .box-card {
+  	  width: 300upx;
+  	  margin-bottom: 10upx;
+  } */
   
   .el-form {
   	align: middle;
@@ -589,5 +606,117 @@
 	font-size: 18px;
 	width: 10upx;
 	padding-left: 20upx;
+  }
+  
+  .clearfix {
+  	  font-size: 10upx;
+  	  font-weight: bold
+  }
+  
+  .float {
+	  position:fixed;
+	  top: 20%;
+	  right: 9%;
+	  text-align: center;
+	  box-shadow: 2px 2px 3px #999;
+	  z-index: 10;
+  }
+  
+  @keyframes bar {
+  	  0% { background-position: 0%; }
+  	  100% { background-position: 200%; }
+  }
+  
+  .hr {
+	  width: 100%;
+	  height: 1upx;
+	  display: block;
+	  position: relative;
+	  margin-bottom: 0upx;
+	  padding: 5upx 0;
+  }
+
+  .hr::before {
+	  content: "";
+	  position: absolute;
+	
+	  width: 100%;
+	  height: 1upx;
+	  bottom: 50%;
+	  left: 0;
+	
+	  /* background: linear-gradient( 90deg, #10111F 0%, #10111F 50%, transparent 50%, transparent 100% ); */
+	  background: linear-gradient( 90deg, #FFFFFF 0%, #FFFFFF 50%, transparent 50%, transparent 100% );
+	  background-size: 15px;
+	  background-position: center;
+	  z-index: 1;
+  }
+
+  .hr::after {
+	  content: "";
+	  position: absolute;
+	
+	  width: 100%;
+	  height: 1px;
+	  bottom: 50%;
+	  left: 0;
+	
+	  transition: opacity 0.3s ease, animation 0.3s ease;
+	
+	  background: linear-gradient(
+		  to right, 
+		  #62efab 5%, 
+		  #F2EA7D 15%, 
+		  #F2EA7D 25%, 
+		  #FF8797 35%, 
+		  #FF8797 45%, 
+		  #e1a4f4 55%, 
+		  #e1a4f4 65%, 
+		  #82fff4 75%, 
+		  #82fff4 85%, 
+		  #62efab 95%);
+	
+	  background-size: 200%;
+	  background-position: 0%;
+	  -webkit-animation: bar 15s linear infinite;
+}
+
+  .anim::before {
+	  background: linear-gradient( 
+	        90deg, 
+	        #FFFFFF 0%, #FFFFFF 5%, 
+	        transparent 5%, transparent 10%, 
+	        #FFFFFF 10%, #FFFFFF 15%, 
+	        transparent 15%, transparent 20%, 
+	        #FFFFFF 20%, #FFFFFF 25%,
+	        transparent 25%, transparent 30%,
+	        #FFFFFF 30%, #FFFFFF 35%, 
+	        transparent 35%, transparent 40%, 
+	        #FFFFFF 40%, #FFFFFF 45%, 
+	        transparent 45%, transparent 50%, 
+	        #FFFFFF 50%, #FFFFFF 55%,
+	        transparent 55%, transparent 60%,
+	        #FFFFFF 60%, #FFFFFF 65%,
+	        transparent 65%, transparent 70%, 
+	        #FFFFFF 70%, #FFFFFF 75%, 
+	        transparent 75%, transparent 80%, 
+	        #FFFFFF 80%, #FFFFFF 85%,
+	        transparent 85%, transparent 90%,
+	        #FFFFFF 90%, #FFFFFF 95%, 
+	        transparent 95%, transparent 100% );
+	
+	  background-size: 150px;
+	  background-position: center;
+	  z-index: 1;
+	
+	  animation: bar 120s linear infinite;
+  }
+
+  .anim:hover::before {
+	  animation-duration: 20s;
+  }
+
+  .anim:hover::after {
+	  animation-duration: 2s;
   }
 </style>

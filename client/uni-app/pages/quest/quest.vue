@@ -71,8 +71,11 @@
 					<el-button slot="reference" type='primary' round class="float" @click="onAddQuestButtonClicked" icon="el-icon-circle-plus">新增任务</el-button>
 				</el-popover>
 				
+				<!-- 刷新按钮 -->
+				<el-button type='success' circle class="float_refresh" icon="el-icon-refresh" @click="onRefreshBtnClicked"></el-button>
+				
 				<el-main>
-					<el-tabs v-model="activeTab" class="quest-details">
+					<el-tabs v-model="activeTab" value="activeTab" class="quest-details">
 						<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
 							<quest-prop 
 								v-bind:tableRowData="currSelectedQuestData" 
@@ -186,9 +189,13 @@
 			onItemClick: function(e) {
 				this.triggerItemClick(e.index)
 			},
-			triggerItemClick: function(index) {
+			triggerItemClick: function(index, callback = null, ...params) {
 				// 更新当前激活记录的ID
 				this.currentActivatedIndex = index
+				
+				if (index == '') {
+					return
+				}
 				
 				// 解析点击项ID
 				var splittedIndex = index.split('.')
@@ -212,6 +219,16 @@
 						
 						// 更新版本号缓存信息
 						this.$store.state.verNum = this.currSelectedQuestData['verNum']
+						
+						// 执行回调方法
+						if (callback != null) {
+							if (params.length == 1) {
+								callback(params[0])
+							}
+							else if (params.length == 2) {
+								callback(params[0], params[1])
+							}
+						}
 					},
 					fail: res => {
 						this.$notify.error({
@@ -326,6 +343,18 @@
 				
 				this.inputAddQuestSN = maxSn + 1
 			},
+			onRefreshBtnClicked: function() {
+				var cachedActivatedTab = this.activeTab
+				console.log("当前激活的tab：" + cachedActivatedTab)
+				this.onLoadQuestBrief(() => {
+					// 刷新当前选择记录的内容以及版本
+					this.triggerItemClick(this.currentActivatedIndex, (previousActiveTab) => {
+						// 激活刷新前正在查看的tab
+						this.activeTab = previousActiveTab;
+						console.log("当前激活的tab：" + cachedActivatedTab);
+					}, cachedActivatedTab)
+				})
+			},
 			onAddQuestButtonClicked: function() {
 				this.resetAddQuestForm()
 			},
@@ -420,6 +449,7 @@
 		height: 100%;
 		border: 1px solid #eee
 	}
+	
 	.quest-details {
 		margin-left: 3%;
 		width: 94%;
@@ -463,11 +493,18 @@
 	}
 	
 	.float {
-		position:fixed;
-		margin-top: 25upx;
-		top: 30upx;
-		right: 30upx;
+		position: fixed;
+		top: 8%;
+		right: 9%;
 		text-align: center;
+		box-shadow: 2px 2px 3px #999;
+		z-index: 10;
+	}
+	
+	.float_refresh {
+		position: fixed;
+		top: 8%;
+		right: 5%;
 		box-shadow: 2px 2px 3px #999;
 		z-index: 10;
 	}

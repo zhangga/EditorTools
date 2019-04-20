@@ -265,7 +265,6 @@
 
 <style>
 	view {
-		//border: #000000 solid 1upx;
 		font-size: 15upx;
 		margin: 2upx;
 
@@ -279,5 +278,10 @@
 
 	.el-form-item {
 		height: 20upx;
+	}
+	
+	.clearfix {
+		  font-size: 10upx;
+		  font-weight: bold
 	}
 </style>

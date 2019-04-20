@@ -27,14 +27,14 @@
 				<span class="header">完成信息</span>
 			</view>
 			
-			<el-form ref="form" label-width="100upx">
-				<el-row>
-					<el-col :span="8">
+			<el-form ref="form" label-width="40upx">
+				<el-row style="width: 100%">
+					<el-col :span="10">
 						<el-form-item label="提交任务后行为" label-width="50upx">
 							<el-input placeholder="Sn逗号分隔" v-model="submitAct" id="submitAct" @change="setSubmitAct($event)" clearable></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="16">
+					<el-col :span="10" :offset="2">
 						<el-form-item label="行为查询">
 							<textInput :datas="Actions" placeholder='查询' :method='loadActions' :select="onSelect" :value='noValue'>
 							</textInput>
@@ -42,15 +42,15 @@
 					</el-col>
 				</el-row>
 				
-				<el-form-item label="是否【可交】后自动完成">
+				<el-form-item label="是否【可交】后自动完成" label-width="70upx">
 					<el-checkbox v-model="canAutomaticDeliver" @change="setAutoDeliver"></el-checkbox>
 				</el-form-item>
 				
-				<el-form-item label="任务限时(秒)">
+				<el-form-item label="任务限时(秒)" label-width="43upx">
 					<el-input placeholder="时间限制" v-model="timeLimit" id="timeLimit" @blur="setTimeLimit" style="width: 100upx;" clearable></el-input>
 				</el-form-item>
 				
-				<el-form-item label="显示时间信息">
+				<el-form-item label="显示时间信息" label-width="45upx">
 					<el-checkbox v-model="showTimeLimit" @change="setShowTimeLimit" disabled></el-checkbox>
 				</el-form-item>
 				
@@ -215,6 +215,7 @@
 		  width: 300upx;
 		  margin-bottom: 10upx;
 	}
+	
 	view {
 		//border: #000000 solid 1upx;
 		font-size: 15upx;
@@ -222,5 +223,10 @@
 	
 		display: flex;
 		flex-direction: row;
+	}
+	
+	.clearfix {
+		  font-size: 10upx;
+		  font-weight: bold
 	}
 </style>
