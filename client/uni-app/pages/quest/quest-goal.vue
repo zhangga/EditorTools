@@ -6,9 +6,6 @@
 			
 			<el-button type='info' round class="float" @click="onClickAddQuestGoal">新增任务目标</el-button>
 			<el-dialog title="新增任务目标" width="42%" :visible.sync="showAddGoal" center>
-				<view slot="header" class="clearfix">
-					<span class="header">新增任务目标</span>
-				</view>
 				<el-form label-width="60upx" style="width:85%">
 					<el-form-item label="任务目标ID">
 						<el-input v-model="newGoalId"></el-input>
@@ -119,9 +116,6 @@
 				<el-col :span="4">
 					<el-button type='success' icon="el-icon-search" @click="showItem = true">查询物品</el-button>
 					<el-dialog title="查询物品" width="42%" :visible.sync="showItem" center>
-						<view slot="header" class="clearfix">
-							<span class="header">物品查询</span>
-						</view>
 						<el-form label-width="120upx">
 							<el-form-item label="物品信息">
 								<textInput :datas="itemSearch" placeholder='物品查询' :method='loadItem' :select="onSelect" v-bind:value="searchText">
@@ -136,9 +130,6 @@
 				<el-col :span="4" :offset="6">
 					<el-button type='warning' icon="el-icon-search" @click="showNpc = true">查询NPC</el-button>
 					<el-dialog title="NPC查询" width="42%" :visible.sync="showNpc" center>
-						<view slot="header" class="clearfix">
-							<span class="header">查询NP</span>
-						</view>
 						<el-form label-width="120upx">
 							<el-form-item label="NPC信息">
 								<textInput :datas="npcSearch" placeholder='NPC查询' :method='loadNpc' :select="onSelect" v-bind:value="searchText">
@@ -153,9 +144,6 @@
 				<el-col :span="4" :offset="6">
 					<el-button type='danger' icon="el-icon-search" @click="showMonster = true">查询怪物</el-button>
 						<el-dialog title="怪物查询" width="42%" :visible.sync="showMonster" center>
-							<view slot="header" class="clearfix">
-								<span class="header">查询怪物</span>
-							</view>
 							<el-form label-width="120upx">
 								<el-form-item label="怪物信息">
 									<textInput :datas="monsterSearch" placeholder='怪物查询' :method='loadMonster' :select="onSelect" v-bind:value="searchText">

@@ -43,33 +43,28 @@
 			<!-- 主内容 -->
 			<el-container direction="vertical">
 				<!-- 新增任务弹窗 -->
-				<el-popover placement="left-start" width="800" trigger="click" v-model="isPopoverVisible">
-					<el-card class="box-card">
-						<view slot="header" class="clearfix">
-							<span class="header">新增任务</span>
+				<el-button type='primary' round class="float" @click="onAddQuestButtonClicked" icon="el-icon-circle-plus">新增任务</el-button>
+				<el-dialog title="新增任务" width="50%" :visible.sync="showAddQuestDialog" center style="line-height: 0.5">
+					<el-form label-width="60upx">
+						<el-form-item label="任务类型">
+							<el-select v-model="selectedAddQuestType" size="medium" id="questType" @change="onAddQuestTypeChanged">
+								<el-option v-for="index in questTypes.length" :key="index" :value="index - 1" :label="questTypes[index - 1]"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="任务SN">
+							<el-input-number v-model="inputAddQuestSN" :min="0" id="addQuestSN" @change="onAddQuestIDUpdated"></el-input-number>
+							<span style="margin-left: 10upx; color: #DD524D;" v-if="inputAddQuestSN != '' && !isAddQuestSNValid">输入的任务ID已被占用！</span>
+						</el-form-item>
+						<el-form-item label="任务名称">
+							<el-input v-model="inputAddQuestName" placeholder="请输入String类型任务名称(对应questName)" id="questName">
+							</el-input>
+						</el-form-item>
+						<view style="display: table; clear:both; width: 100%;">
+							<el-button type='primary' style="float: left" @click="resetAddQuestForm">重置</el-button>
+							<el-button type='primary' style="float: right;" @click="submitAddQuestForm">确认</el-button>
 						</view>
-						<el-form label-width="60upx">
-							<el-form-item label="任务类型">
-								<el-select v-model="selectedAddQuestType" size="medium" id="questType" @change="onAddQuestTypeChanged">
-									<el-option v-for="index in questTypes.length" :key="index" :value="index - 1" :label="questTypes[index - 1]"></el-option>
-								</el-select>
-							</el-form-item>
-							<el-form-item label="任务SN">
-								<el-input-number v-model="inputAddQuestSN" :min="0" id="addQuestSN" @change="onAddQuestIDUpdated"></el-input-number>
-								<span style="margin-left: 10upx; color: #DD524D;" v-if="inputAddQuestSN != '' && !isAddQuestSNValid">输入的任务ID已被占用！</span>
-							</el-form-item>
-							<el-form-item label="任务名称">
-								<el-input v-model="inputAddQuestName" placeholder="请输入String类型任务名称(对应questName)" id="questName">
-								</el-input>
-							</el-form-item>
-							<view style="display: table; clear:both; width: 100%;">
-								<el-button type='primary' style="float: left" @click="resetAddQuestForm">重置</el-button>
-								<el-button type='primary' style="float: right;" @click="submitAddQuestForm">确认</el-button>
-							</view>
-						</el-form>
-					</el-card>
-					<el-button slot="reference" type='primary' round class="float" @click="onAddQuestButtonClicked" icon="el-icon-circle-plus">新增任务</el-button>
-				</el-popover>
+					</el-form>
+				</el-dialog>
 				
 				<!-- 刷新按钮 -->
 				<el-button type='success' circle class="float_refresh" icon="el-icon-refresh" @click="onRefreshBtnClicked"></el-button>
@@ -129,7 +124,6 @@
 				inputAddQuestSN: 0,
 				inputAddQuestName: '',
 				isAddQuestSNValid: true,
-				isPopoverVisible: false,
 				
 				/* 状态描述用 */
 				currentTableName: '',
@@ -143,6 +137,7 @@
 				searchedMenuItem: null,
 				hasSelectedRowData: false,
 				isSessionTimeout: false,
+				showAddQuestDialog: false
 			};
 		},
 		computed: {
@@ -356,6 +351,7 @@
 				})
 			},
 			onAddQuestButtonClicked: function() {
+				this.showAddQuestDialog = true
 				this.resetAddQuestForm()
 			},
 			onAddQuestIDUpdated: function() {
@@ -415,12 +411,13 @@
 					var addKeyValues = "\{\"questType\":" + parseInt(this.selectedAddQuestType + 1) 
 										+ ",\"questName\":\"" + this.inputAddQuestName 
 										+ "\",\"sn\":" + this.inputAddQuestSN + "\}"
+										
 					util.addDataField(this.currentTableName, addKeyValues, loadingInstance, this)
 				}
 			},
 			onAddTableData: function(replyData) {
 				// 隐藏弹窗
-				this.isPopoverVisible = false
+				this.showAddQuestDialog = false
 				
 				// 刷新页面
 				this.onLoadQuestBrief(() => {
@@ -510,7 +507,7 @@
 	}
 	
 	.clearfix {
-		  font-size: 12upx;
+		  font-size: 10upx;
 		  font-weight: bold;
 	}
 	
