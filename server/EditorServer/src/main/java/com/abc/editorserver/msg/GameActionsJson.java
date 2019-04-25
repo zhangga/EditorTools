@@ -7,6 +7,7 @@ import java.util.Map;
 import com.abc.editorserver.module.excel.AddTableDataAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
 import com.abc.editorserver.module.excel.GetTableStatusAction;
+import com.abc.editorserver.module.excel.SubmitToSVNAction;
 import com.abc.editorserver.module.excel.UpdateTableDataFromSVNAction;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
@@ -35,6 +36,7 @@ public enum GameActionsJson {
 	GetQuestGoalInfo("任务目标数据", 8, GetQuestGoalInfoAction.class),
 	DownloadTableAction("下载表格数据", 9, DownloadTableAction.class),
 	GetTableStatusAction("获取表格操作状态", 10, GetTableStatusAction.class),
+	SubmitToSVNAction("更新改动至SVN", 11, SubmitToSVNAction.class),
 	;
 	
 	/**

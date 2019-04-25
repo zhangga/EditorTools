@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
@@ -16,6 +17,7 @@ import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.parser.Feature;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -33,12 +35,15 @@ public class DataManager {
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
 
-    private final long dataPersistInterval = Timer.ONE_MINUTE;
+    private final long dataPersistInterval = Timer.HALF_MINUTE;
 
     private DataManager(){ }
 
     private static final String ConfigPath = "ExcelConfig.json";
 
+    /**
+     * 初始化方法
+     */
     public void init(){
         LogEditor.serv.info("======初始化Excel配置数据======");
         loadExcelConfig();
@@ -172,8 +177,7 @@ public class DataManager {
                 for (int i = 0; i < nameRow.getLastCellNum(); i++) {
                     if (nameRow.getCell(i)==null) {
                         colNames.add(Integer.toString(i));
-                    }
-                    else{
+                    } else{
                         colNames.add(nameRow.getCell(i).toString());
                     }
                 }
@@ -187,8 +191,7 @@ public class DataManager {
                         XSSFCell cell = row.getCell(j);
                         if (null == cell) {
                             valueList.add("");
-                        }
-                        else {
+                        } else {
                             valueList.add(convertFromBR(cell.toString()));
                         }
                     }
@@ -289,8 +292,7 @@ public class DataManager {
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
                 if (fileName.endsWith(".xlsx") || fileName.endsWith(".xlsm")) {
                     fileName = fileName.substring(0, fileName.length() - 5);
-                }
-                else {
+                } else {
                     throw new Exception("要写入的目标文件不是xlsx或xlsm格式：" + conf.getExcel());
                 }
                 String sheetName = conf.getSheet();
@@ -485,8 +487,7 @@ public class DataManager {
 
         if (json == null) {
             jo = new JSONObject();
-        }
-        else {
+        } else {
             jo = JSON.parseObject(json);
         }
         jo.put(field, value);
@@ -495,6 +496,7 @@ public class DataManager {
 
         // 刷新计时器
         tableTimers.get(table).reStartTimer();
+        LogEditor.serv.info("写Excel计时器被刷新");
 
         return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
     }
@@ -539,6 +541,7 @@ public class DataManager {
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
+        LogEditor.serv.info("写Excel计时器被刷新");
 
         return 1;
     }
@@ -555,6 +558,8 @@ public class DataManager {
             entry = iter.next();
 
             if (entry.getValue().isDue()) {
+                // 停止写入Excel定时器
+                entry.getValue().stopTimer();
                 candidates.add(entry.getKey());
             }
         }
@@ -564,24 +569,50 @@ public class DataManager {
 
             JSONObject params = new JSONObject();
             params.put("candidates", candidates);
-            params.put("timers", tableTimers);
 
             // 提交至任务队列中
             GlobalManager.addTask(new Task(var -> {
                 List<String> tables = (List<String>) var.get("candidates");
-                Map<String, Timer> timers = (Map<String, Timer>)var.get("timers");
+
+                // 将本地缓存的改动写入至Excel表格中
+                persistData(false, tables);
+            }, params));
+        }
+    }
+
+    /**
+     * 强制将更新写入Excel并提交至SVN
+     */
+    public void promptDataPersist() {
+        Iterator<Map.Entry<String, Timer>> iter = tableTimers.entrySet().iterator();
+        Map.Entry<String, Timer> entry;
+        List<String> candidates = new ArrayList<>();
+
+        while (iter.hasNext()) {
+            entry = iter.next();
+
+            if (entry.getValue().isRunning()) {
+                // 停止写入Excel定时器
+                entry.getValue().stopTimer();
+                candidates.add(entry.getKey());
+            }
+        }
+
+        if (candidates.size() > 0) {
+            LogEditor.serv.info("定时器被触发，将缓存刷新至Excel中...");
+
+            JSONObject params = new JSONObject();
+            params.put("candidates", candidates);
+
+            // 提交至任务队列中
+            GlobalManager.addTask(new Task(var -> {
+                List<String> tables = (List<String>) var.get("candidates");
 
                 // 将本地缓存的改动写入至Excel表格中
                 persistData(false, tables);
 
-                // 停止定时器
-                tables.forEach(table -> {
-                    Timer timer = timers.get(table);
-
-                    if (timer.isDue()) {
-                        timer.stopTimer();
-                    }
-                });
+                // 强制触发下一次commit
+                GlobalManager.getCommitTimer().triggerDue();
             }, params));
         }
     }
@@ -589,9 +620,9 @@ public class DataManager {
     /**
      * 将本地缓存的改动写入至Excel表格中
      * @param shouldPersistAll：是否需要写入配置中指定的所有表格
-     * @param redisTables: 指定需要写入的表格
+     * @param tablesToPersist: 指定需要写入的表格
      */
-    public void persistData(boolean shouldPersistAll, List<String> redisTables) {
+    public void persistData(boolean shouldPersistAll, List<String> tablesToPersist) {
 
         LogEditor.serv.info("=========开始将Redis数据写入Excel中========");
 
@@ -599,14 +630,14 @@ public class DataManager {
         String redisTableName, redisRowData, redisHashKey;
         Map<String, String> redisHash;
         LinkedList<String> redisHashKeys;
-        int redisHashNum;
+        int countRedisHash;
 
         /// Excel操作相关变量
         XSSFWorkbook workbook;
         XSSFSheet sheet;
         XSSFCell cell;
         XSSFRow row;
-        String excelName, sheetName, excelPath;
+        String excelName, sheetName, excelPath, cellValue;
         List<String> columnNames;
 
         /// 解析相关变量
@@ -626,7 +657,7 @@ public class DataManager {
         CellStyle cellStyle;
 
         /// 预处理需要写入的表格
-        Set<String> targetTables = new HashSet<>(redisTables);
+        Set<String> targetTables = new HashSet<>(tablesToPersist);
 
         try {
             for (ExcelConfig config : excelConfigs) {
@@ -651,22 +682,20 @@ public class DataManager {
 
                 redisHash = jedisManager.hgetAll(redisTableName);
                 String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
-                redisHashNum = redisHash.size();
+                countRedisHash = redisHash.size();
 
                 /// 初始化格式
                 dataFormat = workbook.createDataFormat();
-                cellStyle = workbook.createCellStyle();
-                cellStyle.setDataFormat(dataFormat.getFormat("@"));
 
-                LogEditor.serv.info("总写入行数：" + redisHashNum);
+                LogEditor.serv.info("总写入行数：" + countRedisHash);
 
-                for (rowIndex = 0; rowIndex < redisHashNum; rowIndex++) {
+                for (rowIndex = 0; rowIndex < countRedisHash; rowIndex++) {
                     row = sheet.getRow(rowIndex);
 
                     if (rowIndex < defaultNames.length) {
                         redisHashKey = defaultNames[rowIndex];
-                    }
-                    else {
+                    } else {
+                        /// 确定当前Excel行对应的redisHashKey（也即SN）
                         redisHashKey = (row == null ? null : row.getCell(0).toString());
 
                         /// 统一数字格式
@@ -693,24 +722,26 @@ public class DataManager {
                                 cell = row.createCell(colIndex);
                             }
 
+                            /// 保留原格式的同时，设置数据格式为字符串，以正常写入大数字
+                            cellStyle = cell.getCellStyle();
+                            cellStyle.setDataFormat(dataFormat.getFormat("@"));
                             cell.setCellStyle(cellStyle);
                             cell.setCellValue(String.valueOf(json.get(colKeys.get(colIndex))));
                         }
-                    }
-                    /// 记录被删除，需在Excel中删去对应行
-                    else {
+                    } else {
+                        /// 记录被删除，需在Excel中删去对应行
                         sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
                     }
 
-                    /// 记录已经遍历过的key
+                    /// 删除已经遍历过的key
                     redisHash.remove(redisHashKey);
                 }
 
-                /// 处理新增的表记录
+                // 处理新增的表记录
                 if (redisHash.size() > 0) {
                     LogEditor.serv.info("开始写入新增的表记录...");
 
-                    /// 保持记录按照sn增序排列
+                    // 保持记录按照sn增序排列
                     redisHashKeys = new LinkedList<>(redisHash.keySet());
                     Collections.sort(redisHashKeys);
 
@@ -720,16 +751,30 @@ public class DataManager {
                         redisRowData = redisHash.get(redisHashKey);
                         json = JSON.parseObject(redisRowData);
 
-                        for (colIndex = 0; colIndex < json.size(); colIndex++) {
+                        for (colIndex = 0; colIndex < columnNames.size(); colIndex++) {
+                            // 设置单元格格式，比保证大数字可被正常写入
                             cell = row.createCell(colIndex);
+                            cellStyle = cell.getCellStyle();
+
+                            if (cellStyle == null) {
+                                cellStyle = workbook.createCellStyle();
+                            }
+
+                            cellStyle.setDataFormat(dataFormat.getFormat("@"));
+                            cellStyle.setAlignment(HorizontalAlignment.CENTER);
                             cell.setCellStyle(cellStyle);
-                            cell.setCellValue(String.valueOf(json.get(columnNames.get(colIndex))));
+
+                            // 空值的情况下填入空字符串
+                            cellValue = String.valueOf(json.get(columnNames.get(colIndex)));
+                            cell.setCellValue(cellValue.equals("null") ? "" : cellValue);
                         }
                     }
                 }
 
                 fos = new FileOutputStream(excelPath);
                 workbook.write(fos);
+
+                LogEditor.serv.info("写入Excel完成！");
             }
         } catch (IOException e) {
             e.printStackTrace();

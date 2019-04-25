@@ -180,6 +180,8 @@ public class SVNManager {
         } catch (SVNException e) {
             LogEditor.config.error("更新SNV项目出错。{}", e);
             return -e.getErrorMessage().getErrorCode().getCode();
+        } finally {
+            GlobalManager.isDoingUpdate = false;
         }
     }
 

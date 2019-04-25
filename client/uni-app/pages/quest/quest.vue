@@ -69,6 +69,9 @@
 				<!-- 刷新按钮 -->
 				<el-button type='success' circle class="float_refresh" icon="el-icon-refresh" @click="onRefreshBtnClicked"></el-button>
 				
+				<!-- 提交SVN按钮 -->
+				<el-button type='primary' round class="float_submit" icon="el-icon-upload" @click="onSubmitToSVNBtnClicked">提交至SVN</el-button>
+				
 				<el-main>
 					<el-tabs v-model="activeTab" value="activeTab" class="quest-details">
 						<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
@@ -350,6 +353,26 @@
 					}, cachedActivatedTab)
 				})
 			},
+			onSubmitToSVNBtnClicked: function() {
+				this.$confirm('确定提交更改至SVN吗？', '操作确认', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.submit_to_svn(util.getCurrentUserToken()),
+						success: res => {
+							this.$message({
+								type: 'success',
+								message: '操作成功'
+							});
+						}
+					})
+				}).catch(() => { 
+				});
+			},
 			onAddQuestButtonClicked: function() {
 				this.showAddQuestDialog = true
 				this.resetAddQuestForm()
@@ -501,6 +524,14 @@
 	.float_refresh {
 		position: fixed;
 		top: 8%;
+		right: 5%;
+		box-shadow: 2px 2px 3px #999;
+		z-index: 10;
+	}
+	
+	.float_submit {
+		position: fixed;
+		bottom: 8%;
 		right: 5%;
 		box-shadow: 2px 2px 3px #999;
 		z-index: 10;

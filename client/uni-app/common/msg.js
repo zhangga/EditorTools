@@ -101,6 +101,12 @@ export default {
 			'table_names': redisTableNames
 		}
 	},
+	submit_to_svn(token) {
+		return {
+			'cmd': 11,
+			'token': token,
+		}
+	},
 	// 更新任务表数据
 	update_quest_data(token, sn, field, value, verNum) {
 		return update_table_data(token, 'QUEST', sn, field, value, verNum);
