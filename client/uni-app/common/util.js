@@ -2,6 +2,13 @@ import Vue from 'vue'
 import msg from '../common/msg.js'
 import store from '../store/index.js'
 
+/* 本地变量 */
+var tableDataCache = new Map()
+var tableDataRequestLock = new Map()
+var callbackCache = new Map()
+var isQuestDataExpired = false
+
+/* 获取并更新当前的用户token */
 function getCurrentUserToken() {
 	if (store.state.token != '') {
 		return store.state.token
@@ -30,6 +37,7 @@ function updateDataFieldNV(table, sn, field, value, caller) {
 	updateDataField(table, sn, field, value, getCurrentUserToken(), caller)
 }
 
+/* 更改/更新表数据 */
 function updateDataField(table, sn, field, value, verNum, caller) {
 	uni.request({
 		url: msg.url(),
@@ -54,6 +62,7 @@ function updateDataField(table, sn, field, value, verNum, caller) {
 	});
 }
 
+/* 添加表数据 */
 function addDataField(table, keyValues, loadingInstance, caller) {
 	uni.request({
 		url: msg.url(),
@@ -90,6 +99,108 @@ function addDataField(table, keyValues, loadingInstance, caller) {
 	});
 }
 
+/** 
+ * 加载表格数据
+ * @param callerDataset: 调用方法的实例中，用于存储加载的表格数据的本地变量引用
+ * @param tableName: 要加载的表格名
+ * @param dataKeyName: 表格数据中，用于索引数据的列名（例如sn）
+ * @param dataValueName: 表格数据中，用于描述数据的列名（例如name）
+ * @param callback: 加载表格数据后的回调方法（可选）
+ * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
+ */
+function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, callback, caller) {
+	// 参数数量合法性判断
+	if (arguments.length > 4 && arguments.length < 6) {
+		console.log("方法参数不足！")
+		return null
+	}
+	
+	let tableData = tableDataCache.get(tableName)
+	
+	// 用于判断是否已经向服务器请求了（但尚未返回）当前表格的数据（以避免在结果返回前重复请求）
+	let tableDataRequestFlag = tableDataRequestLock.get(tableName)
+	
+	// 注册回调方法
+	if (callbackCache.get(tableName) == null) {
+		callbackCache.set(tableName, [])
+	}
+	callbackCache.get(tableName).push({'caller': caller, 'callback': callback, 'callerDataset': callerDataset})
+	
+	// 当对同一个表格数据有重复的请求时，不再重复请求，但会缓存请求的回调方法(在callbackCache中)，在获取数据之后调用所有的回调方法
+	if (tableDataRequestFlag) {
+		return tableData
+	}
+	
+	if (typeof tableData == 'undefined' || tableData.length === 0) {
+		// 更新请求正在进行的状态
+		tableDataRequestLock.set(tableName, true)
+		
+		tableData = []
+		
+		console.log("请求" + tableName + "表格数据")
+		
+		uni.request({
+			url: msg.url(),
+			method: 'GET',
+			data: msg.get_table_data(getCurrentUserToken(), tableName),
+			success: res => {
+				console.log("获取了" + tableName + "表格数据")
+				var items = res.data['data']
+				for (let i = 0; i < items.length; i++) {
+					var item = JSON.parse(items[i])
+					tableData[i] = {
+						key: item[dataKeyName],
+						value: item[dataKeyName] + ':' + item[dataValueName]
+					};
+				}
+				
+				// 缓存到本地
+				tableDataCache.set(tableName, tableData)
+
+				// 逐个调用所有注册的回调方法
+				let callbacks = callbackCache.get(tableName)
+				
+				for (let i = 0; i < callbacks.length; i++) {
+					// 更新调用方本地缓存
+					let currCallerDataset = callbacks[i]['callerDataset']
+					currCallerDataset.length = 0
+					currCallerDataset.push(...tableData)
+					
+					// 执行回调方法
+					let currCaller = callbacks[i]['caller']
+					let currCallback = callbacks[i]['callback']
+					
+					if (currCaller != null && currCallback != null) {
+						console.log("为" + tableName + "执行回调")
+						console.log(currCaller)
+						currCallback.call(currCaller)
+					}
+				}
+				
+			},
+			fail: () => {
+				// TODO: Error Handling
+			},
+			complete: () => {
+				tableDataRequestLock.set(tableName, false)
+				return tableData
+			}
+		});
+	} else {
+		console.log("表格" + tableName + "数据已经存在")
+		callerDataset.length = 0
+		callerDataset.push(...tableData)
+		
+		if (caller != null && callback != null) {
+			console.log("为" + tableName + "执行回调")
+			callback.call(caller)
+		}
+		
+		return tableData
+	}
+}
+
+/* 功能性方法 */
 function formatTime(time) {
 	if (typeof time !== 'number' || time < 0) {
 		return time
@@ -167,4 +278,6 @@ module.exports = {
 	updateDataFieldNV: updateDataFieldNV,
 	addDataField: addDataField,
 	getCurrentUserToken: getCurrentUserToken,
+	loadTableData: loadTableData,
+	isQuestDataExpired: isQuestDataExpired
 }

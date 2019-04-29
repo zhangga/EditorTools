@@ -74,18 +74,18 @@ var ExcelConfig_json =
 	  // 点击跳转的导航页
       "navigateTo": "../table/table"
     },
-	{
-	  // excel表名
-	  "excel": "Action.xlsx",
-	  // sheet名
-	  "sheet": "行为触发|Action",
-	  // Redis hash的表名
-	  "redis_table": "ACTION",
-	  // Redis hash的key值
-	  "redis_key": "sn",
-	  // 点击跳转的导航页
-	  "navigateTo": "../table/table"
-	},
+		{
+			// excel表名
+			"excel": "Action.xlsx",
+			// sheet名
+			"sheet": "行为触发|Action",
+			// Redis hash的表名
+			"redis_table": "ACTION",
+			// Redis hash的key值
+			"redis_key": "sn",
+			// 点击跳转的导航页
+			"navigateTo": "../table/table"
+		},
     {
       // excel表名
       "excel": "DropConfig.xlsm",
@@ -96,6 +96,18 @@ var ExcelConfig_json =
       // Redis hash的key值
       "redis_key": "sn",
 	  // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+		{
+      // excel表名
+      "excel": "Condition.xlsx",
+      // sheet名
+      "sheet": "条件|Condition",
+      // Redis hash的表名
+      "redis_table": "CONDITION",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
       "navigateTo": "../table/table"
     }
   ],

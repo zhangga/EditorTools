@@ -27,7 +27,7 @@
 				<span class="header">完成信息</span>
 			</view>
 			
-			<el-form ref="form" label-width="40upx">
+			<el-form ref="form" label-width="50upx">
 				<el-row style="width: 100%">
 					<el-col :span="10">
 						<el-form-item label="提交任务后行为" label-width="50upx">
@@ -54,6 +54,45 @@
 					<el-checkbox v-model="showTimeLimit" @change="setShowTimeLimit" disabled></el-checkbox>
 				</el-form-item>
 				
+				<el-form-item label="完成任务后传送">
+					<el-popover
+						ref="submitTrans"
+						placement="right"
+						width="230"
+						trigger="focus"
+						v-model="isSubmitTransPopoverVisible">
+						<el-form :model="transCoord" :rules="transCoordFormRules" ref="transCoordForm" label-width="25upx">
+							<el-form-item label="地图ID" prop="mapID">
+								<el-input v-model.number="transCoord.mapID" size="mini"></el-input>
+							</el-form-item>
+							<el-form-item label="X坐标" prop="x">
+								<el-input-number v-model="transCoord.x" size="mini"></el-input-number>
+							</el-form-item>
+							<el-form-item label="Y坐标" prop="y">
+								<el-input-number v-model="transCoord.y" size="mini"></el-input-number>
+							</el-form-item>
+							<el-form-item label="Z坐标" prop="z">
+								<el-input-number v-model="transCoord.z" size="mini"></el-input-number>
+							</el-form-item>
+							<el-form-item label="朝向X" prop="orientX">
+								<el-input-number v-model="transCoord.orientX" size="mini"></el-input-number>
+							</el-form-item>
+							<el-form-item label="朝向Y" prop="orientY">
+								<el-input-number v-model="transCoord.orientY" size="mini"></el-input-number>
+							</el-form-item>
+							<el-form-item>
+								<el-button type="primary" @click="onSubmitTransCoord" size="mini">添加</el-button>
+								<el-button type="info" @click="resetTransCoord" size="mini">重置</el-button>
+							</el-form-item>
+						</el-form>
+					</el-popover>
+					<el-input 
+						placeholder="请输入String类型的完成任务后传送坐标(格式:mapID,x,y,z,朝向x,朝向y)" 
+						v-model="inputSubmitTrans" 
+						id="submitTrans"
+						v-popover:submitTrans>
+					</el-input>
+				</el-form-item>
 			</el-form>
 		</el-card>
 		
@@ -70,23 +109,70 @@
 	export default {
 		data() {
 			return {
-				DropGroup:[],
+				DropGroup: [],
 				Actions: [],
 				noValue: '',
-				exp:0,
-				bind:false,
-				questReward:'',
+				exp: null,
+				bind: false,
+				questReward: '',
 				submitAct: '',
-				timeLimit:0,
-				showTimeLimit:true,
-				canAutomaticDeliver: false,
+				timeLimit: '',
+				showTimeLimit: true,
+				canAutomaticDeliver: false,	
+				
+				/* 传送相关 */
+				inputSubmitTrans: '',
+				transCoord: {
+					mapID: '',
+					x: '',
+					y: '',
+					z: '',
+					orientX: '',
+					orientY: ''
+				},
+				transCoordFormRules: {
+					mapID: [
+						{ required: true, message: '请提供mapID', trigger: 'blur' },
+						{ type: 'number', message: '输入的mapID格式错误' }
+					],
+					x: [
+						{ required: true, message: '请提供X坐标', trigger: 'blur' }
+					],
+					y: [
+						{ required: true, message: '请提供Y坐标', trigger: 'blur' }
+					],
+					z: [
+						{ required: true, message: '请提供Z坐标', trigger: 'blur' }
+					],
+					orientX: [
+						{ required: true, message: '请提供朝向X', trigger: 'blur' }
+					],
+					orientY: [
+						{ required: true, message: '请提供朝向Y', trigger: 'blur' }
+					]
+				},
 				
 				/* 全局相关 */
+				hasSwitchedQuest: false,
 				hasSetDefaultValue: false,
-				prevTableRowData: null
+				prevTableRowData: null,
+				isSubmitTransPopoverVisible: false,
+				hasInitializedSubmitTrans: false
 			};
 		},
 		props:['tableRowData'],
+		watch: {
+			inputSubmitTrans: function () {
+				// 如果是切换任务导致的更新，不触发调用该方法 | 如果是首次更新submitTrans值（首次编辑），也不触发调用该方法
+				if (!this.hasSwitchedQuest && this.hasInitializedSubmitTrans) {
+					// 当输入框中内容变化时，触发调用该方法
+					this.onSubmitTransModified()
+				} else {
+					this.hasInitializedSubmitTrans = true
+					this.hasSwitchedQuest = false
+				}
+			}
+		},
 		mounted() {
 			this.refreshDefaultValues()
 		},
@@ -97,16 +183,12 @@
 				if (this.prevTableRowData != this.tableRowData) {
 					this.refreshDefaultValues()
 					this.prevTableRowData = this.tableRowData
+					this.hasSwitchedQuest = true
 				}
-			} else {
-				// 如果还未设置过默认值，执行设置
-				this.refreshDefaultValues()
-				this.hasSetDefaultValue = true;
-				this.prevTableRowData = this.tableRowData;
 			}
 		},
 		methods:{
-			loadDropGroup(){
+			loadDropGroup: function() {
 				if(this.DropGroup.length === 0){
 					console.log("loadDropGroup")
 					uni.request({
@@ -129,7 +211,7 @@
 					});
 				}
 			},
-			loadActions(){
+			loadActions: function() {
 				if(this.Actions.length === 0){
 					uni.request({
 						url: msg.url(),
@@ -147,61 +229,80 @@
 					});
 				}
 			},
-			setQuestReward(item){
+			setQuestReward: function(item) {
 				this.questReward = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'questReward',this.questReward.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'questReward', this.questReward.split(':')[0], this.$store.state.verNum, this)
 				}
 			},
-			setSubmitAct(value){
+			setSubmitAct: function(value) {
 				console.log(value)
 				this.submitAct = value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'submitAct',this.submitAct, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'submitAct', this.submitAct, this.$store.state.verNum, this)
 				}
 			},
-			setBind(){
+			setBind: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'bind',this.bind.toString().toUpperCase(), this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'bind', this.bind.toString().toUpperCase(), this.$store.state.verNum, this)
 				}
 			},
-			setExp(){
+			setExp: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'exp',this.exp, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'],'exp', this.exp, this.$store.state.verNum, this)
 				}
 			},
-			setTimeLimit(){
+			setTimeLimit: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'timeLimit',this.timeLimit, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'timeLimit', this.timeLimit, this.$store.state.verNum, this)
 				}
 			},
-			setAutoDeliver(){
-				util.updateDataField('QUEST',this.tableRowData['sn'],'canAutomaticDeliver',this.canAutomaticDeliver, this.$store.state.verNum, this)
+			setAutoDeliver: function() {
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'canAutomaticDeliver',this.canAutomaticDeliver ? "TRUE" : "FALSE", this.$store.state.verNum, this)
 			},
-			setShowTimeLimit(){
-			},
-			onSelect() {
+			setShowTimeLimit: function() {},
+			onSelect: function() {},
+			refreshDefaultValues: function() {
+				this.questReward = this.tableRowData['questReward']
+				this.submitAct = this.tableRowData['submitAct']
+				this.bind = this.tableRowData['bind'] != null ? this.tableRowData['bind'].toLowerCase() === 'true' : null
+				this.exp = this.tableRowData['exp']
+				this.timeLimit = this.tableRowData['timeLimit']
+				this.canAutomaticDeliver = this.tableRowData['canAutomaticDeliver'] != null ? this.tableRowData['canAutomaticDeliver'] === 'TRUE' : null
+				this.inputSubmitTrans = this.tableRowData['submitTrans']
 				
+				this.hasSetDefaultValue = true
 			},
-			refreshDefaultValues(){
-				if (this.tableRowData['questReward'] != null) {
-					this.questReward = this.tableRowData['questReward']
-				}
-				if (this.tableRowData['submitAct'] != null) {
-					this.submitAct = this.tableRowData['submitAct']
-				}
-				if (this.tableRowData['bind'] != null) {
-					this.bind = this.tableRowData['bind'].toLowerCase() === 'true'
-				}
-				if (this.tableRowData['exp'] != null) {
-					this.exp = this.tableRowData['exp']
-				}
-				if (this.tableRowData['timeLimit'] != null) {
-					this.timeLimit = this.tableRowData['timeLimit']
-				}
-				if (this.tableRowData['canAutomaticDeliver'] != null) {
-					this.canAutomaticDeliver = this.tableRowData['canAutomaticDeliver'].toLowerCase() === 'true'
-				}
+			// 点击弹窗中的提交按钮后的响应事件
+			onSubmitTransCoord: function() {
+				this.$refs['transCoordForm'].validate((valid) => {
+					if (valid) {
+						if (this.inputSubmitTrans != null && this.inputSubmitTrans.length > 0) {
+							this.inputSubmitTrans = this.inputSubmitTrans + ';'
+						}
+						
+						if (this.inputSubmitTrans == null) {
+							this.inputSubmitTrans = ''
+						}
+						
+						let coords = this.transCoord
+						this.inputSubmitTrans = String(this.inputSubmitTrans + coords.mapID + ',' + coords.x + ',' + coords.y + ',' + coords.z + ',' 
+						+ coords.orientX + ',' + coords.orientY)
+						
+						// 隐藏弹窗
+						this.isSubmitTransPopoverVisible = false
+					} else {
+						return false
+					}
+				})
+			},
+			// 重置弹窗内容
+			resetTransCoord: function() {
+				this.$refs['transCoordForm'].resetFields()
+			},
+			onSubmitTransModified: function() {
+				console.log("向submitTrans" + "提交值：" + this.inputSubmitTrans)
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'submitTrans', this.inputSubmitTrans, this.$store.state.verNum, this)
 			}
 		},
 		components:{
@@ -217,12 +318,8 @@
 	}
 	
 	view {
-		//border: #000000 solid 1upx;
-		font-size: 15upx;
-		margin: 2upx;
-	
-		display: flex;
-		flex-direction: row;
+		line-height: 1.0;
+		font-size: 10px;
 	}
 	
 	.clearfix {

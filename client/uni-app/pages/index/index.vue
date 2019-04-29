@@ -2,19 +2,17 @@
 	<view class="dialog">
 		<view class="loginPage">
 			<h1 style="font-family: 'PingFang SC'; font-size: 14upx; text-align: center; margin-bottom: 2upx">登录</h1>
-			<el-form @submit="formSubmit" @reset="formReset">
-				<el-form-item label="SVN用户名">
-					<el-input type="text" id="user" v-model="userForm.userName" @blur="onInputBlur" autofocus></el-input>
-					<p>{{userNameErrorInfo}}</p>
+			<el-form :model="loginInfo" status-icon :rules="loginInfoRule" ref="loginForm">
+				<el-form-item label="SVN用户名" prop="userName">
+					<el-input type="text" id="user" v-model="loginInfo.userName" autofocus></el-input>
 				</el-form-item>
-				<el-form-item label="密码">
-					<el-input type="password" id="password" v-model="userForm.password" @blur="onInputBlur"></el-input>
-					<p>{{passwordErrorInfo}}</p>
+				<el-form-item label="密码" prop="password">
+					<el-input type="password" id="password" v-model="loginInfo.password"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-row>
-						<el-col :span="10" :offset="14">
-							<el-button type="primary" @click="formSubmit" v-bind:disabled="!isFormValid">提交</el-button>
+						<el-col :span="9" :offset="15">
+							<el-button type="primary" @click="formSubmit" >提交</el-button>
 							<el-button @click="formReset">重置</el-button>
 						</el-col>
 					</el-row>
@@ -32,13 +30,14 @@
 	export default {	
 		data() {
 			return {
-				userForm: {
+				loginInfo: {
 					userName: '',
 					password: ''
 				},
-				isFormValid: false,
-				userNameErrorInfo: '',
-				passwordErrorInfo: ''
+				loginInfoRule: {
+					userName: [{required: true, message: '用户名不能为空', trigger: 'blur'}],
+					password: [{required: true, message: '密码不能为空', trigger: 'blur'}]
+				}
 			}
 		},
 		onLoad() {
@@ -63,60 +62,37 @@
 				}
 			})
 		},
-		mounted: function() {
-			// this.setDefaultValues()
-		},
 		methods: {
-			setDefaultValues: function() {
-				this.userForm.userName = ''
-				this.userForm.password = ''
-				this.isFormValid = true
-			},
-			onInputBlur: function() {
-				if (this.userForm.userName == '') {
-					this.userNameErrorInfo = '用户名不能为空'
-				} else {
-					this.userNameErrorInfo = ''
-				}
-				
-				if (this.userForm.password == '') {
-					this.passwordErrorInfo = '密码不能为空'
-				} else {
-					this.passwordErrorInfo = ''
-				}
-				
-				if (this.userForm.userName != '' && this.userForm.password != '') {
-					this.isFormValid = true
-				} else {
-					this.isFormValid = false
-				}
-			},
 			// 登陆
 			formSubmit: function() {
-				var name = this.userForm.userName
-				var pwd = this.userForm.password
-				uni.request({
-					url: msg.url(),
-					method: 'GET',
-					data: msg.login(name, pwd),
-					success: res => {
-						// 登陆成功
-						if (res.data['ret']) {
-							var token = res.data['token']
-							this.onLogin(token)
-						} else {
-							this.$notify.error({
-								title: '登陆失败！',
-								message: '请检查输入的用户名和密码'
-							});
-						}
-					},
-					fail: () => {},
-					complete: () => {}
-				});
+				this.$refs['loginForm'].validate((valid) => {
+					if (valid) {
+						uni.request({
+							url: msg.url(),
+							method: 'GET',
+							data: msg.login(this.loginInfo.userName, this.loginInfo.password),
+							success: res => {
+								// 登陆成功
+								if (res.data['ret']) {
+									var token = res.data['token']
+									this.onLogin(token)
+								} else {
+									this.$notify.error({
+										title: '登陆失败！',
+										message: '请检查输入的用户名和密码'
+									});
+								}
+							},
+							fail: () => {},
+							complete: () => {}
+						});
+					} else {
+						return false
+					}
+				})
 			},
 			formReset: function() {
-				this.setDefaultValues()
+				this.$refs['loginForm'].resetFields();
 			},
 			onLogin: function(token) {
 				uni.setStorageSync('token', token)

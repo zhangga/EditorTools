@@ -78,6 +78,7 @@
 							<quest-prop 
 								v-bind:tableRowData="currSelectedQuestData" 
 								v-bind:questTypes="questTypes" 
+								v-bind:allTableData="items"
 								v-bind:currTableName="currentTableName" 
 								v-if="hasSelectedRowData"/>
 						</el-tab-pane>
@@ -187,7 +188,13 @@
 			onItemClick: function(e) {
 				this.triggerItemClick(e.index)
 			},
-			triggerItemClick: function(index, callback = null, ...params) {
+			triggerItemClick: function(index, shouldPerformIndexCheck = false, callback = null, ...params) {
+				// 检测当前提供的index是否仍然存在
+				if (shouldPerformIndexCheck && !this.doesItemIndexValid(index)) {
+					// 如果不存在，默认打开第一个index对应的菜单项
+					index = "1.1." + this.items[0].children[0].id
+				}
+				
 				// 更新当前激活记录的ID
 				this.currentActivatedIndex = index
 				
@@ -196,7 +203,7 @@
 				}
 				
 				// 解析点击项ID
-				var splittedIndex = index.split('.')
+				let splittedIndex = index.split('.')
 				this.activeSn = splittedIndex[2]
 				
 				// 打开对应顶级菜单
@@ -308,9 +315,9 @@
 					this.navmenuSearchOptions.push(topLevelOption)
 				}
 			},
+			// 关闭之前展开的顶级菜单，并保留当前激活项目对应的顶级菜单
 			openSelectedMenu: function(activatedIndex) {
-				// 关闭之前展开的顶级菜单，并保留当前激活项目对应的顶级菜单
-				for (var i = 1; i <= this.items.length; i++) {
+				for (let i = 1; i <= this.items.length; i++) {
 					if (i != activatedIndex) {
 						this.$refs.menu.close(String(i))
 					}
@@ -318,6 +325,23 @@
 						this.$refs.menu.open(String(i))
 					}
 				}
+			},
+			// 检查提供的index是否仍存在（可能已被删除）
+			doesItemIndexValid: function(itemIndex) {
+				// 解析点击项ID
+				let splittedIndex = itemIndex.split('.')
+				let itemSn = splittedIndex[2]
+				
+				for (let i = 0; i < this.items.length; i++) {
+					let subItems = this.items[i].children
+					for (let j = 0; j < subItems.length; j++) {
+						if (itemSn == subItems[j].id) {
+							return true
+						}
+					}
+				}
+				
+				return false
 			},
 			getScrollPosition: function(activatedIndex) {
 				// 每个主菜单项目的高度为56px
@@ -343,10 +367,10 @@
 			},
 			onRefreshBtnClicked: function() {
 				var cachedActivatedTab = this.activeTab
-				console.log("当前激活的tab：" + cachedActivatedTab)
 				this.onLoadQuestBrief(() => {
-					// 刷新当前选择记录的内容以及版本
-					this.triggerItemClick(this.currentActivatedIndex, (previousActiveTab) => {
+					util.isQuestDataExpired = true
+					// 刷新当前选择的记录的内容以及版本号
+					this.triggerItemClick(this.currentActivatedIndex, true, (previousActiveTab) => {
 						// 激活刷新前正在查看的tab
 						this.activeTab = previousActiveTab;
 						console.log("当前激活的tab：" + cachedActivatedTab);

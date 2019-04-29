@@ -35,7 +35,7 @@ public class DataManager {
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
 
-    private final long dataPersistInterval = Timer.HALF_MINUTE;
+    private final long dataPersistInterval = Timer.FIVE_MINUTES;
 
     private DataManager(){ }
 
@@ -726,7 +726,10 @@ public class DataManager {
                             cellStyle = cell.getCellStyle();
                             cellStyle.setDataFormat(dataFormat.getFormat("@"));
                             cell.setCellStyle(cellStyle);
-                            cell.setCellValue(String.valueOf(json.get(colKeys.get(colIndex))));
+
+                            // 设置单元格内容
+                            cellValue = String.valueOf(json.get(colKeys.get(colIndex)));
+                            cell.setCellValue(cellValue.equals("null") ? "" : cellValue);
                         }
                     } else {
                         /// 记录被删除，需在Excel中删去对应行

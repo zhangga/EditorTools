@@ -118,7 +118,7 @@
 					<el-dialog title="查询物品" width="42%" :visible.sync="showItem" center>
 						<el-form label-width="120upx">
 							<el-form-item label="物品信息">
-								<textInput :datas="itemSearch" placeholder='物品查询' :method='loadItem' :select="onSelect" v-bind:value="searchText">
+								<textInput :datas="itemSearch" placeholder='物品查询' :method='loadItemData' :select="onSelect" v-bind:value="searchText">
 								</textInput>
 							</el-form-item>
 						</el-form>
@@ -132,7 +132,7 @@
 					<el-dialog title="NPC查询" width="42%" :visible.sync="showNpc" center>
 						<el-form label-width="120upx">
 							<el-form-item label="NPC信息">
-								<textInput :datas="npcSearch" placeholder='NPC查询' :method='loadNpc' :select="onSelect" v-bind:value="searchText">
+								<textInput :datas="npcSearch" placeholder='NPC查询' :method='loadNpcData' :select="onSelect" v-bind:value="searchText">
 								</textInput>
 							</el-form-item>
 						</el-form>
@@ -146,7 +146,7 @@
 						<el-dialog title="怪物查询" width="42%" :visible.sync="showMonster" center>
 							<el-form label-width="120upx">
 								<el-form-item label="怪物信息">
-									<textInput :datas="monsterSearch" placeholder='怪物查询' :method='loadMonster' :select="onSelect" v-bind:value="searchText">
+									<textInput :datas="monsterSearch" placeholder='怪物查询' :method='loadMonsterData' :select="onSelect" v-bind:value="searchText">
 									</textInput>
 								</el-form-item>
 							</el-form>
@@ -181,6 +181,7 @@
 				monsterSearch: [],
 				QUEST: 'QUEST',
 				QUESTGOAL: 'QUESTGOAL',
+				
 				/* 任务目标表数据 */
 				questGoalTable: new Map(),
 				questGoalSearch: [],
@@ -190,17 +191,20 @@
 				newGoalId: 0,
 				newGoalDesc: '新任务目标',
 				goalVerNum: '-1',
+				
 				/* 目标组 */
-				goalSn: '',
+				goalSn: null,
 				baseGoal: {combinationType: 0,
 					relationType: 0,
 					desc: '没有任务目标！'},
 				combinGoal: [],
+				
 				/* 编辑任务目标 */
 				showItem: false,
 				showNpc: false,
 				showMonster: false,
 				showAddGoal: false,
+				
 				/* 关系类型 */
 				ConfigCombinType: [],
 				ConfigRelationType: [],
@@ -208,6 +212,11 @@
 		},
 		props: ['tableRowData'],
 		mounted: function() {
+			// 预先加载表数据
+			this.loadItemData()
+			this.loadNpcData()
+			this.loadMonsterData()
+			
 			this.ConfigRelationType = config.ExcelConfig()['RelationType']
 			this.ConfigCombinType = config.ExcelConfig()['CombinType']
 			uni.request({
@@ -227,9 +236,6 @@
 						this.enumGoalDesc.set(item.sn, item.param)
 						this.enumGoalSearch[i] = {value: item.sn + ':' + item.desc}
 					}
-					console.log('读取任务目标数据表完成')
-					
-					console.log(this.enumGoalTable)
 					
 					this.refreshDefaultValues()
 				},
@@ -245,11 +251,6 @@
 					this.refreshDefaultValues()
 					this.prevTableRowData = this.tableRowData
 				}
-			} else {
-				// 如果还未设置过默认值，执行设置
-				this.refreshDefaultValues()
-				this.hasSetDefaultValue = true;
-				this.prevTableRowData = this.tableRowData;
 			}
 		},
 		components: {
@@ -258,63 +259,10 @@
 		methods: {
 			refreshDefaultValues: function() {
 				this.updateGoalSn(this.tableRowData['goal'])
-			},
-			loadNpc: function () {
-				if (this.npcSearch.length === 0) {
-					uni.request({
-						url: msg.url(),
-						method: 'GET',
-						data: msg.get_table_data(util.getCurrentUserToken(), "NPC"),
-						success: res => {
-							var items = res.data['data']
-							for (let i = 0; i < items.length; i++) {
-								var item = JSON.parse(items[i])
-								this.npcSearch[i] = {
-									value: item.sn + ':' + item.name
-								};
-							}
-						}
-					});
-				}
-			},
-			loadItem: function () {
-				if (this.itemSearch.length === 0) {
-					uni.request({
-						url: msg.url(),
-						method: 'GET',
-						data: msg.get_table_data(util.getCurrentUserToken(), "ITEM"),
-						success: res => {
-							var items = res.data['data']
-							for (let i = 0; i < items.length; i++) {
-								var item = JSON.parse(items[i])
-								this.itemSearch[i] = {
-									value: item.sn + ':' + item.name
-								};
-							}
-						}
-					});
-				}
-			},
-			loadMonster: function () {
-				if (this.monsterSearch.length === 0) {
-					uni.request({
-						url: msg.url(),
-						method: 'GET',
-						data: msg.get_table_data(util.getCurrentUserToken(), "CHARACTER"),
-						success: res => {
-							var items = res.data['data']
-							for (let i = 0; i < items.length; i++) {
-								var item = JSON.parse(items[i])
-								this.monsterSearch[i] = {
-									value: item.sn + ':' + item.name
-								};
-							}
-						}
-					});
-				}
+				this.hasSetDefaultValue = true
 			},
 			// 读取QuestGoal数据表
-			loadTableGoal: function () {
+			loadTableGoal: function() {
 				var _search = this.questGoalSearch
 				if (_search.length === 0) {
 					var i = 0
@@ -325,7 +273,7 @@
 					})
 				}
 			},
-			queryEnumGoal: function (queryString, cb) {
+			queryEnumGoal: function(queryString, cb) {
 				var items = this.enumGoalSearch;
 				var results = queryString ? items.filter(this.createStateFilter(queryString)) : items;
 				clearTimeout(this.timeout);
@@ -333,13 +281,17 @@
 					cb(results);
 				});
 			},
-			createStateFilter(queryString) {
+			createStateFilter: function(queryString) {
 				return (state) => {
 					return (state.value.indexOf(queryString) !== -1);
 				};
 			},
 			// 更新任务目标
 			updateGoalSn: function(sn) {
+				if (sn == null) {
+					return
+				}
+				
 				uni.request({
 					url: msg.url(),
 					method: 'GET',
@@ -394,6 +346,18 @@
 					data.targetPos = data.targetPos.split(';')
 				}
 				this.combinGoal[index] = data
+			},
+			// 加载物品表
+			loadItemData: function() {
+				util.loadTableData(this.itemSearch, "ITEM", "sn", "name")
+			},
+			// 加载NPC表
+			loadNpcData: function() {
+				util.loadTableData(this.npcSearch, "NPC", "sn", "name")
+			},
+			// 加载怪物表
+			loadMonsterData: function() {
+				util.loadTableData(this.monsterSearch, "CHARACTER", "sn", "name")
 			},
 			// 设置任务目标
 			setQuestGoal: function (item) {
@@ -566,11 +530,8 @@
 
 <style>
   view {
-  	font-size: 15upx;
-  	margin: 2upx;
-  
-  	display: flex;
-  	flex-direction: row;
+  	line-height: 1.0;
+  	font-size: 10px;
   }
   
   /* .box-card {
@@ -603,8 +564,8 @@
   
   .float {
 	  position:fixed;
-	  top: 20%;
-	  right: 9%;
+	  top: 17.5%;
+	  right: 8.5%;
 	  text-align: center;
 	  box-shadow: 2px 2px 3px #999;
 	  z-index: 10;

@@ -25,6 +25,7 @@ public class UpdateTableDataAction extends GameActionJson {
 
         VersionManager versionManager = VersionManager.getInstance();
         if (versionManager.hasTableDataVersionChanged(table, sn, versionNum)) {
+            LogEditor.serv.info("收到的versionNum: " + versionNum);
             replyMsg.put("result", EditorConst.RESULT_FAILED);
             replyMsg.put("hint", "当前表格数据已被更改，请刷新重试");
             sendMsg(request.ctx, replyMsg);
@@ -38,6 +39,9 @@ public class UpdateTableDataAction extends GameActionJson {
 
         LogEditor.serv.info("更新【" + table + "】表中SN为【" + sn + "】的记录的【" + field + "】列为：" + value);
         LogEditor.serv.info("返回版本号：" + ret);
+
+        // 将新的版本号信息写入redis中
+        versionManager.versionCacheToRedis();
 
         replyMsg.put("result", EditorConst.RESULT_OK);
         replyMsg.put("hint", "更新成功");

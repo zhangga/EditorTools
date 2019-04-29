@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" style="position: relative; top: -12upx;">
+		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
 		</el-autocomplete>
 		<!-- 用于触发数据同步与更新 -->
 		<span style="display:none"> {{value}} </span>
@@ -14,33 +14,37 @@
 		data() {
 			return {
 				Items:[],
-				content: '',
-				prevContent: '',
+				content: this.emptyValue,
+				prevContent: this.emptyValue,
 			};
 		},
 		props:{
 			//绑定数据
-			datas:{
-				type:Array,
-				required:true
+			datas: {
+				type: Array,
+				required: true
 			},
 			//输入为空时的提示
-			placeholder:{
-				type:String,
-				required:true
+			placeholder: {
+				type: String,
+				required: true
 			},
-			method:{
-				type:Function,
-				required:true
+			method: {
+				type: Function,
+				required: true
 			},
-			select:{
-				type:Function,
-				required:true
+			select: {
+				type: Function,
+				required: true
 			},
-			value:{
-				type:String,
-				required:true
+			value: {
+				required: true
 			},
+			emptyValue: {
+				type: String,
+				default: '',
+				required: false
+			}
 		},
 		updated: function() {
 			if (this.prevContent == this.content) {
@@ -50,16 +54,16 @@
 				this.prevContent = this.content
 				
 				// 保存空值的情况
-				if(this.content === ''){
+				if(this.content === this.emptyValue){
 					var item = new Object()
-					item.value = ''
+					item.value = this.emptyValue
 					this.select(item)
 				}
 			}
 		},
 		methods: {
 			loadAll() {
-				if(this.datas.length === 0){
+				if (this.datas.length === 0) {
 					console.log("load")
 					uni.request({
 						url: msg.url(),
@@ -70,7 +74,7 @@
 							for (let i = 0; i < items.length; i++) {
 								var item = JSON.parse(items[i])
 								var result = item[this.keys[0]]
-								for(let j=1; j<this.keys.length;j++){
+								for(let j = 1; j < this.keys.length; j++) {
 									result += ':' + item[this.keys[j]]
 								}
 								this.Items[i] = {
