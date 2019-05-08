@@ -83,7 +83,7 @@
 								v-if="hasSelectedRowData"/>
 						</el-tab-pane>
 						<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'>
-							<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+							<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-bind:allTableData="items" v-if="hasSelectedRowData"/>
 						</el-tab-pane>
 						<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'>
 							<quest-goal v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
@@ -153,7 +153,7 @@
 			questComp
 		},
 		updated: function() {
-			// 保持container高度为屏幕尺寸的93%
+			// 保持container高度为屏幕尺寸的100%
 			this.screenHeight = "100vh"
 			
 			// 更新滚动条位置

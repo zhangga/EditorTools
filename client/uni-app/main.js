@@ -37,6 +37,7 @@ import ButtonGroup from './element-ui/lib/button-group.js';
 import Table from './element-ui/lib/table.js';
 import TableColumn from './element-ui/lib/table-column.js';
 import DatePicker from './element-ui/lib/date-picker.js';
+import Divider from './element-ui/lib/divider.js';
 import TimeSelect from './element-ui/lib/time-select.js';
 import TimePicker from './element-ui/lib/time-picker.js';
 import Popover from './element-ui/lib/popover.js';
@@ -123,6 +124,7 @@ Vue.use(ButtonGroup)
 Vue.use(Table)
 Vue.use(TableColumn)
 Vue.use(DatePicker)
+Vue.use(Divider)
 Vue.use(TimeSelect)
 Vue.use(TimePicker)
 Vue.use(Popover)
@@ -178,6 +180,9 @@ Vue.use(DataTablesServer)
 // 引入vue-canvas-nest
 import vueCanvasNest from './vue-canvas-nest/src/vueCanvasNest.vue'
 Vue.component('vue-canvas-nest', vueCanvasNest)
+
+// 引入渐变动画
+Vue.component(CollapseTransition.name, CollapseTransition)
 
 Vue.config.productionTip = false
 

@@ -74,18 +74,18 @@ var ExcelConfig_json =
 	  // 点击跳转的导航页
       "navigateTo": "../table/table"
     },
-		{
-			// excel表名
-			"excel": "Action.xlsx",
-			// sheet名
-			"sheet": "行为触发|Action",
-			// Redis hash的表名
-			"redis_table": "ACTION",
-			// Redis hash的key值
-			"redis_key": "sn",
-			// 点击跳转的导航页
-			"navigateTo": "../table/table"
-		},
+	{
+		// excel表名
+		"excel": "Action.xlsx",
+		// sheet名
+		"sheet": "行为触发|Action",
+		// Redis hash的表名
+		"redis_table": "ACTION",
+		// Redis hash的key值
+		"redis_key": "sn",
+		// 点击跳转的导航页
+		"navigateTo": "../table/table"
+	},
     {
       // excel表名
       "excel": "DropConfig.xlsm",
@@ -98,7 +98,7 @@ var ExcelConfig_json =
 	  // 点击跳转的导航页
       "navigateTo": "../table/table"
     },
-		{
+	{
       // excel表名
       "excel": "Condition.xlsx",
       // sheet名
@@ -109,7 +109,31 @@ var ExcelConfig_json =
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
-    }
+    },
+	{
+	  // excel表名
+	  "excel": "CharacterClass.xlsx",
+	  // sheet名
+	  "sheet": "职业|CharacterClass",
+	  // Redis hash的表名
+	  "redis_table": "SEX",
+	  // Redis hash的key值
+	  "redis_key": "sn",
+	  // 点击跳转的导航页
+	  "navigateTo": "../table/table"
+	},
+	{
+	  // excel表名
+	  "excel": "Career.xlsx",
+	  // sheet名
+	  "sheet": "职业|Career",
+	  // Redis hash的表名
+	  "redis_table": "OCCUPATION",
+	  // Redis hash的key值
+	  "redis_key": "sn",
+	  // 点击跳转的导航页
+	  "navigateTo": "../table/table"
+	},
   ],
   "triggers": [
     {
@@ -150,7 +174,7 @@ var ExcelConfig_json =
   // 任务目标组合类型
   "CombinType": ["基础目标", "复合目标"],
   // 任务目标关系类型
-  "RelationType": ["单个", "且关系", "或关系"],
+  "RelationType": ["单个", "与关系", "或关系"],
   // 基础配置
   "defaultNames": [
     "cs",

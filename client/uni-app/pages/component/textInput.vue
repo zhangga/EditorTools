@@ -1,6 +1,6 @@
 <template>
 	<view @click="method">
-		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder">
+		<el-autocomplete v-model="content" :fetch-suggestions="querySearch" @select="select" :placeholder="placeholder" :disabled="disabled">
 		</el-autocomplete>
 		<!-- 用于触发数据同步与更新 -->
 		<span style="display:none"> {{value}} </span>
@@ -40,13 +40,18 @@
 			value: {
 				required: true
 			},
+			disabled: {
+				type: Boolean,
+				default: false,
+				required: false
+			},
 			emptyValue: {
 				type: String,
 				default: '',
 				required: false
 			}
 		},
-		updated: function() {
+		updated() {
 			if (this.prevContent == this.content) {
 				this.content = this.value;
 				this.prevContent = this.content;

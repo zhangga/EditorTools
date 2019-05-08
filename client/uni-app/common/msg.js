@@ -107,6 +107,12 @@ export default {
 			'token': token,
 		}
 	},
+	get_condition_info(token) {
+		return {
+			'cmd': 12,
+			'token': token,
+		}
+	},
 	// 更新任务表数据
 	update_quest_data(token, sn, field, value, verNum) {
 		return update_table_data(token, 'QUEST', sn, field, value, verNum);

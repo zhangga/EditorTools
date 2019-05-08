@@ -82,10 +82,10 @@
 				<span class="header">任务关联</span>
 			</view>
 			<el-form label-width="38upx">
-				<el-form-item label="前置任务ID" id="preId">
+				<!-- <el-form-item label="前置任务ID" id="preId">
 					<textInput :datas="taskNames" placeholder='前置任务ID' :method='getFormattedTaskNames' :select="onSelectPreId" v-bind:value='selectedPreID'>
 					</textInput>
-				</el-form-item>
+				</el-form-item> -->
 				<el-form-item label="后接任务ID" id="postId">
 					<textInput :datas="taskNames" placeholder='后接任务ID' :method='getFormattedTaskNames' :select="onSelectPostId" v-bind:value='selectedPostID'>
 					</textInput>
@@ -218,39 +218,6 @@
 			</el-form>
 		</el-card>
 		
-		<!-- 任务时间段 -->
-		<el-card class="box-card">
-			<view slot="header" class="clearfix">
-				<span class="header">任务时间段(暂时无用)</span>
-			</view>
-			<el-form>
-				<el-form-item label="发放时间段" label-width="40upx">
-					<el-date-picker
-					    v-model="selectedQuestAvailTime"
-					    type="datetimerange"
-					    range-separator="到"
-					    start-placeholder="开始时间"
-					    end-placeholder="结束时间">
-					</el-date-picker>
-				</el-form-item>
-				<el-form-item label="发放间隔" label-width="40upx">
-					<el-row>
-						<el-col :span="9">
-							<el-select v-model="selectedQuestAvailInterval" size="medium" id="questType" @change="onQuestAvaiIntervalChanged">
-								<el-option v-for="option in questAvailIntervalOptions" :key="option.id" :value="option.id" :label="option.desc"></el-option>
-							</el-select>
-						</el-col>
-						<el-col :span="9" v-if="selectedQuestAvailInterval == 3">
-							<el-input placeholder="请填写具体间隔秒数(单位:秒)" v-model="inputQuestAvailIntervalSeconds" id="questAvailIntervalSecond"></el-input>
-						</el-col>
-					</el-row>
-				</el-form-item>
-				<el-form-item>
-					<span class="text">【说明：发放时间段和发放时间间隔可以同时生效，也可单独生效。下拉内容含有每隔一天、每隔一星期、每隔一月、每隔一段时间。每隔一段时间需要策划填写后面的具体秒数。】</span>
-				</el-form-item>
-			</el-form>
-		</el-card>
-		
 		<!-- 用于触发组件之间的数据同步与更新 -->
 		<span style="display:none"> {{tableRowData['questName']}} </span>
 	</view>
@@ -270,7 +237,7 @@
 				selectedQuestType: '',
 				inputQuestLevel: '',
 				inputTeamMembers: '',
-				selectedPreID: '',
+				// selectedPreID: '',
 				selectedPostID: '',
 				selectedBanQuestID: '',
 				selectedBanPlotID: '',
@@ -309,17 +276,6 @@
 					value: '4:都可见'
 				}],
 				selectedAutoSmoothCamera: '',
-				
-				/* 任务时间段相关 (暂无) */
-				selectedQuestAvailTime: [],
-				questAvailIntervalOptions: [
-					{"id": 0, "desc":"每隔一天"}, 
-					{"id": 1, "desc": "每隔一星期"}, 
-					{"id":2, "desc": "每隔一个月"}, 
-					{"id": 3, "desc": "每隔一段时间"}],
-				selectedQuestAvailInterval: '',
-				inputQuestAvailIntervalSeconds: '',
-				isIntervalOfSecondSelected: false,
 				
 				/* 表数据相关 */
 				taskNames: [],
@@ -383,7 +339,7 @@
 				this.inputQuestLevel = this.tableRowData['questLevel']
 				this.inputTeamMembers = this.tableRowData['teamMembers']
 				
-				this.selectedPreID = this.tableRowData['preId'] == null ? null : this.getTaskName(this.tableRowData['preId'])
+				// this.selectedPreID = this.tableRowData['preId'] == null ? null : this.getTaskName(this.tableRowData['preId'])
 				this.selectedPostID = this.tableRowData['postId'] == null ? null : this.getTaskName(this.tableRowData['postId'])
 				this.selectedBanQuestID = this.tableRowData['banQuestId'] == null ? null : this.getTaskName(this.tableRowData['banQuestId'])
 				
@@ -474,10 +430,6 @@
 				return plotID
 			},
 			
-			onQuestAvaiIntervalChanged: function(value) {
-				this.selectedQuestAvailInterval = value
-			},
-			
 			// 表单组件内容发生改变时调用
 			onFormItemModified: function(updatedValue) {
 				let currItem = this.currentClickedFormItem
@@ -542,11 +494,11 @@
 			},
 			
 			// TextInput类型表单组件的事件
-			onSelectPreId: function(item) {
-				this.selectedPreID = item.value
-				console.log("向preID提交值：" + this.selectedPreID.split(':')[0])
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'preId', this.selectedPreID.split(':')[0], this.$store.state.verNum, this)
-			},
+// 			onSelectPreId: function(item) {
+// 				this.selectedPreID = item.value
+// 				console.log("向preID提交值：" + this.selectedPreID.split(':')[0])
+// 				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'preId', this.selectedPreID.split(':')[0], this.$store.state.verNum, this)
+// 			},
 			onSelectPostId: function(item) {
 				this.selectedPostID = item.value
 				console.log("向postID提交值：" + this.selectedPostID.split(':')[0])

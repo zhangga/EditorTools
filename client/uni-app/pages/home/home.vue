@@ -19,7 +19,6 @@
 			
 			<data-tables :data="tables" layout="table" :action-col="actionCol" :filters="filters" :table-props="tableProps" 
 						style="margin-left: 20upx; margin-right: 20upx" @selection-change="onSelectionChange"  class="mainContent">
-				<!-- <el-table-column type="selection" width="55"></el-table-column> -->
 				<el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom"></el-table-column>
 			</data-tables>
 			

@@ -125,7 +125,7 @@ public class GlobalManager {
                     SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
 
                     LogEditor.serv.info("【SVN COMMIT】开始COMMIT");
-                    SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
+//                    SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
                     LogEditor.serv.info("【SVN COMMIT】COMMIT完成");
                 }
             }, null));

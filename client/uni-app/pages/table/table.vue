@@ -1,8 +1,18 @@
 <template>
-   <data-tables :data="table_data" :pagination-props="{ pageSizes: [5, 10, 15] }">
-     <el-table-column v-for="title in table_title" :prop="title.prop" :label="title.label" :key="title.label">
-     </el-table-column>
-   </data-tables>
+	<view class="dialog">
+		<view>
+			<!-- <data-tables :data="table_data" layout="table" style="margin-left: 20upx; margin-right: 20upx" class="mainContent">
+				<el-table-column type="selection" width="55"></el-table-column>
+				<el-table-column v-for="title in table_title" :prop="title.prop" :label="title.label" :key="title.label" sortable="custom"></el-table-column>
+			</data-tables> -->
+			
+			<el-table :data="table_data" style="width: 93%" height="900" class="mainContent">
+				<el-table-column v-for="title in table_title" :prop="title.prop" :label="title.label" :key="title.label" sortable="custom"></el-table-column>
+			</el-table>
+			
+			<vue-canvas-nest :config="{color:'255,0,0', opacity:'0.8'}"></vue-canvas-nest>
+		</view>
+	</view>
  </template>
 
 <script>
@@ -18,8 +28,9 @@
 				table_data: []
 			};
 		},
-		onLoad(e) {
-			this.table_name = e['table_name']
+		onLoad(option) {
+			// 接受页面跳转传递的参数（uni-app跳转传参）
+			this.table_name = option.table_name
 			uni.request({
 				url: msg.url(),
 				method: 'GET',
@@ -37,22 +48,8 @@
 					}
 					this.table_title = titles
 					
-// 					this.table_data = [{
-// 						"content": "Water flood",
-// 						"flow_no": "FW201601010001",
-// 						"flow_type": "Repair",
-// 						"flow_type_code": "repair",
-// 						}, {
-// 						"content": "Lock broken",
-// 						"flow_no": "FW201601010002",
-// 						"flow_type": "Repair",
-// 						"flow_type_code": "repair",
-// 						}, {
-// 						"content": "Help to buy some drinks",
-// 						"flow_no": "FW201601010003",
-// 						"flow_type": "Help",
-// 						"flow_type_code": "help"
-// 					}]
+					console.log(this.table_data)
+					console.log(this.table_title)
 				},
 				fail: () => {
 					console.log("失败！token = " + this.$store.state.token)
@@ -64,13 +61,10 @@
 </script>
 
 <style>
-	.uni-media-list-body {
-		height: auto;
-	}
-	.uni-media-list-text-to {
-		line-height: 1.6em;
-	}
-	.el-table .cell{
-		white-space:pre-wrap;
+	.el-table {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
 </style>

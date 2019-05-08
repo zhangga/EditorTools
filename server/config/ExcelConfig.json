@@ -107,6 +107,30 @@
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "CharacterClass.xlsx",
+      // sheet名
+      "sheet": "职业|CharacterClass",
+      // Redis hash的表名
+      "redis_table": "SEX",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Career.xlsx",
+      // sheet名
+      "sheet": "职业|Career",
+      // Redis hash的表名
+      "redis_table": "OCCUPATION",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
     }
   ],
   "triggers": [

@@ -7,6 +7,7 @@ var tableDataCache = new Map()
 var tableDataRequestLock = new Map()
 var callbackCache = new Map()
 var isQuestDataExpired = false
+var isConditionDataExpired = false
 
 /* 获取并更新当前的用户token */
 function getCurrentUserToken() {
@@ -37,8 +38,17 @@ function updateDataFieldNV(table, sn, field, value, caller) {
 	updateDataField(table, sn, field, value, getCurrentUserToken(), caller)
 }
 
-/* 更改/更新表数据 */
-function updateDataField(table, sn, field, value, verNum, caller) {
+/** 
+ * 更改/更新表数据
+ * @param table: 要更新数据的表格名
+ * @param sn: 要更新数据的sn（row）
+ * @param field: 要更新的具体field（column）
+ * @param value: 更新后的新数值
+ * @param verNum: 当前数据的版本号
+ * @param callbacks: 加载表格数据后的回调方法（可选）
+ * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
+ */
+function updateDataField(table, sn, field, value, verNum, caller, ...callbacks) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
@@ -53,6 +63,13 @@ function updateDataField(table, sn, field, value, verNum, caller) {
 			else if (resultCode == msg.RESULT_OK) {
 				// 更新当前缓存版本号
 				caller.$store.state.verNum = res.data['data']
+			}
+			
+			// 执行回调方法
+			if (callbacks != null && caller != null) {
+				for (let i = 0; i < callbacks.length; i++) {
+					callbacks[i].call(caller)
+				}
 			}
 		},
 		fail: () => {
@@ -107,8 +124,9 @@ function addDataField(table, keyValues, loadingInstance, caller) {
  * @param dataValueName: 表格数据中，用于描述数据的列名（例如name）
  * @param callback: 加载表格数据后的回调方法（可选）
  * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
+ * @param forceReload: 标识是否需要强制重新刷新数据（可选）
  */
-function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, callback, caller) {
+function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, callback, caller, forceReload) {
 	// 参数数量合法性判断
 	if (arguments.length > 4 && arguments.length < 6) {
 		console.log("方法参数不足！")
@@ -118,7 +136,7 @@ function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, cal
 	let tableData = tableDataCache.get(tableName)
 	
 	// 用于判断是否已经向服务器请求了（但尚未返回）当前表格的数据（以避免在结果返回前重复请求）
-	let tableDataRequestFlag = tableDataRequestLock.get(tableName)
+	let isAlreadyRequestingTableData = tableDataRequestLock.get(tableName)
 	
 	// 注册回调方法
 	if (callbackCache.get(tableName) == null) {
@@ -127,11 +145,11 @@ function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, cal
 	callbackCache.get(tableName).push({'caller': caller, 'callback': callback, 'callerDataset': callerDataset})
 	
 	// 当对同一个表格数据有重复的请求时，不再重复请求，但会缓存请求的回调方法(在callbackCache中)，在获取数据之后调用所有的回调方法
-	if (tableDataRequestFlag) {
+	if (isAlreadyRequestingTableData) {
 		return tableData
 	}
 	
-	if (typeof tableData == 'undefined' || tableData.length === 0) {
+	if (typeof tableData == 'undefined' || tableData.length === 0 || forceReload) {
 		// 更新请求正在进行的状态
 		tableDataRequestLock.set(tableName, true)
 		
@@ -171,12 +189,9 @@ function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, cal
 					let currCallback = callbacks[i]['callback']
 					
 					if (currCaller != null && currCallback != null) {
-						console.log("为" + tableName + "执行回调")
-						console.log(currCaller)
 						currCallback.call(currCaller)
 					}
 				}
-				
 			},
 			fail: () => {
 				// TODO: Error Handling
@@ -187,12 +202,10 @@ function loadTableData(callerDataset, tableName, dataKeyName, dataValueName, cal
 			}
 		});
 	} else {
-		console.log("表格" + tableName + "数据已经存在")
 		callerDataset.length = 0
 		callerDataset.push(...tableData)
 		
 		if (caller != null && callback != null) {
-			console.log("为" + tableName + "执行回调")
 			callback.call(caller)
 		}
 		
@@ -279,5 +292,6 @@ module.exports = {
 	addDataField: addDataField,
 	getCurrentUserToken: getCurrentUserToken,
 	loadTableData: loadTableData,
-	isQuestDataExpired: isQuestDataExpired
+	isQuestDataExpired: isQuestDataExpired,
+	isConditionDataExpired: isConditionDataExpired
 }

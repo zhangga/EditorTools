@@ -3,7 +3,6 @@
 		
 		<!-- 任务目标 -->
 		<el-card class="box-card">
-			
 			<el-button type='info' round class="float" @click="onClickAddQuestGoal">新增任务目标</el-button>
 			<el-dialog title="新增任务目标" width="42%" :visible.sync="showAddGoal" center>
 				<el-form label-width="60upx" style="width:85%">
@@ -23,21 +22,20 @@
 				<span class="header">任务目标</span>
 			</view>
 			<el-form label-width="40upx">
-			<el-row>
-				<el-col :span="8">
-					<el-form-item label="目标ID:">
-						<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:value="goalSn">
-						</textInput>
-					</el-form-item>
-				</el-col>
-				<el-col :offset="6" :span="8">
-					<el-form-item label="备注">
-						<el-input type="textarea" :rows="1" v-model="baseGoal.desc" placeholder="备注信息" @change="onGoalDescChange($event)"></el-input>
-					</el-form-item>
-				</el-col>
-			</el-row>
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="目标ID:">
+							<textInput :datas="questGoalSearch" placeholder='任务目标' :method='loadTableGoal' :select="setQuestGoal" v-bind:value="goalSn">
+							</textInput>
+						</el-form-item>
+					</el-col>
+					<el-col :offset="6" :span="8">
+						<el-form-item label="备注">
+							<el-input type="textarea" :rows="1" v-model="baseGoal.desc" placeholder="备注信息" @change="onGoalDescChange($event)"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
 			</el-form>
-			
 
 			<el-form label-width="30upx">
 				<el-card class="box-card" v-for="goalIndex in combinGoal.length" shadow="hover">
@@ -105,14 +103,14 @@
 									</el-col>
 								</el-row>
 								
-								<div class="hr anim"></div>
+								<rainbow-divider class="divider"></rainbow-divider>
 							</el-main>
 						</el-container>
 					</el-form>
 				</el-card>
 			</el-form>
 			
-			<el-row>
+			<el-row style="margin-top: 5upx">
 				<el-col :span="4">
 					<el-button type='success' icon="el-icon-search" @click="showItem = true">查询物品</el-button>
 					<el-dialog title="查询物品" width="42%" :visible.sync="showItem" center>
@@ -165,6 +163,7 @@
 
 <script>
 	import textInput from '../component/textInput.vue'
+	import rainbowDivider from '../component/rainbowDivider.vue'
 	import config from '../../common/config.js'
 	import msg from '../../common/msg.js'
 	import util from '../../common/util.js'
@@ -254,7 +253,8 @@
 			}
 		},
 		components: {
-			textInput
+			textInput,
+			rainbowDivider
 		},
 		methods: {
 			refreshDefaultValues: function() {
@@ -571,101 +571,7 @@
 	  z-index: 10;
   }
   
-  @keyframes bar {
-  	  0% { background-position: 0%; }
-  	  100% { background-position: 200%; }
-  }
-  
-  .hr {
-	  width: 100%;
-	  height: 1upx;
-	  display: block;
-	  position: relative;
-	  margin-bottom: 0upx;
-	  padding: 5upx 0;
-  }
-
-  .hr::before {
-	  content: "";
-	  position: absolute;
-	
-	  width: 100%;
-	  height: 1upx;
-	  bottom: 50%;
-	  left: 0;
-	
-	  /* background: linear-gradient( 90deg, #10111F 0%, #10111F 50%, transparent 50%, transparent 100% ); */
-	  background: linear-gradient( 90deg, #FFFFFF 0%, #FFFFFF 50%, transparent 50%, transparent 100% );
-	  background-size: 15px;
-	  background-position: center;
-	  z-index: 1;
-  }
-
-  .hr::after {
-	  content: "";
-	  position: absolute;
-	
-	  width: 100%;
-	  height: 1px;
-	  bottom: 50%;
-	  left: 0;
-	
-	  transition: opacity 0.3s ease, animation 0.3s ease;
-	
-	  background: linear-gradient(
-		  to right, 
-		  #62efab 5%, 
-		  #F2EA7D 15%, 
-		  #F2EA7D 25%, 
-		  #FF8797 35%, 
-		  #FF8797 45%, 
-		  #e1a4f4 55%, 
-		  #e1a4f4 65%, 
-		  #82fff4 75%, 
-		  #82fff4 85%, 
-		  #62efab 95%);
-	
-	  background-size: 200%;
-	  background-position: 0%;
-	  -webkit-animation: bar 15s linear infinite;
-}
-
-  .anim::before {
-	  background: linear-gradient( 
-	        90deg, 
-	        #FFFFFF 0%, #FFFFFF 5%, 
-	        transparent 5%, transparent 10%, 
-	        #FFFFFF 10%, #FFFFFF 15%, 
-	        transparent 15%, transparent 20%, 
-	        #FFFFFF 20%, #FFFFFF 25%,
-	        transparent 25%, transparent 30%,
-	        #FFFFFF 30%, #FFFFFF 35%, 
-	        transparent 35%, transparent 40%, 
-	        #FFFFFF 40%, #FFFFFF 45%, 
-	        transparent 45%, transparent 50%, 
-	        #FFFFFF 50%, #FFFFFF 55%,
-	        transparent 55%, transparent 60%,
-	        #FFFFFF 60%, #FFFFFF 65%,
-	        transparent 65%, transparent 70%, 
-	        #FFFFFF 70%, #FFFFFF 75%, 
-	        transparent 75%, transparent 80%, 
-	        #FFFFFF 80%, #FFFFFF 85%,
-	        transparent 85%, transparent 90%,
-	        #FFFFFF 90%, #FFFFFF 95%, 
-	        transparent 95%, transparent 100% );
-	
-	  background-size: 150px;
-	  background-position: center;
-	  z-index: 1;
-	
-	  animation: bar 120s linear infinite;
-  }
-
-  .anim:hover::before {
-	  animation-duration: 20s;
-  }
-
-  .anim:hover::after {
-	  animation-duration: 2s;
+  .divider {
+	  margin-top: 10upx;
   }
 </style>
