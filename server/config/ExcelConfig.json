@@ -131,6 +131,18 @@
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Skill.xlsm",
+      // sheet名
+      "sheet": "技能|Skill",
+      // Redis hash的表名
+      "redis_table": "SKILL",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
     }
   ],
   "triggers": [
@@ -166,13 +178,34 @@
     }
   ],
   // 任务类型
-  "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],
+  "EnumQuestType": [
+    "1",
+    "主线任务",
+    "2",
+    "结局任务",
+    "3",
+    "关系任务",
+    "4",
+    "奇遇任务"
+  ],
   // 任务页签
-  "QuestTab": ["任务属性", "任务接取", "任务目标", "任务完成"],
+  "QuestTab": [
+    "任务属性",
+    "任务接取",
+    "任务目标",
+    "任务完成"
+  ],
   // 任务目标组合类型
-  "CombinType": ["基础目标", "复合目标"],
+  "CombinType": [
+    "基础目标",
+    "复合目标"
+  ],
   // 任务目标关系类型
-  "RelationType": ["单个", "且关系", "或关系"],
+  "RelationType": [
+    "单个",
+    "且关系",
+    "或关系"
+  ],
   // 基础配置
   "defaultNames": [
     "cs",
