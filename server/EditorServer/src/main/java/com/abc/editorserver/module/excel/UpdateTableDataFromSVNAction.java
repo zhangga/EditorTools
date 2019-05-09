@@ -4,6 +4,7 @@ import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.config.EditorConst;
 import com.abc.editorserver.manager.GlobalManager;
 import com.abc.editorserver.manager.SVNManager;
+import com.abc.editorserver.manager.DataManager;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.net.RequestData;
@@ -82,6 +83,7 @@ public class UpdateTableDataFromSVNAction extends GameActionJson {
             msg.put("desc", errorInfo);
         }
         else {
+            DataManager.excelToRedis();
             msg.put("result", EditorConst.RESULT_OK);
         }
 

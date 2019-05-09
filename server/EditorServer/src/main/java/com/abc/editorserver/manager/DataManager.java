@@ -163,7 +163,7 @@ public class DataManager {
     /**
      * 根据配置信息将对应的excel表写入Redis
      */
-    private void excelToRedis() {
+    public void excelToRedis() {
         try {
             for (ExcelConfig conf: ExcelManager.getInstance().getConfigs()) {
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
