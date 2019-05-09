@@ -83,7 +83,7 @@ public class UpdateTableDataFromSVNAction extends GameActionJson {
             msg.put("desc", errorInfo);
         }
         else {
-            DataManager.excelToRedis();
+            DataManager.getInstance().excelToRedis();
             msg.put("result", EditorConst.RESULT_OK);
         }
 
