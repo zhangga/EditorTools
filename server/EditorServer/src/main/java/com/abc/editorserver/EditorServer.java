@@ -16,16 +16,8 @@ import com.abc.editorserver.support.LogEditor;
  */
 public class EditorServer {
 
-    public static boolean isDevMode;
-
     public static void main(String[] args) {
         System.setProperty("logFileName", "editor_server");
-
-        if (args.length > 0) {
-            isDevMode = Boolean.parseBoolean(args[0]);
-        } else {
-            isDevMode = true;
-        }
 
         EditorServer es = new EditorServer();
         es.start();
@@ -44,7 +36,7 @@ public class EditorServer {
         // 监听网络端口
         initNet();
 
-        if (!isDevMode) {
+        if (!EditorConfig.dev_mode) {
             LogEditor.serv.info("以正式版本模式运行中...");
         }
 

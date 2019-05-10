@@ -37,6 +37,7 @@ public class EditorConfig {
 
     /** 服务器配置 */
     public static final String server_ip;
+    public static final boolean dev_mode;
 
     /** 配置文件路径 */
     public static String CONFIG_PATH;
@@ -80,6 +81,7 @@ public class EditorConfig {
         svn_root = prop.getProperty("svn_root");
         svn_export = prop.getProperty("svn_export");
         server_ip = prop.getProperty("server_ip");
+        dev_mode = Boolean.valueOf(prop.getProperty("dev_mode"));
     }
 
 }
