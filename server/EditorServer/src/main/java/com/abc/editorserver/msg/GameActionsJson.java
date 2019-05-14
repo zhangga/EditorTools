@@ -8,6 +8,7 @@ import com.abc.editorserver.module.excel.AddTableDataAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
 import com.abc.editorserver.module.excel.GetTableStatusAction;
 import com.abc.editorserver.module.excel.SubmitToSVNAction;
+import com.abc.editorserver.module.excel.UpdateMultipleTableDataAction;
 import com.abc.editorserver.module.excel.UpdateTableDataFromSVNAction;
 import com.abc.editorserver.module.hi.HiAction;
 import com.abc.editorserver.module.hi.TestAction;
@@ -39,6 +40,7 @@ public enum GameActionsJson {
 	GetTableStatusAction("获取表格操作状态", 10, GetTableStatusAction.class),
 	SubmitToSVNAction("更新改动至SVN", 11, SubmitToSVNAction.class),
 	GetConditionInfoAction("获取任务条件数据", 12, GetConditionInfoAction.class),
+	UpdateMultipleTableDataAction("更新整条数据表数据", 13, UpdateMultipleTableDataAction.class)
 	;
 	
 	/**

@@ -475,9 +475,10 @@ public class DataManager {
      * @param sn
      * @param field
      * @param value
+     * @param shouldIncrementVerNum: 是否需要更新版本号
      * @return
      */
-    public long updateTableData(String table, String sn, String field, String value) {
+    public long updateTableData(String table, String sn, String field, String value, boolean shouldIncrementVerNum) {
         ExcelConfig config = ExcelManager.getInstance().getConfig(table);
         if (config == null) {
             return -1;
@@ -499,7 +500,24 @@ public class DataManager {
         tableTimers.get(table).reStartTimer();
         LogEditor.serv.info("写Excel计时器被刷新");
 
-        return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
+        if (shouldIncrementVerNum) {
+            return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
+        }
+        else {
+            return Long.parseLong(VersionManager.getInstance().getTableDataVersion(table, sn));
+        }
+    }
+
+    /**
+     * 更新数据表数据（不更新版本号）
+     * @param table
+     * @param sn
+     * @param field
+     * @param value
+     * @return
+     */
+    public long updateTableData(String table, String sn, String field, String value) {
+        return updateTableData(table, sn, field, value, false);
     }
 
     /**
