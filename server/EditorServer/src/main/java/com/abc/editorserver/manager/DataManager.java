@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.parser.Feature;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -729,7 +730,15 @@ public class DataManager {
 
                             // 设置单元格内容
                             cellValue = String.valueOf(json.get(colKeys.get(colIndex)));
-                            cell.setCellValue(cellValue.equals("null") ? "" : cellValue);
+
+                            // 空值的情况下填入空字符串
+                            if (cellValue.equals("null") || cellValue.equals("")) {
+                                cell.setCellValue("");
+                                cell.setCellType(CellType.BLANK);
+                            }
+                            else {
+                                cell.setCellValue(cellValue);
+                            }
                         }
                     } else {
                         /// 记录被删除，需在Excel中删去对应行
@@ -769,7 +778,13 @@ public class DataManager {
 
                             // 空值的情况下填入空字符串
                             cellValue = String.valueOf(json.get(columnNames.get(colIndex)));
-                            cell.setCellValue(cellValue.equals("null") ? "" : cellValue);
+                            if (cellValue.equals("null") || cellValue.equals("")) {
+                                cell.setCellValue("");
+                                cell.setCellType(CellType.BLANK);
+                            }
+                            else {
+                                cell.setCellValue(cellValue);
+                            }
                         }
                     }
                 }

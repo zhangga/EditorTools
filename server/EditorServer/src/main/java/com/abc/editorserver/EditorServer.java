@@ -36,6 +36,7 @@ public class EditorServer {
         // 监听网络端口
         initNet();
 
+        // 判断是否以正式版本运行
         if (!EditorConfig.dev_mode) {
             LogEditor.serv.info("以正式版本模式运行中...");
         }
