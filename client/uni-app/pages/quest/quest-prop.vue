@@ -42,13 +42,6 @@
 					<textInput :datas="Plot" placeholder='屏蔽剧情ID' :method='loadPlot' :select="onSelectBanPlotId" v-bind:value='selectedBanPlotID'>
 					</textInput>
 				</el-form-item>
-				<el-form-item label="等级限制" id="questLevel">
-					<el-input-number 
-						v-model="inputQuestLevel" 
-						:min="0" 
-						@change="onUpdateQuestLevel">
-					</el-input-number>
-				</el-form-item>
 				<el-form-item label="组队人数限制" id="teamMembers">
 					<el-input-number 
 						v-model="inputTeamMembers" 
@@ -56,24 +49,41 @@
 						@change="onUpdateTeamMembers">
 					</el-input-number>
 				</el-form-item>
-				<el-form-item label-width="0">
-					<el-checkbox 
-						v-model="selectedAcceptMirrorSceneID" 
-						id="acceptMirrorSceneID"
-						@change="onFormItemModified" 
-						@click.native="updateCurrentFocusedItem">
-						开启位面场景ID
-					</el-checkbox>
-				</el-form-item>
-				<el-form-item label-width="0">
-					<el-checkbox 
-						v-model="selectedRepeatable" 
-						id="repeatable"
-						@change="onFormItemModified" 
-						@click.native="updateCurrentFocusedItem">
-						是否可重复完成
-					</el-checkbox>
-				</el-form-item>
+				<el-row>
+					<el-col :span="5">
+						<el-form-item label-width="0">
+							<el-checkbox 
+								v-model="selectedAcceptMirrorSceneID" 
+								id="acceptMirrorSceneID"
+								@change="onFormItemModified" 
+								@click.native="updateCurrentFocusedItem">
+								开启位面场景ID
+							</el-checkbox>
+						</el-form-item>
+					</el-col>
+					<el-col :span="5" :offset="1">
+						<el-form-item label-width="0">
+							<el-checkbox 
+								v-model="selectedRepeatable" 
+								id="repeatable"
+								@change="onFormItemModified" 
+								@click.native="updateCurrentFocusedItem">
+								是否可重复完成
+							</el-checkbox>
+						</el-form-item>
+					</el-col>
+					<el-col :span="5" :offset="1">
+						<el-form-item label-width="0">
+							<el-checkbox 
+								v-model="selectedHidden" 
+								id="hidden"
+								@change="onFormItemModified" 
+								@click.native="updateCurrentFocusedItem">
+								任务是否隐藏
+							</el-checkbox>
+						</el-form-item>
+					</el-col>
+				</el-row>
 			</el-form>
 		</el-card>
 		
@@ -93,42 +103,6 @@
 				<el-form-item label="屏蔽任务ID" id="banQuestId">
 					<textInput :datas="taskNames" placeholder='屏蔽任务ID' :method='getFormattedTaskNames' :select="onSelectBanQuestId" v-bind:value='selectedBanQuestID'>
 					</textInput>
-				</el-form-item>
-			</el-form>
-		</el-card>
-		
-		<!-- 任务显示 -->
-		<el-card class="box-card">
-			<view slot="header" class="clearfix">
-				<span class="header">任务显示</span>
-			</view>
-			<el-form label-width="0upx">
-				<el-form-item>
-					<el-checkbox 
-						v-model="selectedHidden" 
-						id="hidden"
-						@change="onFormItemModified" 
-						@click.native="updateCurrentFocusedItem">
-						任务是否隐藏
-					</el-checkbox>
-				</el-form-item>
-				<el-form-item>
-					<el-checkbox 
-						v-model="selectedCanAutomaticDeliver"
-						id="canAutomaticDeliver"
-						@change="onFormItemModified" 
-						@click.native="updateCurrentFocusedItem">
-						是否【可交】自动完成
-					</el-checkbox>
-				</el-form-item>
-				<el-form-item>
-					<el-checkbox 
-						v-model="selectedCanAutomaticAccept" 
-						id="canAutomaticAccept"
-						@change="onFormItemModified" 
-						@click.native="updateCurrentFocusedItem">
-						是否【可接】自动接取
-					</el-checkbox>
 				</el-form-item>
 			</el-form>
 		</el-card>
@@ -235,19 +209,13 @@
 				inputQuestName: '',
 				inputQuestDesc: '',
 				selectedQuestType: '',
-				inputQuestLevel: '',
 				inputTeamMembers: '',
-				// selectedPreID: '',
 				selectedPostID: '',
 				selectedBanQuestID: '',
 				selectedBanPlotID: '',
 				selectedRepeatable: false,
 				selectedAcceptMirrorSceneID: false,
-				
-				/* 任务显示卡片相关 */
 				selectedHidden: false,
-				selectedCanAutomaticDeliver: false,
-				selectedCanAutomaticAccept: false,
 				
 				/* 任务追踪相关 */
 				inputConnectedTrackingAction: '',
@@ -336,10 +304,8 @@
 				this.inputQuestDesc = this.tableRowData['questDescription']
 				this.selectedQuestType = this.tableRowData['questType'] == null ? null : this.questTypes[parseInt(this.tableRowData['questType'], 10) - 1]
 				this.selectedBanPlotID = this.tableRowData['banPlotId'] == null ? null : this.getPlotName(this.tableRowData['banPlotId'])
-				this.inputQuestLevel = this.tableRowData['questLevel']
 				this.inputTeamMembers = this.tableRowData['teamMembers']
 				
-				// this.selectedPreID = this.tableRowData['preId'] == null ? null : this.getTaskName(this.tableRowData['preId'])
 				this.selectedPostID = this.tableRowData['postId'] == null ? null : this.getTaskName(this.tableRowData['postId'])
 				this.selectedBanQuestID = this.tableRowData['banQuestId'] == null ? null : this.getTaskName(this.tableRowData['banQuestId'])
 				
@@ -352,8 +318,6 @@
 				this.selectedRepeatable = this.tableRowData['repeatable'] == null ? false : (this.tableRowData['repeatable'] == "TRUE")
 				this.selectedAcceptMirrorSceneID = this.tableRowData['acceptMirrorSceneID'] == null ? false : (this.tableRowData['acceptMirrorSceneID'] == "1")
 				this.selectedHidden = this.tableRowData['hidden'] == null ? false : (this.tableRowData['hidden'] == "TRUE")
-				this.selectedCanAutomaticAccept = this.tableRowData['canAutomaticAccept'] == null ? false : (this.tableRowData['canAutomaticAccept'] == "TRUE")
-				this.selectedCanAutomaticDeliver = this.tableRowData['canAutomaticDeliver'] == null ? false : (this.tableRowData['canAutomaticDeliver'] == "TRUE")
 				this.selectedAutoSmoothCamera = this.tableRowData['autoSmoothCamera'] == null ? false : (this.tableRowData['autoSmoothCamera'] == "TRUE")
 				
 				this.hasSetDefaultValue = true;
@@ -446,8 +410,6 @@
 						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, parseInt(this.questTypes.indexOf(updatedValue) + 1), this.$store.state.verNum, this)
 						break
 					case 'hidden':
-					case 'canAutomaticDeliver':
-					case 'canAutomaticAccept':
 					case 'repeatable':
 					case 'autoSmoothCamera':
 						console.log("向" + currItem + "提交值：" + (updatedValue ? "TRUE" : "FALSE"))
@@ -484,21 +446,12 @@
 			},
 			
 			// el-input-number类型的组件较为特殊，原生的click方法会在@change方法之后被调用，导致方法的执行顺序出错
-			onUpdateQuestLevel: function(updatedValue) {
-				console.log("向questLevel提交值：" + updatedValue)
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'questLevel', updatedValue, this.$store.state.verNum, this)
-			},
 			onUpdateTeamMembers: function(updatedValue) {
 				console.log("向teamMembers提交值：" + updatedValue)
 				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'teamMembers', updatedValue, this.$store.state.verNum, this)
 			},
 			
 			// TextInput类型表单组件的事件
-// 			onSelectPreId: function(item) {
-// 				this.selectedPreID = item.value
-// 				console.log("向preID提交值：" + this.selectedPreID.split(':')[0])
-// 				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'preId', this.selectedPreID.split(':')[0], this.$store.state.verNum, this)
-// 			},
 			onSelectPostId: function(item) {
 				this.selectedPostID = item.value
 				console.log("向postID提交值：" + this.selectedPostID.split(':')[0])
