@@ -566,6 +566,27 @@ public class DataManager {
     }
 
     /**
+     * 在数据表中删去一条数据
+     * @param tableName
+     * @param sn
+     * @return
+     */
+    public int deleteTableData(String tableName, String sn) {
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
+        if (config == null) {
+            return -1;
+        }
+
+        JedisManager.getInstance().hdel(config.getRedis_table(), sn);
+
+        // 刷新计时器
+        tableTimers.get(tableName).reStartTimer();
+        LogEditor.serv.info("写Excel计时器被刷新");
+
+        return 1;
+    }
+
+    /**
      * 查询当前是否有表格的定时器被触发，需要的时候向SVN提交commit
      */
     public void dataPersistHandler() {
