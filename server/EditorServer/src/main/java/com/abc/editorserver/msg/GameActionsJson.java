@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.abc.editorserver.module.excel.AddTableDataAction;
+import com.abc.editorserver.module.excel.DeleteTableDataBySnAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
 import com.abc.editorserver.module.excel.GetTableStatusAction;
 import com.abc.editorserver.module.excel.SubmitToSVNAction;
@@ -40,7 +41,8 @@ public enum GameActionsJson {
 	GetTableStatusAction("获取表格操作状态", 10, GetTableStatusAction.class),
 	SubmitToSVNAction("更新改动至SVN", 11, SubmitToSVNAction.class),
 	GetConditionInfoAction("获取任务条件数据", 12, GetConditionInfoAction.class),
-	UpdateMultipleTableDataAction("更新整条数据表数据", 13, UpdateMultipleTableDataAction.class)
+	UpdateMultipleTableDataAction("更新整条数据表数据", 13, UpdateMultipleTableDataAction.class),
+	DeleteTableDataBySnAction("删除某条数据表数据", 14, DeleteTableDataBySnAction.class)
 	;
 	
 	/**
