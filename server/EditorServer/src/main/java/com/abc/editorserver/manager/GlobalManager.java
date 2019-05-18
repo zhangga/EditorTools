@@ -110,8 +110,8 @@ public class GlobalManager {
         // 定时将改动写入至Excel中
         dataManager.dataPersistHandler();
 
-        // 定时向SVN提交改动
-        if (!EditorConfig.dev_mode && commitTimer.isDue()) {
+        // 定时向SVN提交改动 (TODO: 移除定时向SVN提交改动)
+        if (false && !EditorConfig.dev_mode && commitTimer.isDue()) {
             // 重置SVN提交计时器
             commitTimer.reStartTimer();
 
