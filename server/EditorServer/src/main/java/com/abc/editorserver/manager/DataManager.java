@@ -36,7 +36,7 @@ public class DataManager {
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
 
-    private final long dataPersistInterval = Timer.FIVE_MINUTES;
+    private final long dataPersistInterval = Timer.HALF_MINUTE;
 
     private DataManager(){ }
 
@@ -88,6 +88,19 @@ public class DataManager {
 
         for (ExcelConfig config : excelConfigs) {
             tableTimers.put(config.getRedis_table(), new Timer(interval));
+        }
+    }
+
+    /**
+     * 停止指定表格对应的计时器
+     * @param tableName
+     */
+    public void stopTimerOfTable(String tableName) {
+        for (Map.Entry<String, Timer> entry : tableTimers.entrySet()) {
+            if (entry.getKey().equals(tableName)) {
+                entry.getValue().stopTimer();
+                break;
+            }
         }
     }
 
