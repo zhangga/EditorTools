@@ -2,11 +2,16 @@ package com.abc.editorserver.module.excel;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.config.EditorConst;
+import com.abc.editorserver.manager.DataManager;
+import com.abc.editorserver.manager.ExcelManager;
+import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.net.RequestData;
 import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.JSONObject;
+
+import java.util.Arrays;
 
 /**
  * DownloadTableAction
@@ -22,11 +27,32 @@ public class DownloadTableAction extends GameActionJson {
 
         // 处理excelName和sheetName
         String extension = excelName.split("\\.")[1];
-        excelName = excelName.split("\\.")[0];
-        sheetName = sheetName.split("\\|")[1];
+        String excelNameWithoutExtension = excelName.split("\\.")[0];
+        String formattedSheetName = sheetName.split("\\|")[1];
 
-        // 暂时下载excelName对应的Excel
-        String tableName = excelName;
+        // 找到当前excel_name与sheet_name对应的redis_table_name
+        ExcelConfig[] configs = ExcelManager.getInstance().getConfigs();
+        String redisTableName = null;
+        for (ExcelConfig config : configs) {
+            if (config.getExcel().equals(excelName) && config.getSheet().equals(sheetName)) {
+                redisTableName = config.getRedis_table();
+                break;
+            }
+        }
+
+        // 本地持久化excelName对应的表格，保证下载的表格内容为最新
+        if (redisTableName != null) {
+            LogEditor.serv.info("下载表格" + redisTableName + "前将改动写入Excel中");
+
+            // 将改动写入对应Excel表格中
+            DataManager.getInstance().persistData(false, Arrays.asList(redisTableName));
+
+            // 更新完成后停止计时器
+            DataManager.getInstance().stopTimerOfTable(redisTableName);
+        }
+
+        // 暂时只下载excelName对应的Excel（表格未拆分，因此sheetName暂时无用，待表格拆分后可下载excelName + sheetName对应的表格）
+        String tableName = excelNameWithoutExtension;
 
         String redirectAddr = null;
         String redirectPrefix = "http://" + EditorConfig.server_ip + "/download?name=";
@@ -34,7 +60,7 @@ public class DownloadTableAction extends GameActionJson {
         JSONObject replyMsg = new JSONObject();
 
         if (tableName != null) {
-            redirectAddr = redirectPrefix + tableName + "." + extension;
+            redirectAddr = redirectPrefix + excelName;
 
             LogEditor.serv.info("发送下载链接：" + redirectAddr);
 
