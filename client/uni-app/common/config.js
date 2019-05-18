@@ -170,9 +170,19 @@ var ExcelConfig_json =
   // 任务类型
   "EnumQuestType": ["1", "主线任务", "2", "结局任务", "3", "关系任务", "4", "奇遇任务"],
   // 任务页签
-  "QuestTab": ["任务属性", "任务接取", "任务目标", "任务完成"],
-  // 任务目标组合类型
-  "CombinType": ["基础目标", "复合目标"],
+  "QuestTab": [{
+				key: "questProp", 
+				value: "任务属性"
+		},{
+				key: "questAcpt", 
+				value: "任务接取",
+		},{
+				key: "questGoal", 
+				value: "任务目标",
+		},{
+				key: "questComp", 
+				value: "任务完成",
+		}],
   // 任务目标关系类型
   "RelationType": ["单个", "与关系", "或关系"],
   // 基础配置
