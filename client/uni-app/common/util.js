@@ -34,10 +34,6 @@ function getCurrentUserToken() {
 	}
 }
 
-function updateDataFieldNV(table, sn, field, value, caller) {
-	updateDataField(table, sn, field, value, getCurrentUserToken(), caller)
-}
-
 /** 
  * 更改/更新表数据
  * @param table: 要更新数据的表格名
@@ -49,6 +45,7 @@ function updateDataFieldNV(table, sn, field, value, caller) {
  * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
  */
 function updateDataField(table, sn, field, value, verNum, caller, ...callbacks) {
+	console.log("请求更新表格数据，当前数据版本号：" + verNum)
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
@@ -62,7 +59,8 @@ function updateDataField(table, sn, field, value, verNum, caller, ...callbacks) 
 			}
 			else if (resultCode == msg.RESULT_OK) {
 				// 更新当前缓存版本号
-				caller.$store.state.verNum = res.data['data']
+				console.log("更新本地缓存中" + table + "表的版本号为" + res.data['verNum'])
+				caller.$store.state.verNum.set(table, res.data['verNum'])
 			}
 			
 			// 执行回调方法
@@ -79,8 +77,57 @@ function updateDataField(table, sn, field, value, verNum, caller, ...callbacks) 
 	});
 }
 
-/* 添加表数据 */
-function addDataField(table, keyValues, loadingInstance, caller) {
+/** 
+ * 更改/更新同一行表数据中的多个列
+ * @param table: 要更新数据的表格名
+ * @param sn: 要更新数据的sn（row）
+ * @param valueKeys: JSON格式的更新内容的封装，key为需要更新的列，value为具体更新的值
+ * @param verNum: 当前数据行的版本号
+ * @param callbacks: 加载表格数据后的回调方法（可选）
+ * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
+ */
+function updateMultipleDataInSameRow(table, sn, valueKeys, verNum, caller, ...callbacks) {
+	console.log("请求更新同一行表数据中的多个列，当前数据版本号：" + verNum)
+	uni.request({
+		url: msg.url(),
+		method: 'GET',
+		data: msg.update_multiple_data_in_same_row(getCurrentUserToken(), table, sn, valueKeys, verNum),
+		success: res => {
+			var resultCode = res.data['result']
+			var hint = res.data['hint']
+			
+			if (resultCode == msg.RESULT_FAILED) {
+				Vue.prototype.$message.error('更新失败！' + hint)
+			}
+			else if (resultCode == msg.RESULT_OK) {
+				// 更新当前缓存版本号
+				console.log("更新本地缓存中" + table + "表的版本号为" + res.data['data'])
+				caller.$store.state.verNum.set(table, res.data['data'])
+			}
+			
+			// 执行回调方法
+			if (callbacks != null && caller != null) {
+				for (let i = 0; i < callbacks.length; i++) {
+					callbacks[i].call(caller)
+				}
+			}
+		},
+		fail: () => {
+			let fields = JSON.parse(valueKeys).keys.join(',')
+			Vue.prototype.$message.error(table + '表' + sn + '行' + fields + '字段保存失败')
+		},
+		complete: () => {}
+	});
+}
+
+/** 
+ * 添加表数据
+ * @param table: 要添加数据的表格名
+ * @param keyValues: 添加数据的键值对
+ * @param caller: 方法调用者的实例（可选，但提供callback时一定要提供caller）
+ * @param callback: 加载表格数据后的回调方法（可选）
+ */
+function addDataField(table, keyValues, caller, callback) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
@@ -91,14 +138,10 @@ function addDataField(table, keyValues, loadingInstance, caller) {
 			var replyData = res.data['data']
 			
 			if (resultCode == msg.RESULT_OK) {
-				if (loadingInstance != null) {
-					loadingInstance.close()
-				}
-				
 				Vue.prototype.$message.success('新增任务记录成功')
 				
-				if (caller != null) {
-					caller.onAddTableData(replyData)
+				if (callback != null && caller != null) {
+					callback.call(caller)
 				}
 			}
 			else {
@@ -108,11 +151,7 @@ function addDataField(table, keyValues, loadingInstance, caller) {
 		fail: () => {
 			Vue.prototype.$message.error('向' + table + '表新增数据失败')
 		},
-		complete: () => { {
-			if (loadingInstance != null) {
-				loadingInstance.close()
-			}
-		}}
+		complete: () => {}
 	});
 }
 
@@ -288,10 +327,10 @@ module.exports = {
 	formatLocation: formatLocation,
 	dateUtils: dateUtils,
 	updateDataField: updateDataField,
-	updateDataFieldNV: updateDataFieldNV,
 	addDataField: addDataField,
 	getCurrentUserToken: getCurrentUserToken,
 	loadTableData: loadTableData,
 	isQuestDataExpired: isQuestDataExpired,
-	isConditionDataExpired: isConditionDataExpired
+	isConditionDataExpired: isConditionDataExpired,
+	updateMultipleDataInSameRow: updateMultipleDataInSameRow
 }
