@@ -31,7 +31,7 @@
 							</template>
 							<el-menu-item-group v-for="(subItem, subIndex) in items[index - 1].children">
 								<el-menu-item :index="String(index) + '.'+ String(subIndex + 1) + '.' + subItem['id']"
-								 @click="onItemClick">
+								 @click="onMenuItemClicked">
 									{{subItem['text']}}
 								</el-menu-item>
 							</el-menu-item-group>
@@ -80,23 +80,23 @@
 								v-bind:questTypes="questTypes" 
 								v-bind:allTableData="items"
 								v-bind:currTableName="currentTableName" 
-								v-if="hasSelectedRowData"/>
+								v-if="hasSelectedRowData && isQuestPropActivated"/>
 						</el-tab-pane>
 						<el-tab-pane :label='tabConfig[1].value' :name='tabConfig[1].key'>
 							<quest-acpt 
 								v-bind:tableRowData="currSelectedQuestData" 
 								v-bind:allTableData="items" 
-								v-if="hasSelectedRowData"/>
+								v-if="hasSelectedRowData && isQuestAcptActivated"/>
 						</el-tab-pane>
 						<el-tab-pane :label='tabConfig[2].value' :name='tabConfig[2].key'>
 							<quest-goal 
 								v-bind:tableRowData="currSelectedQuestData" 
-								v-if="hasSelectedRowData"/>
+								v-if="hasSelectedRowData && isQuestGoalActivated"/>
 							</el-tab-pane>
 						<el-tab-pane :label='tabConfig[3].value' :name='tabConfig[3].key'>
 							<quest-comp 
 								v-bind:tableRowData="currSelectedQuestData" 
-								v-if="hasSelectedRowData"/>
+								v-if="hasSelectedRowData && isQuestCompActivated"/>
 							</el-tab-pane>
 					</el-tabs>
 				</el-main>
@@ -147,6 +147,10 @@
 				hasSelectedRowData: false,
 				isSessionTimeout: false,
 				showAddQuestDialog: false,
+				isQuestPropActivated: true,
+				isQuestAcptActivated: false,
+				isQuestGoalActivated: false,
+				isQuestCompActivated: false,
 				
 				/* 全局变量 */
 				screenHeight: '',
@@ -177,44 +181,98 @@
 			
 			// 任务页签的配置
 			this.tabConfig = config.ExcelConfig()['QuestTab']
-			this.onLoadQuestBrief()
+			this.loadQuestBrief()
 		},
 		methods: {
-			handleOpen: function(key, keyPath) {
-			},
-			onTabClicked: function(currTab) {
-				switch(currTab.name) {
-					case this.tabConfig[0].key:						// 任务属性页
-						break;
-					case this.tabConfig[1].key:						// 任务接取页
-						break;
-					case this.tabConfig[2].key:						// 任务目标页
+			/* -------------------- 数据获取与初始化 -------------------- */
+			
+			// 获取所有的任务名称描述信息
+			loadQuestBrief: function(callback = null) {
+				uni.request({
+					url: msg.url(),
+					method: 'GET',
+					data: msg.get_all_quest_brief(util.getCurrentUserToken()),
+					success: res => {
+						this.items = res.data['data']
+						this.occupiedQuestSNs = []
+						this.questTypes = []
 						
-						break;
-					case this.tabConfig[3].key:						// 任务完成页
+						if (this.items == null) {
+							this.isSessionTimeout = true;
+							return;
+						}
 						
-						break;
-				}
+						// 根据ID对任务进行排序
+						for (let i = 0; i < this.items.length; i++) {
+							this.questTypes.push(this.items[i]['text'])
+							let children = this.items[i]['children']
+							children.sort(function(a, b) {
+								return a['id'] - b['id']
+							});
+							
+							let occupiedSN = {"type": this.items[i]['text'], 'sn': []}
+							for (let j = 0; j < this.items[i]['children'].length; j++) {
+								occupiedSN['sn'].push(this.items[i]['children'][j]['id'])
+							}
+							
+							this.occupiedQuestSNs.push(occupiedSN)
+						}
+						
+						this.activeTab = this.tabConfig[0].key
+						this.dataLoadComplete = true
+						
+						// 预处理操作，用于任务搜索
+						this.formatSearchOptions();
+						
+						// 执行回调方法
+						if (callback != null) {
+							callback()
+						}
+					}
+				});
 			},
-			handleSearchChanges: function(value) {
-				if (value.length >= 1) {
-					this.openSelectedMenu(value[0])
+			
+			// 构建任务菜单搜索栏的搜索选项
+			formatSearchOptions: function() {
+				// 初始化
+				this.navmenuSearchOptions = []
+				
+				if (this.items.length == 0) {
+					return
 				}
 				
-				if (value.length >= 2) {
-					this.$refs.menu.activeIndex = value[1]
-					this.triggerItemClick(value[1])
+				for (let i = 0; i < this.items.length; i++) {
+					let topLevelOption = {"value": '', "label": '', "children": []}
+					topLevelOption['value'] = String(i + 1)
+					topLevelOption['label'] = this.items[i]['text']
+					
+					for (let j = 0; j < this.items[i].children.length; j++) {
+						let lowLevelOption = {"value": '', "label": ''}
+						lowLevelOption['value'] = String(i + 1) + '.' + String(j + 1) + '.' + this.items[i].children[j]['id']
+						lowLevelOption['label'] = this.items[i].children[j]['text']
+						
+						topLevelOption['children'].push(lowLevelOption)
+					}
+					
+					if (topLevelOption['children'].length == 0) {
+						delete topLevelOption.children
+					}
+					
+					this.navmenuSearchOptions.push(topLevelOption)
 				}
 			},
-			onNavClick: function(index) {
-				this.mainActiveIndex = index;
-			},
-			onItemClick: function(e) {
+			
+			/* -------------------- 模拟点击相关 -------------------- */
+			
+			// 任务菜单栏项目被点击时的回调方法
+			onMenuItemClicked: function(e) {
 				this.triggerItemClick(e.index)
 			},
+			
+			// 模拟点击指定index对应的任务菜单项目
 			triggerItemClick: function(index, shouldPerformIndexCheck = false, callback = null, ...params) {
 				// 检测当前提供的index是否仍然存在
-				if (shouldPerformIndexCheck && !this.doesItemIndexValid(index)) {
+				if (shouldPerformIndexCheck && !this.isItemIndexValid(index)) {
 					// 如果不存在，默认打开第一个index对应的菜单项
 					index = "1.1." + this.items[0].children[0].id
 				}
@@ -267,91 +325,21 @@
 					}
 				});
 			},
-			onLoadQuestBrief: function(callback = null) {
-				uni.request({
-					url: msg.url(),
-					method: 'GET',
-					data: msg.get_all_quest_brief(util.getCurrentUserToken()),
-					success: res => {
-						this.items = res.data['data']
-						this.occupiedQuestSNs = []
-						this.questTypes = []
-						
-						if (this.items == null) {
-							this.isSessionTimeout = true;
-							return;
-						}
-						
-						// 排序
-						for (let i = 0; i < this.items.length; i++) {
-							this.questTypes.push(this.items[i]['text'])
-							let children = this.items[i]['children']
-							children.sort(function(a, b) {
-								return a['id'] - b['id']
-							});
-							
-							var occupiedSN = {"type": this.items[i]['text'], 'sn': []}
-							for (var j = 0; j < this.items[i]['children'].length; j++) {
-								occupiedSN['sn'].push(this.items[i]['children'][j]['id'])
-							}
-							
-							this.occupiedQuestSNs.push(occupiedSN)
-						}
-						
-						this.activeTab = this.tabConfig[0].key
-						this.dataLoadComplete = true
-						
-						// 预处理操作，用于任务搜索
-						this.formatSearchOptions();
-						
-						// 执行回调方法
-						if (callback != null) {
-							callback()
-						}
-					}
-				});
-			},
-			formatSearchOptions: function() {
-				// 初始化
-				this.navmenuSearchOptions = []
-				
-				if (this.items.length == 0) {
-					return
-				}
-				
-				for (var i = 0; i < this.items.length; i++) {
-					var topLevelOption = {"value": '', "label": '', "children": []}
-					topLevelOption['value'] = String(i + 1)
-					topLevelOption['label'] = this.items[i]['text']
-					
-					for (var j = 0; j < this.items[i].children.length; j++) {
-						var lowLevelOption = {"value": '', "label": ''}
-						lowLevelOption['value'] = String(i + 1) + '.' + String(j + 1) + '.' + this.items[i].children[j]['id']
-						lowLevelOption['label'] = this.items[i].children[j]['text']
-						
-						topLevelOption['children'].push(lowLevelOption)
-					}
-					
-					if (topLevelOption['children'].length == 0) {
-						delete topLevelOption.children
-					}
-					
-					this.navmenuSearchOptions.push(topLevelOption)
-				}
-			},
-			// 关闭之前展开的顶级菜单，并保留当前激活项目对应的顶级菜单
+			
+			// 模拟任务菜单中顶层菜单选项的点击事件
 			openSelectedMenu: function(activatedIndex) {
 				for (let i = 1; i <= this.items.length; i++) {
 					if (i != activatedIndex) {
-						this.$refs.menu.close(String(i))
+						this.$refs.menu.close(String(i))				// 关闭之前展开的顶级菜单
 					}
 					else {
-						this.$refs.menu.open(String(i))
+						this.$refs.menu.open(String(i))					// 保留当前激活项目对应的顶级菜单
 					}
 				}
 			},
-			// 检查提供的index是否仍存在（可能已被删除）
-			doesItemIndexValid: function(itemIndex) {
+			
+			// 在模拟任务菜单点击事件时，检查提供的index是否仍存在（可能已被删除）
+			isItemIndexValid: function(itemIndex) {
 				// 解析点击项ID
 				let splittedIndex = itemIndex.split('.')
 				let itemSn = splittedIndex[2]
@@ -367,31 +355,73 @@
 				
 				return false
 			},
+			
+			// 获取激活任务在任务菜单中的对应高度位置，可用于模拟点击事件
 			getScrollPosition: function(activatedIndex) {
 				// 每个主菜单项目的高度为56px
 				// 每个子菜单项目的高度为64px(50px height + 14px item_group_title height)
 				// 每页（对齐后）有11个子菜单项目，也即如果要保持激活菜单项在中间位置的话，其前面应该有4或5个菜单项
 				const topLevelItemHeight = 56
 				const subLevelItemHeight = 64
-				var splittedIndex = activatedIndex.split('.')
-				var scrollPos = Math.max(0, (splittedIndex[0]) * topLevelItemHeight + (splittedIndex[1] - 1) * subLevelItemHeight - 4 * subLevelItemHeight)
+				let splittedIndex = activatedIndex.split('.')
+				let scrollPos = Math.max(0, (splittedIndex[0]) * topLevelItemHeight + (splittedIndex[1] - 1) * subLevelItemHeight - 4 * subLevelItemHeight)
 				return scrollPos
 			},
+			
+			// 通过当前已有的最大任务ID，获取下一个可用的任务ID（用于新建任务）
 			generateNextQuestID: function(questIndex) {
 				// 获取当前最大的任务ID
-				var occupiedIDbyQuest = this.occupiedQuestSNs[0]['sn']
-				var maxSn = parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1])
+				let occupiedIDbyQuest = this.occupiedQuestSNs[0]['sn']
+				let maxSn = parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1])
 				
-				for (var i = 1; i < this.questTypes.length; i++) {
+				for (let i = 1; i < this.questTypes.length; i++) {
 					occupiedIDbyQuest = this.occupiedQuestSNs[i]['sn']
 					maxSn = Math.max(maxSn, occupiedIDbyQuest.length == 0 ? 0 : parseInt(occupiedIDbyQuest[occupiedIDbyQuest.length - 1]))
 				}
 				
 				this.inputAddQuestSN = maxSn + 1
 			},
+			
+			/* -------------------- 事件监听方法 -------------------- */
+			
+			// 任务菜单中菜单项目被展开触发的事件
+			handleOpen: function(key, keyPath) {
+			},
+			
+			// Lazy-instantiation: 再点击对应Tab后再进行相应Tab的初始化
+			onTabClicked: function(currTab) {
+				switch(currTab.name) {
+					case this.tabConfig[0].key:						// 任务属性页
+						this.isQuestPropActivated = true
+						break;
+					case this.tabConfig[1].key:						// 任务接取页
+						this.isQuestAcptActivated = true
+						break;
+					case this.tabConfig[2].key:						// 任务目标页
+						this.isQuestGoalActivated = true
+						break;
+					case this.tabConfig[3].key:						// 任务完成页
+						this.isQuestCompActivated = true
+						break;
+				}
+			},
+			
+			// 任务菜单搜索栏内容改变时的触发事件
+			handleSearchChanges: function(value) {
+				if (value.length >= 1) {								// 展开菜单
+					this.openSelectedMenu(value[0])
+				}
+				
+				if (value.length >= 2) {								// 点击菜单项目
+					this.$refs.menu.activeIndex = value[1]
+					this.triggerItemClick(value[1])
+				}
+			},
+			
+			// 点击悬浮按钮【刷新】的触发事件
 			onRefreshBtnClicked: function() {
-				var cachedActivatedTab = this.activeTab
-				this.onLoadQuestBrief(() => {
+				let cachedActivatedTab = this.activeTab
+				this.loadQuestBrief(() => {
 					util.isQuestDataExpired = true
 					// 刷新当前选择的记录的内容以及版本号
 					this.triggerItemClick(this.currentActivatedIndex, true, (previousActiveTab) => {
@@ -401,6 +431,8 @@
 					}, cachedActivatedTab)
 				})
 			},
+			
+			// 点击悬浮按钮【提交至SVN】的触发事件
 			onSubmitToSVNBtnClicked: function() {
 				this.$confirm('确定提交更改至SVN吗？', '操作确认', {
 					confirmButtonText: '确定',
@@ -421,13 +453,17 @@
 				}).catch(() => { 
 				});
 			},
+			
+			// 点击悬浮按钮【新增任务】的触发事件
 			onAddQuestButtonClicked: function() {
 				this.showAddQuestDialog = true
 				this.resetAddQuestForm()
 			},
+			
+			// 在【新建任务】弹窗中更改任务ID的触发事件（需要检查ID是否被占用）
 			onAddQuestIDUpdated: function() {
 				// 检查输入的任务ID是否合法
-				for (var i = 0; i < this.questTypes.length; i++) {
+				for (let i = 0; i < this.questTypes.length; i++) {
 					if (this.occupiedQuestSNs[i]['sn'].indexOf(this.inputAddQuestSN) > -1) {
 						this.isAddQuestSNValid = false
 						return
@@ -435,9 +471,13 @@
 				}
 				this.isAddQuestSNValid = true
 			},
+			
+			// 在【新建任务】弹窗中切换任务类型的触发事件（考虑到不同任务类型可能对SN有要求，当前暂时不需要）
 			onAddQuestTypeChanged: function() {
 				// this.isAddQuestSNValid = (this.occupiedQuestSNs[this.selectedAddQuestType]['sn'].indexOf(this.inputAddQuestSN) == -1)
 			},
+			
+			// 点击【新建任务】弹窗中的【重置】按钮的触发事件
 			resetAddQuestForm: function() {
 				// 设置默认新增的任务类型
 				this.selectedAddQuestType = 0
@@ -448,9 +488,12 @@
 				// 清空描述域
 				this.inputAddQuestName = ''
 			},
+			
+			// 点击【新建任务】弹窗中的【确认】按钮的事件
 			submitAddQuestForm: function() {
 				// 检查数据
-				var errorMsg = ''
+				let errorMsg = ''
+				
 				if (this.selectedAddQuestType > 3 || this.selectedAddQuestType < 0) {
 					errorMsg = '请检查选择的任务类型'
 				}
@@ -478,23 +521,26 @@
 						 background: 'rgba(0, 0, 0, 0.7)'
 					 })
 					 
-					// 提交表单
-					var addKeyValues = "\{\"questType\":" + parseInt(this.selectedAddQuestType + 1) 
-										+ ",\"questName\":\"" + this.inputAddQuestName 
-										+ "\",\"sn\":" + this.inputAddQuestSN + "\}"
+					// 提交表单		
+					let addKeyValues = {
+						questType: parseInt(this.selectedAddQuestType + 1),
+						questName: this.inputAddQuestName,
+						sn: this.inputAddQuestSN
+					}
 										
 					util.addDataField(this.currentTableName, addKeyValues, this, this.onFinishedAddingQuest)
 				}
 			},
-			onFinishedAddingQuest: function() {
+			
+			// 新增任务后的回调方法
+			onFinishedAddingQuest: function(replyData) {
 				this.loadingInstance.close()
-			},
-			onAddTableData: function(replyData) {
+				
 				// 隐藏弹窗
 				this.showAddQuestDialog = false
 				
 				// 刷新页面
-				this.onLoadQuestBrief(() => {
+				this.loadQuestBrief(() => {
 					// 计算当前加入的任务在菜单中对应的index
 					let json = JSON.parse(replyData)
 					let questSn = json['sn']
@@ -508,7 +554,6 @@
 					
 					// 触发任务点击事件
 					this.triggerItemClick(index)
-					
 				})
 			}
 		}
