@@ -9,6 +9,7 @@ import com.abc.editorserver.module.excel.DeleteMultipleTableDataBySnAction;
 import com.abc.editorserver.module.excel.DeleteTableDataBySnAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
 import com.abc.editorserver.module.excel.GetTableStatusAction;
+import com.abc.editorserver.module.excel.GetVersionNumberBySnAction;
 import com.abc.editorserver.module.excel.SubmitToSVNAction;
 import com.abc.editorserver.module.excel.UpdateMultipleDataInSameColumnAction;
 import com.abc.editorserver.module.excel.UpdateMultipleDataInSameRowAction;
@@ -43,10 +44,11 @@ public enum GameActionsJson {
 	GetTableStatusAction("获取表格操作状态", 10, GetTableStatusAction.class),
 	SubmitToSVNAction("更新改动至SVN", 11, SubmitToSVNAction.class),
 	GetConditionInfoAction("获取任务条件数据", 12, GetConditionInfoAction.class),
-	UpdateMultipleTableDataAction("更新整条数据表数据", 13, UpdateMultipleDataInSameRowAction.class),
+	UpdateMultipleDataInSameRowAction("更新整条数据表数据", 13, UpdateMultipleDataInSameRowAction.class),
 	DeleteTableDataBySnAction("删除某条数据表数据", 14, DeleteTableDataBySnAction.class),
 	DeleteMultipleTableDataBySnAction("批量删除多条数据表数据", 15, DeleteMultipleTableDataBySnAction.class),
-	UpdateMultipleDataInSameColumnAction("批量更新同一列下的多行数据", 16, UpdateMultipleDataInSameColumnAction.class)
+	UpdateMultipleDataInSameColumnAction("批量更新同一列下的多行数据", 16, UpdateMultipleDataInSameColumnAction.class),
+	GetVersionNumberBySnAction("获取某条数据的最新版本号", 17, GetVersionNumberBySnAction.class)
 	;
 	
 	/**
