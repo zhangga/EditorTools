@@ -46,7 +46,7 @@ public class UpdateTableDataAction extends GameActionJson {
 
         replyMsg.put("result", EditorConst.RESULT_OK);
         replyMsg.put("hint", "更新成功");
-        replyMsg.put("data", Long.toString(ret));
+        replyMsg.put("verNum", Long.toString(ret));
         sendMsg(request.ctx, replyMsg);
     }
 
