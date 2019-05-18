@@ -73,8 +73,8 @@
 				<el-button type='primary' round class="float_submit" icon="el-icon-upload" @click="onSubmitToSVNBtnClicked">提交至SVN</el-button>
 				
 				<el-main>
-					<el-tabs v-model="activeTab" value="activeTab" class="quest-details">
-						<el-tab-pane :label='tabConfig[0]' :name='tabConfig[0]'>
+					<el-tabs v-model="activeTab" value="activeTab" class="quest-details" @tab-click="onTabClicked">
+						<el-tab-pane :label='tabConfig[0].value' :name='tabConfig[0].key'>
 							<quest-prop 
 								v-bind:tableRowData="currSelectedQuestData" 
 								v-bind:questTypes="questTypes" 
@@ -82,14 +82,21 @@
 								v-bind:currTableName="currentTableName" 
 								v-if="hasSelectedRowData"/>
 						</el-tab-pane>
-						<el-tab-pane :label='tabConfig[1]' :name='tabConfig[1]'>
-							<quest-acpt v-bind:tableRowData="currSelectedQuestData" v-bind:allTableData="items" v-if="hasSelectedRowData"/>
+						<el-tab-pane :label='tabConfig[1].value' :name='tabConfig[1].key'>
+							<quest-acpt 
+								v-bind:tableRowData="currSelectedQuestData" 
+								v-bind:allTableData="items" 
+								v-if="hasSelectedRowData"/>
 						</el-tab-pane>
-						<el-tab-pane :label='tabConfig[2]' :name='tabConfig[2]'>
-							<quest-goal v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+						<el-tab-pane :label='tabConfig[2].value' :name='tabConfig[2].key'>
+							<quest-goal 
+								v-bind:tableRowData="currSelectedQuestData" 
+								v-if="hasSelectedRowData"/>
 							</el-tab-pane>
-						<el-tab-pane :label='tabConfig[3]' :name='tabConfig[3]'>
-							<quest-comp v-bind:tableRowData="currSelectedQuestData" v-if="hasSelectedRowData"/>
+						<el-tab-pane :label='tabConfig[3].value' :name='tabConfig[3].key'>
+							<quest-comp 
+								v-bind:tableRowData="currSelectedQuestData" 
+								v-if="hasSelectedRowData"/>
 							</el-tab-pane>
 					</el-tabs>
 				</el-main>
@@ -130,8 +137,6 @@
 				isAddQuestSNValid: true,
 				
 				/* 状态描述用 */
-				currentTableName: '',
-				screenHeight: '',
 				dataLoadComplete: false,
 				activeSn: 0,
 				activeTab: 0,
@@ -141,7 +146,12 @@
 				searchedMenuItem: null,
 				hasSelectedRowData: false,
 				isSessionTimeout: false,
-				showAddQuestDialog: false
+				showAddQuestDialog: false,
+				
+				/* 全局变量 */
+				screenHeight: '',
+				currentTableName: '',
+				loadingInstance: null,					// 加载中（loading）动画实例
 			};
 		},
 		computed: {
@@ -171,6 +181,20 @@
 		},
 		methods: {
 			handleOpen: function(key, keyPath) {
+			},
+			onTabClicked: function(currTab) {
+				switch(currTab.name) {
+					case this.tabConfig[0].key:						// 任务属性页
+						break;
+					case this.tabConfig[1].key:						// 任务接取页
+						break;
+					case this.tabConfig[2].key:						// 任务目标页
+						
+						break;
+					case this.tabConfig[3].key:						// 任务完成页
+						
+						break;
+				}
 			},
 			handleSearchChanges: function(value) {
 				if (value.length >= 1) {
@@ -223,7 +247,7 @@
 						});
 						
 						// 更新版本号缓存信息
-						this.$store.state.verNum = this.currSelectedQuestData['verNum']
+						this.$store.state.verNum.set(this.currentTableName, this.currSelectedQuestData['verNum'])
 						
 						// 执行回调方法
 						if (callback != null) {
@@ -274,7 +298,7 @@
 							this.occupiedQuestSNs.push(occupiedSN)
 						}
 						
-						this.activeTab = this.tabConfig[0]
+						this.activeTab = this.tabConfig[0].key
 						this.dataLoadComplete = true
 						
 						// 预处理操作，用于任务搜索
@@ -447,7 +471,7 @@
 				}
 				else {
 					// 显示loading界面
-					 let loadingInstance = this.$loading({
+					 this.loadingInstance = this.$loading({
 						 lock: true,
 						 text: "新增记录中...",
 						 spinner: 'el-icon-loading',
@@ -459,8 +483,11 @@
 										+ ",\"questName\":\"" + this.inputAddQuestName 
 										+ "\",\"sn\":" + this.inputAddQuestSN + "\}"
 										
-					util.addDataField(this.currentTableName, addKeyValues, loadingInstance, this)
+					util.addDataField(this.currentTableName, addKeyValues, this, this.onFinishedAddingQuest)
 				}
+			},
+			onFinishedAddingQuest: function() {
+				this.loadingInstance.close()
 			},
 			onAddTableData: function(replyData) {
 				// 隐藏弹窗

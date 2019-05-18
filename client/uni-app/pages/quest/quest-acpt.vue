@@ -208,8 +208,8 @@
 								</el-form-item>
 							</el-col>
 							<el-col :span="10">
-								<el-form-item label="策划备注">
-									<el-input placeholder="备注" v-model="conditionObject.comment" @change="onUpdateConditionComment"></el-input>
+								<el-form-item label="备注">
+									<el-input placeholder="备注" v-model="conditionObject.comment" @change="onUpdateConditionComment" :disabled="!hasValidCondition"></el-input>
 								</el-form-item>
 							</el-col>
 						</el-row>
@@ -217,14 +217,14 @@
 						<el-row>
 							<el-col :span="10">
 								<el-form-item label="组合类型">
-									<el-select v-model="conditionObject.combinationType" @change="onUpdateCombinationType">
+									<el-select v-model="conditionObject.combinationType" @change="onUpdateCombinationType" :disabled="!hasValidCondition">
 										<el-option v-for="type in combinationTypes" :value="type.key" :label="type.value" :key="type.key"></el-option>
 									</el-select>
 								</el-form-item>
 							</el-col>
 							<el-col :span="10">
 								<el-form-item label="关系类型">
-									<el-select v-model="conditionObject.relationType" @change="onUpdateRelationType">
+									<el-select v-model="conditionObject.relationType" @change="onUpdateRelationType" :disabled="!hasValidCondition">
 										<el-option v-for="(type, index) in relationTypes" :value="index" :label="type" :key="index"></el-option>
 									</el-select>
 								</el-form-item>
@@ -664,6 +664,7 @@
 				currFocusedConditionType: '',
 				shouldReloadCondition: false,
 				showDeleteConditionTypeButtons: false,
+				hasValidCondition: false,								// 标识当前的条件ID是否合法（不为0或者为空）
 			};
 		},
 		props: ['tableRowData', 'allTableData'],
@@ -684,7 +685,7 @@
 			this.refreshDefaultValues()
 			this.loadNPC()
 			this.loadPlot()
-			this.loadCondition(false)
+			this.loadCondition()
 			this.loadItem()
 			this.loadAction()
 			this.loadSex()
@@ -692,6 +693,9 @@
 			this.loadConditionInfo()
 		},
 		updated() {
+			// 更新条件ID合法标识
+			this.hasValidCondition = (this.conditionObject.id != null && this.conditionObject.id != '0')
+			
 			// 如果是用户输入触发的更新，不刷新默认值
 			if (this.hasSetDefaultValue) {
 				// 如果是由于切换任务导致的更新，刷新默认值
@@ -702,6 +706,28 @@
 					}
 					this.refreshDefaultValues()
 					this.prevTableRowData = this.tableRowData
+					
+					// 数据刷新后需要重新检测是否有合法的Condition ID
+					this.hasValidCondition = (this.conditionObject.id != null && this.conditionObject.id != '0')
+					
+					// 由于任务接取页面涉及到对Condition表的操作
+					// 切换页面时需要获取新记录【条件ID】对应Condition记录的版本号（VerNum）
+					if (this.hasValidCondition) {
+						uni.request({
+							url: msg.url(),
+							method: 'GET',
+							data: msg.get_version_number_by_sn(util.getCurrentUserToken(), 'CONDITION', this.conditionObject.id.split(':')[0] ),
+							success: res => {
+								this.$store.state.verNum.set('CONDITION', res.data.verNum)
+							},
+							fail: () => {
+								this.$store.state.verNum.set('CONDITION', 'ignore')
+							},
+							complete: () => {
+								console.log('获取CONDITION中记录为' + this.conditionObject.id.split(':')[0] + '的版本号为' + this.$store.state.verNum.get('CONDITION'))
+							}
+						})
+					}
 				}
 			}
 		},
@@ -869,6 +895,7 @@
 					for (let i = 0; i < this.Condition.length; i++) {
 						if (this.Condition[i].key == currID) {
 							this.Condition[i].value.comment = updatedComment
+							break
 						}
 					}
 										
@@ -877,7 +904,7 @@
 					this.hasSetConditionRelatedDefaultValues = false
 					
 					// TODO: Condition表格暂时没有版本号
-					util.updateDataField('CONDITION', currID, 'comment', updatedComment, "ignore", this, this.loadCondition)
+					util.updateDataField('CONDITION', currID, 'comment', updatedComment, this.$store.state.verNum.get('CONDITION'), this, this.loadCondition)
 				}
 			},
 			// 更新【类型】表单项内容时触发的事件
@@ -897,11 +924,11 @@
 					for (let i = 0; i < this.Condition.length; i++) {
 						if (this.Condition[i].key == currID) {
 							this.Condition[i].value.relationType = updatedRelationType
+							break
 						}
 					}
 					
-					// TODO: Condition表格暂时没有版本号
-					util.updateDataField('CONDITION', currID, 'relationType', updatedRelationType, "ignore", this)
+					util.updateDataField('CONDITION', currID, 'relationType', updatedRelationType, this.$store.state.verNum.get('CONDITION'), this)
 				}
 			},
 			// 更新【组合类型】表单项内容时触发的事件
@@ -916,6 +943,7 @@
 					for (let i = 0; i < this.Condition.length; i++) {
 						if (this.Condition[i].key == currID) {
 							this.Condition[i].value.combinationType = updatedCombinationType
+							break
 						}
 					}
 					
@@ -930,7 +958,7 @@
 				
 				if (this.tableRowData['sn'] != null) {
 					// 更新数据后执行回调方法，刷新缓存数据
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'condition', updatedValue, this.$store.state.verNum, 
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'condition', updatedValue, this.$store.state.verNum.get('QUEST'), 
 						this, this.refreshDefaultValues)
 				}
 			},
@@ -946,6 +974,7 @@
 					for (let i = 0; i < this.Condition.length; i++) {
 						if (this.Condition[i].key == currID) {
 							this.Condition[i].value.condList = updatedCondList
+							break
 						}
 					}
 					
@@ -969,6 +998,7 @@
 					for (let i = 0; i < this.Condition.length; i++) {
 						if (this.Condition[i].key == currID) {
 							this.Condition[i].value.params = updatedParams
+							break
 						}
 					}
 					
@@ -1031,9 +1061,9 @@
 						}
 					}
 					
-					// 持久化操作 (TODO: Condition表格暂时没有版本号)
-					util.updateDataField('CONDITION', currID, 'condList', prevCondList.join(','), 'ignore', this)
-					util.updateDataField('CONDITION', currID, 'params', prevParams.join(';'), 'ignore', this)
+					// 持久化操作
+					util.updateDataField('CONDITION', currID, 'condList', prevCondList.join(','), this.$store.state.verNum.get('CONDITION'), this)
+					util.updateDataField('CONDITION', currID, 'params', prevParams.join(';'), this.$store.state.verNum.get('CONDITION'), this)
 					
 					// 刷新页面以使删除生效
 					this.refreshDefaultValues()
@@ -1053,49 +1083,51 @@
 			onSetStartNPC: function(item) {
 				this.startNpc = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptNPC', this.startNpc.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptNPC', this.startNpc.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetEndNPC: function(item) {
 				this.endNpc = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'endNPC', this.endNpc.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'endNPC', this.endNpc.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetBeforeAcceptPlot: function(item) {
 				this.beforeAcceptPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'beforeAcceptPlotId', this.beforeAcceptPlot.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'beforeAcceptPlotId', this.beforeAcceptPlot.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetAfterAcceptPlot: function(item) {
 				this.afterAcceptPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterAcceptPlotId',this.afterAcceptPlot.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetBeforeEndPlot: function(item) {
 				this.beforeEndPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'beforeEndPlotId',this.beforeEndPlot.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetAfterEndPlot: function(item) {
 				this.afterEndPlot = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetFailCond: function(item) {
 				this.failCond = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'failCond', this.failCond.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'failCond', this.failCond.split(':')[0], 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetAcceptItem: function(item) {
 				this.acceptItem = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptItem', this.acceptItem.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptItem', this.acceptItem.split(':')[0], 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onAddAcceptAct: function(row) {
@@ -1111,27 +1143,32 @@
 			},
 			onSetAcceptAct: function(item) {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptAct', this.acceptAct, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'acceptAct', this.acceptAct, 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetShowAcceptedEffect: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'showAcceptedEffect', this.showAcceptedEffect ? '1' : '0', this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'showAcceptedEffect', this.showAcceptedEffect ? '1' : '0', 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetShowFinishedEffect: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'showFinishedEffect', this.showFinishedEffect ? '1' : '0', this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'showFinishedEffect', this.showFinishedEffect ? '1' : '0', 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetCanGiveUp: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'canGiveUp', this.canGiveUp ? 'TRUE' : 'FALSE', this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'canGiveUp', this.canGiveUp ? 'TRUE' : 'FALSE', 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			onSetShowInAcceptableList: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'showInAcceptableList', this.showInAcceptableList ? 'TRUE' : 'FALSE', this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'showInAcceptableList', this.showInAcceptableList ? 'TRUE' : 'FALSE', 
+						this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 

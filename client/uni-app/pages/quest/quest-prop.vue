@@ -403,21 +403,21 @@
 					case 'connectedTrackingAction':
 					case 'finishedTrackingDesc':
 						console.log("向" + currItem + "提交值：" + updatedValue)
-						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, updatedValue, this.$store.state.verNum, this)
+						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, updatedValue, this.$store.state.verNum.get(this.currTableName), this)
 						break
 					case 'questType':
 						console.log("向" + currItem + "提交值：" + parseInt(this.questTypes.indexOf(updatedValue) + 1))
-						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, parseInt(this.questTypes.indexOf(updatedValue) + 1), this.$store.state.verNum, this)
+						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, parseInt(this.questTypes.indexOf(updatedValue) + 1), this.$store.state.verNum.get(this.currTableName), this)
 						break
 					case 'hidden':
 					case 'repeatable':
 					case 'autoSmoothCamera':
 						console.log("向" + currItem + "提交值：" + (updatedValue ? "TRUE" : "FALSE"))
-						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "TRUE" : "FALSE"), this.$store.state.verNum, this)
+						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "TRUE" : "FALSE"), this.$store.state.verNum.get(this.currTableName), this)
 						break
 					case 'acceptMirrorSceneID':
 						console.log("向" + currItem + "提交值：" + (updatedValue ? "1" : "0"))
-						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "1" : "0"), this.$store.state.verNum, this)
+						util.updateDataField(this.currTableName, this.tableRowData['sn'], currItem, (updatedValue ? "1" : "0"), this.$store.state.verNum.get(this.currTableName), this)
 						break
 				}
 			},
@@ -442,30 +442,30 @@
 			// popover类型的输入框内容更新事件处理
 			onSubmitFixedNavPath: function(updatedValue) {
 				console.log("向fixedNavPath提交值：" + updatedValue)
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'fixedNavPath', updatedValue, this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'fixedNavPath', updatedValue, this.$store.state.verNum.get(this.currTableName), this)
 			},
 			
 			// el-input-number类型的组件较为特殊，原生的click方法会在@change方法之后被调用，导致方法的执行顺序出错
 			onUpdateTeamMembers: function(updatedValue) {
 				console.log("向teamMembers提交值：" + updatedValue)
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'teamMembers', updatedValue, this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'teamMembers', updatedValue, this.$store.state.verNum.get(this.currTableName), this)
 			},
 			
 			// TextInput类型表单组件的事件
 			onSelectPostId: function(item) {
 				this.selectedPostID = item.value
 				console.log("向postID提交值：" + this.selectedPostID.split(':')[0])
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'postId', this.selectedPostID.split(':')[0], this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'postId', this.selectedPostID.split(':')[0], this.$store.state.verNum.get(this.currTableName), this)
 			},
 			onSelectBanQuestId: function(item) {
 				this.selectedBanQuestID = item.value
 				console.log("向banQuestID提交值：" + this.selectedBanQuestID.split(':')[0])
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'banQuestId', this.selectedBanQuestID.split(':')[0], this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'banQuestId', this.selectedBanQuestID.split(':')[0], this.$store.state.verNum.get(this.currTableName), this)
 			},
 			onSelectBanPlotId: function(item) {
 				this.selectedBanPlotID = item.value
 				console.log("向banPlotID提交值：" + this.selectedBanPlotID.split(':')[0])
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'banPlotId', this.selectedBanPlotID.split(':')[0], this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'banPlotId', this.selectedBanPlotID.split(':')[0], this.$store.state.verNum.get(this.currTableName), this)
 			},
 			onSelectNavVisStatus: function(item) {
 				console.log(item)
@@ -477,7 +477,7 @@
 				
 				this.selectedNavVisStatus = item.value
 				console.log("向navVisStatus提交值：" + value)
-				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'navVisStatus', value, this.$store.state.verNum, this)
+				util.updateDataField(this.currTableName, this.tableRowData['sn'], 'navVisStatus', value, this.$store.state.verNum.get(this.currTableName), this)
 			},
 			
 			// 点击弹窗中的提交按钮后的响应事件

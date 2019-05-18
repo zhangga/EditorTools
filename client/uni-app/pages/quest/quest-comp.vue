@@ -5,7 +5,7 @@
 				<span class="header">常规奖励</span>
 			</view>
 			
-			<el-form ref="form" label-width="40upx">
+			<el-form ref="form" label-width="35upx">
 				<el-form-item label="任务奖励">
 					<textInput :datas="DropGroup" placeholder='任务奖励' :method='loadDropGroup' :select="setQuestReward" :value='questReward' id='questReward'>
 					</textInput>
@@ -232,33 +232,33 @@
 			setQuestReward: function(item) {
 				this.questReward = item.value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'questReward', this.questReward.split(':')[0], this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'questReward', this.questReward.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			setSubmitAct: function(value) {
 				console.log(value)
 				this.submitAct = value
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'submitAct', this.submitAct, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'submitAct', this.submitAct, this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			setBind: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'bind', this.bind.toString().toUpperCase(), this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'bind', this.bind.toString().toUpperCase(), this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			setExp: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'],'exp', this.exp, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'],'exp', this.exp, this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			setTimeLimit: function() {
 				if (this.tableRowData['sn'] != null) {
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'timeLimit', this.timeLimit, this.$store.state.verNum, this)
+					util.updateDataField('QUEST', this.tableRowData['sn'], 'timeLimit', this.timeLimit, this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
 			setAutoDeliver: function() {
-				util.updateDataField('QUEST', this.tableRowData['sn'], 'canAutomaticDeliver',this.canAutomaticDeliver ? "TRUE" : "FALSE", this.$store.state.verNum, this)
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'canAutomaticDeliver',this.canAutomaticDeliver ? "TRUE" : "FALSE", this.$store.state.verNum.get('QUEST'), this)
 			},
 			setShowTimeLimit: function() {},
 			onSelect: function() {},
@@ -302,7 +302,7 @@
 			},
 			onSubmitTransModified: function() {
 				console.log("向submitTrans" + "提交值：" + this.inputSubmitTrans)
-				util.updateDataField('QUEST', this.tableRowData['sn'], 'submitTrans', this.inputSubmitTrans, this.$store.state.verNum, this)
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'submitTrans', this.inputSubmitTrans, this.$store.state.verNum.get('QUEST'), this)
 			}
 		},
 		components:{
@@ -324,6 +324,6 @@
 	
 	.clearfix {
 		  font-size: 10upx;
-		  font-weight: bold
+		  font-weight: bold;
 	}
 </style>
