@@ -157,10 +157,9 @@
 					success: res => {
 						/// 考虑用户Session超时的情况
 						if (res.data['ret'] == false) {
-							this.$message({
-								showClose: true,
-								message: "获取下载链接失败，请重试！",
-								type: 'error'
+							this.$notify.error({
+								title: '下载失败',
+								message: "获取下载链接失败，请重试"
 							});
 						}
 						else {
@@ -168,10 +167,9 @@
 						}
 					},
 					fail: () => {
-						this.$message({
-							showClose: true,
-							message: "获取下载链接失败，请重试！",
-							type: 'error'
+						this.$notify.error({
+							title: '下载失败',
+							message: "获取下载链接超时，请重试"
 						});
 					},
 					complete: () => {}
@@ -194,16 +192,12 @@
 				})
 			},
 			refreshTableData: function(tableName) {
-				const loading = this.$loading({
+				let loading = this.$loading({
 					lock: true,
 					text: '更新中...',
 					spinner: 'el-icon-loading',
 					background: 'rgba(0, 0, 0, 0.7)'
 				})
-				
-				setTimeout(() => {
-					loading.close()
-				}, 2000)
 				
 				uni.request({
 					url: msg.url(),
@@ -211,24 +205,27 @@
 					data: msg.update_table_data_from_svn(util.getCurrentUserToken()),
 					success: res => {
 						var result = res.data['result'];
-						loading.close()
 						if (result == 1) {
-							this.$message({
-								message: '更新成功！',
-								type: 'success'
+							this.$notify.success({
+								title: '更新成功',
+								message: '更新成功'
 							})
 						}
 						else {
-							this.$alert('原因：' + res.data['desc'], '更新失败', {
-								confirmButtonText: '确认',
-							});
+							this.$notify.error({
+								title: '更新失败',
+								message: '原因：' + res.data['desc']
+							})
 						}
 					},
 					fail: res => {
+						this.$notify.error({
+							title: '更新失败',
+							message: '操作超时，更新失败'
+						})
+					},
+					complete: () => {
 						loading.close()
-						this.$alert('操作超时，更新失败！', '更新失败', {
-							confirmButtonText: '确认',
-						});
 					}
 				});
 			}

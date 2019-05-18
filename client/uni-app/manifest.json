@@ -68,5 +68,8 @@
             "base" : "/h5/"
         },
         "domain" : "www.xiaoxiongbaby.com"
-    }
+    },
+	"networkTimeout" : {
+		"request": 12000
+	}
 }
