@@ -277,7 +277,7 @@
 				/* 数据结构 */
 				questGoalObject: {									// 任务目标数据对象
 					sn: '',
-					desc: '没有任务目标！',
+					desc: '',
 					condList: [],
 					params: [],
 					targetPos: [],
@@ -404,9 +404,19 @@
 				// 清空缓存
 				this.subGoals = []
 				
+				// 考虑数据尚未初始化完毕的情况
+				if (questGoalDetails == this.tableRowData['goal']) {
+					console.log("FAILED TO REFRESH")
+					return
+				} else {
+					this.questGoalObject.condList = questGoalDetails.condList.split(',')
+				}
+				
 				if (questGoalDetails.combinationType == '2') {					// 如果【组合类型】为【复合目标】
 					// 初始化子任务目标
 					for (let i = 0; i < this.questGoalObject.condList.length; i++) {
+						console.log("REFRESH VALUES FOR COMPOSITE GOAL TYPE")
+						
 						let currQuestGoalObject = {}
 						let currQuestGoalSn = this.questGoalObject.condList[i]
 						let currQuestGoalDetails = this.findQuestGoal(currQuestGoalSn)
@@ -429,12 +439,14 @@
 					let isQuestGoalValid = (questGoalDetails != currQuestGoalSn)
 					
 					this.questGoalObject.desc = isQuestGoalValid ? questGoalDetails.desc : ''
-					this.questGoalObject.condList = isQuestGoalValid ? questGoalDetails.condList.split(',') : []
+					
 					this.questGoalObject.combinationType = isQuestGoalValid ? this.findCombinationType(questGoalDetails.combinationType) : ''
 					this.questGoalObject.relationType = isQuestGoalValid ? this.findRelationType(questGoalDetails.relationType) : ''
 					
 					this.strCondList = questGoalDetails.condList
 				} else {														// 如果【组合类型】为【基础目标】
+					console.log("REFRESH VALUES FOR BASIC GOAL TYPE")
+
 					let currQuestGoalSn = this.tableRowData['goal']
 					let currQuestGoalDetails = this.findQuestGoal(currQuestGoalSn)
 					let isQuestGoalValid = (currQuestGoalDetails != currQuestGoalSn)
