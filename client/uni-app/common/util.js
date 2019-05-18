@@ -131,7 +131,7 @@ function addDataField(table, keyValues, caller, callback) {
 	uni.request({
 		url: msg.url(),
 		method: 'GET',
-		data: msg.add_table_data(getCurrentUserToken(), table, keyValues),
+		data: msg.add_table_data(getCurrentUserToken(), table, JSON.stringify(keyValues)),
 		success: res => {
 			var resultCode = res.data['result']
 			var hint = res.data['hint']
@@ -141,7 +141,7 @@ function addDataField(table, keyValues, caller, callback) {
 				Vue.prototype.$message.success('新增任务记录成功')
 				
 				if (callback != null && caller != null) {
-					callback.call(caller)
+					callback.call(caller, replyData)
 				}
 			}
 			else {
