@@ -167,6 +167,30 @@
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Skill.xlsm",
+      // sheet名
+      "sheet": "技能效果|HitEffect",
+      // Redis hash的表名
+      "redis_table": "HITEFFECT",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
+    },
+    {
+      // excel表名
+      "excel": "Skill.xlsm",
+      // sheet名
+      "sheet": "效果|Effect",
+      // Redis hash的表名
+      "redis_table": "EFFECT",
+      // Redis hash的key值
+      "redis_key": "sn",
+      // 点击跳转的导航页
+      "navigateTo": "../table/table"
     }
   ],
   "triggers": [
