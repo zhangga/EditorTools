@@ -153,10 +153,10 @@
 						<rainbow-divider class="divider" style="margin-top: 2upx"></rainbow-divider>
 					</el-form>
 					
-					<el-form v-for="(cond, condIndex) in goal.condList" v-bind:key="condIndex" label-width="40upx">
+					<el-form v-for="(cond, condIndex) in goal.condList" v-bind:key="condIndex" label-width="35upx">
 						<el-row>
 							<!-- 【目标类型】表单项 -->
-							<el-col :span="6">
+							<el-col :span="8">
 								<el-form-item label="目标类型">
 									<el-autocomplete placeholder="请输入目标类型" v-model="goal.condList[condIndex]"
 										:fetch-suggestions="queryQuestGoalType"  @select="onSelectQuestGoalType($event, goalIndex, condIndex)">
@@ -164,15 +164,27 @@
 								</el-form-item>
 							</el-col>
 							
+							<!-- 【目标类型】文字描述 -->
+							<el-col :span="9" :offset="1">
+								<el-form-item label="目标描述">
+									<el-input :disabled="true" 
+										:placeholder="findQuestGoalTypeName(goal.condList[condIndex]).length == 0 ? '目标描述' : findQuestGoalTypeName(goal.condList[condIndex]).split(':')[1]">
+									</el-input>
+								</el-form-item>
+							</el-col>
+						</el-row>
+						
+						<el-row>
 							<!-- 【参数】表单项 -->
-							<el-col :span="7" :offset="1">
+							<el-col :span="8">
 								<el-form-item label="参数">
 									<el-input v-model="goal.params[condIndex]" @change="onUpdateParams($event, goalIndex, condIndex)" 
 										placeholder="请输入参数"></el-input>
 								</el-form-item>
 							</el-col>
 							
-							<el-col :span="7" :offset="1">
+							<!-- 【朝向位置】表单项 -->
+							<el-col :span="9" :offset="1">
 								<el-form-item label="朝向位置">
 									<el-input v-model="goal.lookAtPos[condIndex]" @change="onUpdateLookAtPos($event, goalIndex, condIndex)" 
 										placeholder="请输入朝向位置"></el-input>
@@ -191,7 +203,7 @@
 							</el-col>
 							
 							<!-- 【参数说明】表单项 -->
-							<el-col :span="9" :offset="2">
+							<el-col :span="12" :offset="1">
 								<el-form-item label="参数说明">
 									<!-- TODO：解决WARNING -->
 									<el-input :disabled="true" 
@@ -1121,8 +1133,8 @@
 									let newQuestGoal = {
 										sn: this.addQuestGoalForm.newQuestGoalId,
 										desc: this.addQuestGoalForm.newQuestGoalDesc,
-										combinationType: 1,
-										relationType: 0,
+										combinationType: '1',
+										relationType: '0',
 										condList: '',
 										params: '',
 										targetPos: '',
@@ -1139,7 +1151,7 @@
 									})
 									
 									// 向服务器提交新增的数据
-									util.addDataField(this.QUESTGOAL, JSON.stringify(newQuestGoal), this, this.onFinishedAddingQuestGoal)
+									util.addDataField(this.QUESTGOAL, newQuestGoal, this, this.onFinishedAddingQuestGoal)
 								}
 							}
 						})
