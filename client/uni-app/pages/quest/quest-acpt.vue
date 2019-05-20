@@ -2,7 +2,7 @@
 	<view>
 		<el-tabs tab-position="right">
 			<el-tab-pane label="任务接取条件">
-				<el-card class="box-card">
+				<!-- <el-card class="box-card">
 					<view slot="header" class="clearfix">
 						<span class="header">角色状态</span>
 					</view>
@@ -48,10 +48,6 @@
 								</el-form-item>
 							</el-col>
 							
-							<!-- <el-col :span="1" :offset="1">
-								<el-divider direction="vertical" style="font-size: 20upx !important"></el-divider>
-							</el-col> -->
-							
 							<el-col :span="3" :offset="1">
 								<el-form-item label="开启职业限制">
 									<el-checkbox v-model="isQuestOccupationLimitEnabled"></el-checkbox>
@@ -78,10 +74,6 @@
 								</el-form-item>
 							</el-col>
 							
-							<!-- <el-col :span="1" :offset="1">
-								<el-divider direction="vertical" style="font-size: 20upx"></el-divider>
-							</el-col> -->
-							
 							<el-col :span="3" :offset="1">
 								<el-form-item label="开启阵营限制">
 									<el-checkbox v-model="isQuestForceLimitEnabled"></el-checkbox>
@@ -95,7 +87,7 @@
 							</el-col>
 						</el-row>
 					</el-form>
-				</el-card>
+				</el-card> -->
 				
 				<el-card class="box-card">
 					<view slot="header" class="clearfix">
@@ -196,8 +188,34 @@
 						<span class="header">特殊条件</span>
 					</view>
 					
-					<el-button type='primary' round style="position:relative; bottom: 28upx; left: 65%" @click="onClickedAddConditionType">新增条件列</el-button>
-					<el-button type='warning' round style="position:relative; bottom: 28upx; left: 65%" @click="onClickedDeleteConditionType">删除条件列</el-button>
+					<el-button type='primary' round icon="el-icon-circle-plus" style="position:relative; bottom: 28upx; left: 40%" 
+						@click="onClickedAddConditionType">
+						新增条件类型行
+					</el-button>
+					
+					<el-button type='warning' round icon="el-icon-minus" style="position:relative; bottom: 28upx; left: 40%" 
+						@click="onClickedDeleteConditionType">
+						删除条件列
+					</el-button>
+					
+					<el-button type='info' round icon="el-icon-circle-plus" style="position:relative; bottom: 28upx; left: 40%" 
+						@click="onClickedAddCondition">
+						新增条件
+					</el-button>
+					<el-dialog title="新增条件" width="42%" :visible.sync="showAddConditionDialog" :center="true">
+						<el-form label-width="60upx" style="width: 85%" :model="addConditionForm" :rules="addConditionRules" ref="addConditionForm">
+							<el-form-item label="任务目标ID" prop="newConditionId">
+								<el-input-number v-model="addConditionForm.newConditionId" :min="1"></el-input-number>
+							</el-form-item>
+							<el-form-item label="策划备注" prop="newConditionDesc">
+								<el-input v-model="addConditionForm.newConditionDesc" placeholder="请输入任务条件描述信息"></el-input>
+							</el-form-item>
+						</el-form>
+						<span slot="footer" class="dialog-footer">
+							<el-button type="primary" @click="onAddCondition">提交</el-button>
+							<el-button @click="onCancelAddCondition">取消</el-button>
+						</span>
+					</el-dialog>
 
 					<el-form :label-position="labelPosition" label-width="42upx">
 						<el-row>
@@ -218,7 +236,8 @@
 							<el-col :span="10">
 								<el-form-item label="组合类型">
 									<el-select v-model="conditionObject.combinationType" @change="onUpdateCombinationType" :disabled="!hasValidCondition">
-										<el-option v-for="type in combinationTypes" :value="type.key" :label="type.value" :key="type.key"></el-option>
+										<!-- 屏蔽复合条件选项 -->
+										<el-option v-for="type in combinationTypes" :key="type.key" :value="type.value" :label="type.value" :disabled="type.key == '2'"></el-option>
 									</el-select>
 								</el-form-item>
 							</el-col>
@@ -233,27 +252,49 @@
 						
 						<rainbow-divider v-if="conditionObject.condList.length > 0"></rainbow-divider>
 						
-						<el-row v-for="(cond, index) in conditionObject.condList" :value="cond" :label="cond" :key="index">
-							<el-col :span="10">
-								<el-form-item label="条件类型ID">
-									<el-autocomplete placeholder="条件类型(ConditionType)ID"
-										v-model="conditionObject.condList[index]" 
-										:fetch-suggestions="queryConditionTypes"  @select="onSetConditionType" :id="index" @click.native="onSetConditionClicked">
-									</el-autocomplete>
-								</el-form-item>
-							</el-col>
-							<el-col :span="10">
-								<el-form-item label="条件参数">
-									<el-input placeholder="条件参数" v-model="conditionObject.params[index]" @change="onSetConditionParam"></el-input>
-								</el-form-item>
-							</el-col>
-							<el-col :span="1" :offset="1">
-								<el-collapse-transition>
-									<el-button type="danger" icon="el-icon-minus" circle size="mini" style="margin-top: 20%; margin-left: -20%" 
-										v-show="showDeleteConditionTypeButtons" @click.native="onClickDeleteEachConditionType" :id="index"></el-button>
-								</el-collapse-transition>
-							</el-col>
-						</el-row>
+						<el-form v-for="(cond, index) in conditionObject.condList" v-bind:key="index" label-width="42upx">
+							<el-row :value="cond" :label="cond" :key="index">
+								<el-col :span="10">
+									<el-form-item label="条件类型ID">
+										<el-autocomplete placeholder="条件类型(ConditionType)ID"
+											v-model="conditionObject.condList[index]" 
+											:fetch-suggestions="queryConditionTypes"  @select="onSetConditionType" :id="index" @click.native="onSetConditionClicked">
+										</el-autocomplete>
+									</el-form-item>
+								</el-col>
+								<el-col :span="10">
+									<el-form-item label="条件参数">
+										<el-input placeholder="条件参数" v-model="conditionObject.params[index]" @change="onSetConditionParam"></el-input>
+									</el-form-item>
+								</el-col>
+								<el-col :span="1" :offset="1">
+									<el-collapse-transition>
+										<el-button type="danger" icon="el-icon-minus" circle size="mini" style="margin-top: 20%; margin-left: -20%" 
+											v-show="showDeleteConditionTypeButtons" @click.native="onClickDeleteEachConditionType" :id="index"></el-button>
+									</el-collapse-transition>
+								</el-col>
+							</el-row>
+							
+							<el-row>
+								<el-col :span="20">
+									<el-form-item label="条件类型描述">
+										<el-input :disabled="true" v-model="(ConditionTypes == null || ConditionTypes.get(cond) == null) ? '暂无' : 
+												ConditionTypes.get(cond)['描述']"></el-input>
+									</el-form-item>
+								</el-col>
+							</el-row>
+							
+							<el-row>
+								<el-col :span="20">
+									<el-form-item label="参数格式">
+										<el-input :disabled="true" v-model="(ConditionTypes == null || ConditionTypes.get(cond) == null) ? '暂无' : 
+												ConditionTypes.get(cond)['参数，策划填写数据表的格式']"></el-input>
+									</el-form-item>
+								</el-col>
+							</el-row>
+							
+							<rainbow-divider v-if="index < conditionObject.condList.length - 1"></rainbow-divider>
+						</el-form>
 					</el-form>
 				</el-card>
 				
@@ -527,6 +568,20 @@
 					}
 				],
 				
+				/* ---------- 新增条件相关 ---------- */
+				addConditionForm: {										// 新增条件表单数据封装
+					newConditionId: 0,									// 新增条件ID
+					newConditionDesc: '',								// 新增条件描述
+				},
+				addConditionRules: {									// 新增条件表单规则
+					newConditionId: [
+						{required: true, message: "请提供合法的任务目标ID", trigger: 'blur'}
+					],
+					newConditionDesc: [
+						{required: true, message: "请提供新增任务目标的描述信息", trigger: 'blur'}
+					]
+				},
+				
 				/* ---------- 任务接取条件-【时间条件】相关 ---------- */
 				selectedQuestAvailTime: [],
 				questAvailIntervalOptions: [
@@ -664,7 +719,9 @@
 				currFocusedConditionType: '',
 				shouldReloadCondition: false,
 				showDeleteConditionTypeButtons: false,
+				showAddConditionDialog: false,
 				hasValidCondition: false,								// 标识当前的条件ID是否合法（不为0或者为空）
+				loadingInstance: null									// 数据加载中loading动画的实例
 			};
 		},
 		props: ['tableRowData', 'allTableData'],
@@ -756,12 +813,17 @@
 				let conditionID = this.tableRowData['condition']
 				let currConditionDetails = this.findCondition(conditionID)
 				
+				console.log(currConditionDetails)
+				
 				if (currConditionDetails != conditionID) {
 					this.conditionObject.comment = currConditionDetails.comment
 					this.conditionObject.params = currConditionDetails.params.split(';')
 					this.conditionObject.condList = currConditionDetails.condList.split(',')
 					this.conditionObject.combinationType = this.findCombinationType(currConditionDetails.combinationType)
 					this.conditionObject.relationType = this.findRelationType(currConditionDetails.relationType)
+					
+					console.log(this.conditionObject.condList)
+					console.log(this.conditionObject.condList.length)
 				} else {
 					this.conditionObject.comment = ''
 					this.conditionObject.combinationType = ''
@@ -903,10 +965,10 @@
 					this.shouldReloadCondition = true
 					this.hasSetConditionRelatedDefaultValues = false
 					
-					// TODO: Condition表格暂时没有版本号
 					util.updateDataField('CONDITION', currID, 'comment', updatedComment, this.$store.state.verNum.get('CONDITION'), this, this.loadCondition)
 				}
 			},
+			
 			// 更新【类型】表单项内容时触发的事件
 			onUpdateRelationType: function(value) {
 				if (this.conditionObject.id != null) {
@@ -931,6 +993,7 @@
 					util.updateDataField('CONDITION', currID, 'relationType', updatedRelationType, this.$store.state.verNum.get('CONDITION'), this)
 				}
 			},
+			
 			// 更新【组合类型】表单项内容时触发的事件
 			onUpdateCombinationType: function(value) {
 				if (this.conditionObject.id != null) {
@@ -947,21 +1010,38 @@
 						}
 					}
 					
-					// TODO: Condition表格暂时没有版本号
-					util.updateDataField('CONDITION', currID, 'combinationType', updatedCombinationType, "ignore", this)
+					util.updateDataField('CONDITION', currID, 'combinationType', updatedCombinationType, this.$store.state.verNum.get('CONDITION'), this)
 				}
 			},
+			
 			// 更新【条件ID】表单项内容时触发的事件
 			onSetCondition: function(item) {
 				let updatedValue = item.value.split(':')[0]
 				this.tableRowData['condition'] = updatedValue
 				
 				if (this.tableRowData['sn'] != null) {
-					// 更新数据后执行回调方法，刷新缓存数据
-					util.updateDataField('QUEST', this.tableRowData['sn'], 'condition', updatedValue, this.$store.state.verNum.get('QUEST'), 
-						this, this.refreshDefaultValues)
+					// 先请求获取更新后Condition的版本号
+					uni.request({
+						url: msg.url(),
+						method: 'GET',
+						data: msg.get_version_number_by_sn(util.getCurrentUserToken(), 'CONDITION', updatedValue),
+						success: res => {
+							this.$store.state.verNum.set('CONDITION', res.data.verNum)
+						},
+						fail: () => {
+							this.$store.state.verNum.set('CONDITION', 'ignore')
+						},
+						complete: () => {
+							console.log('获取CONDITION中记录为' + updatedValue + '的版本号为' + this.$store.state.verNum.get('CONDITION'))
+							
+							// 更新数据后执行回调方法，刷新缓存数据
+							util.updateDataField('QUEST', this.tableRowData['sn'], 'condition', updatedValue, this.$store.state.verNum.get('QUEST'), 
+								this, this.refreshDefaultValues)
+						}
+					})
 				}
 			},
+			
 			// 更新【条件类型ID】表单项内容时触发的事件
 			onSetConditionType: function(item) {
 				if (this.conditionObject.id != null) {
@@ -978,14 +1058,15 @@
 						}
 					}
 					
-					// TODO: Condition表格暂时没有版本号
-					util.updateDataField('CONDITION', currID, 'condList', updatedCondList, "ignore", this)
+					util.updateDataField('CONDITION', currID, 'condList', updatedCondList, this.$store.state.verNum.get('CONDITION'), this)
 				}
 			},
+			
 			// 点击【条件类型ID】表单项时触发的点击事件，以确定当前点击的ConditionType对应的Index
 			onSetConditionClicked: function(event) {
 				this.currFocusedConditionType = event.target.id
 			},
+			
 			// 更新【条件参数】表单项内容时触发的事件
 			onSetConditionParam: function(value) {
 				if (this.conditionObject.id != null) {
@@ -1002,10 +1083,100 @@
 						}
 					}
 					
-					// TODO: Condition表格暂时没有版本号
-					util.updateDataField('CONDITION', currID, 'params', updatedParams, "ignore", this)
+					util.updateDataField('CONDITION', currID, 'params', updatedParams, this.$store.state.verNum.get('CONDITION'), this)
 				}
 			},
+			
+			// 点击【新增条件】按钮时触发的事件
+			onClickedAddCondition: function() {
+				this.showAddConditionDialog = true
+				
+				// 找到当前最大的Condition的ID
+				let currMaxConditionID = parseInt(this.Condition[0].key)
+				for (let i = 1; i < this.Condition.length; i++) {
+					currMaxConditionID = Math.max(currMaxConditionID, parseInt(this.Condition[i].key))
+				}
+				
+				// 对当前最大的QuestGoalID自增1
+				this.addConditionForm.newConditionId = currMaxConditionID + 1
+			},
+			
+			// 点击【新增条件】弹窗中的【确定】按钮的触发事件
+			onAddCondition: function() {
+				this.$refs['addConditionForm'].validate((valid) => {
+					if (valid) {
+						// 检查提供的条件SN是否合法
+						uni.request({
+							url: msg.url(),
+							method: 'GET',
+							data: msg.get_table_data_by_sn(util.getCurrentUserToken(), 'CONDITION', this.addConditionForm.newConditionId),
+							success: res => {
+								let dataWithGivenID = res.data['data']
+								
+								// 提供的ID在数据库中已有对应的数据
+								if (dataWithGivenID != null) {
+									this.$notify.error({
+										title: '添加失败',
+										message: '提供的任务目标ID已存在，请重试！'
+									});
+								}
+								else {
+									this.loadingInstance = this.$loading({
+										 lock: true,
+										 text: "新增记录中...",
+										 spinner: 'el-icon-loading',
+										 background: 'rgba(0, 0, 0, 0.7)'
+									})
+									// 定义添加的数据对象
+									let newCondition = {
+										sn: this.addConditionForm.newConditionId,
+										comment: this.addConditionForm.newConditionDesc,
+										combinationType: '1',
+										relationType: '0',
+										condList: '',
+										params: ''
+									}
+									
+									// 标识数据过期
+									this.shouldReloadCondition = true
+				
+									// 更新本地Condition缓存
+									this.Condition.push({
+										key: this.addConditionForm.newConditionId,
+										value: newCondition,
+									})
+									
+									// 向服务器提交新增的数据
+									util.addDataField('CONDITION', newCondition, this, this.onFinishedAddingCondition)
+								}
+							}
+						})
+					} else {
+						return false
+					}
+				})
+			},
+			
+			// 新增条件后的回调方法
+			onFinishedAddingCondition: function() {
+				// 停止loading界面的显示
+				this.loadingInstance.close()
+				
+				// 隐藏弹窗
+				this.showAddConditionDialog = false
+				
+				// 显示成功提示
+				this.$notify.success({
+					title: '添加成功',
+					message: '添加成功，新增任务目标：' + this.addConditionForm.newConditionId
+				});
+			},
+			
+			// 点击【新增条件】弹窗中的【取消】按钮的触发事件
+			onCancelAddCondition: function() {
+				this.showAddConditionDialog = false
+			},
+			
 			// 点击【新增条件列】按钮时触发的事件
 			onClickedAddConditionType: function() {
 				let prevCondList = this.conditionObject.condList
@@ -1027,10 +1198,12 @@
 				// 刷新页面以显示新增的条件列
 				this.refreshDefaultValues()
 			},
+			
 			// 点击【删除条件列】按钮时触发的事件
 			onClickedDeleteConditionType: function() {
 				this.showDeleteConditionTypeButtons = !this.showDeleteConditionTypeButtons
 			},
+			
 			// 点击每个删除按钮时触发的事件
 			onClickDeleteEachConditionType: function(event) {
 				this.$confirm('确认要删除当前的条件列吗？', '提示', {
@@ -1062,8 +1235,15 @@
 					}
 					
 					// 持久化操作
-					util.updateDataField('CONDITION', currID, 'condList', prevCondList.join(','), this.$store.state.verNum.get('CONDITION'), this)
-					util.updateDataField('CONDITION', currID, 'params', prevParams.join(';'), this.$store.state.verNum.get('CONDITION'), this)
+					let valueKeys = [{
+						key: 'condList',
+						value: prevCondList.join(',')
+					}, {
+						key: 'params',
+						value: prevParams.join(';')
+					}]
+					
+					util.updateMultipleDataInSameRow('CONDITION', currID, valueKeys, this.$store.state.verNum.get('CONDITION'), this)
 					
 					// 刷新页面以使删除生效
 					this.refreshDefaultValues()
@@ -1074,6 +1254,7 @@
 					})
 				}).catch(() => {})
 			},
+			
 			/* ---------- 任务失败条件相关 ---------- */
 			onSelectAreaType: function(value) {
 				// TODO: 写入表格
@@ -1414,6 +1595,8 @@
 							
 							this.ConditionTypeNames.push({key: condType['sn'], value: condTypeName})
 							this.ConditionTypes.set(condType['sn'], condType)
+							
+							console.log(condType)
 						}
 						
 						// 初始化条件数据(Condition)
