@@ -102,6 +102,8 @@ public class GlobalManager {
                     isDoingUpdate = true;
 
                     SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
+                    DataManager.getInstance().reloadDataAfterUpdate();
+
                     LogEditor.serv.info("定时执行了SVN更新");
                 }
             }, null));

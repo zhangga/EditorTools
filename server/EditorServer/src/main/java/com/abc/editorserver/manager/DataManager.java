@@ -38,14 +38,14 @@ public class DataManager {
 
     private final long dataPersistInterval = Timer.HALF_MINUTE;
 
-    private DataManager(){ }
+    private DataManager() {}
 
     private static final String ConfigPath = "ExcelConfig.json";
 
     /**
      * 初始化方法
      */
-    public void init(){
+    public void init() {
         LogEditor.serv.info("======初始化Excel配置数据======");
         loadExcelConfig();
 
@@ -60,6 +60,19 @@ public class DataManager {
 
         LogEditor.serv.info("======拆分表格写入Excel中======");
         redisToExcel();
+    }
+
+    /*
+     * 在数据被更新/发生改动之后重新写入本地缓存及Redis数据
+     */
+    public void reloadDataAfterUpdate() {
+        LogEditor.serv.info("重新写入本地缓存及Redis数据");
+
+        // 重新加载Triggers表格
+        initTriggers();
+
+        // 从Excel写入Redis中
+        excelToOverrideRedis();
     }
 
     /**
@@ -177,7 +190,7 @@ public class DataManager {
     /**
      * 根据配置信息将对应的excel表写入Redis
      */
-    public void excelToRedis() {
+    public void excelToRedis(boolean shouldOverride) {
         try {
             for (ExcelConfig conf: ExcelManager.getInstance().getConfigs()) {
                 String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
@@ -198,6 +211,11 @@ public class DataManager {
 
                 columnSeqMap.put(conf.getRedis_table(),colNames);
 
+                // 清除数据
+                if (shouldOverride) {
+                    JedisManager.getInstance().del(conf.getRedis_table());
+                }
+
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
                     XSSFRow row = sheet.getRow(i);
@@ -217,7 +235,7 @@ public class DataManager {
                     if (i < ExcelManager.getInstance().getDefaultNames().length) {
                         key = ExcelManager.getInstance().getDefaultNames()[i];
                     }
-                    //JedisManager.getInstance().push(conf.getRedis_table()+"_Row",key);
+
                     JedisManager.getInstance().hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
                 }
 
@@ -226,6 +244,20 @@ public class DataManager {
         catch (Exception e) {
             LogEditor.config.error("Excel写入Redis失败：", e);
         }
+    }
+
+    /**
+     * 根据配置信息，清空Redis中的数据，并将对应的excel表写入Redis
+     */
+    public void excelToOverrideRedis() {
+        excelToRedis(true);
+    }
+
+    /**
+     * 根据配置信息，保留Redis中的数据，并将对应的excel表写入Redis（追加数据）
+     */
+    public void excelToRedis() {
+        excelToRedis(false);
     }
 
     private String convertFromBR(String value) {

@@ -66,11 +66,14 @@ public class UpdateTableDataFromSVNAction extends GameActionJson {
 
         if (user == null || request == null) {
             LogEditor.serv.info("线程池执行方法参数提供不正确");
+            return;
         }
 
         JSONObject msg = new JSONObject();
+        boolean isUpdateSuccessful = false;
 
         SVNManager.setCurrUpdatingUser(user);
+        GlobalManager.isDoingUpdate = true;
         LogEditor.serv.info("开始更新服务器表格数据");
 
         long updateResult = SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
@@ -83,11 +86,16 @@ public class UpdateTableDataFromSVNAction extends GameActionJson {
             msg.put("desc", errorInfo);
         }
         else {
-            DataManager.getInstance().excelToRedis();
+            isUpdateSuccessful = true;
             msg.put("result", EditorConst.RESULT_OK);
         }
 
+        GlobalManager.isDoingUpdate = true;
         SVNManager.setCurrUpdatingUser(null);
         sendMsg(request.ctx, msg);
+
+        if (isUpdateSuccessful) {
+            DataManager.getInstance().reloadDataAfterUpdate();
+        }
     }
 }
