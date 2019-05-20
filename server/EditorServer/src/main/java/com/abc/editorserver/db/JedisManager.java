@@ -14,34 +14,33 @@ import java.util.Set;
  */
 
 public class JedisManager {
+    static final ThreadLocal<Jedis> jedisConn = new ThreadLocal<>();
 
-    private static JedisManager mgr = new JedisManager();
+    private JedisManager() {}
 
-    public static JedisManager getInstance() {
-        return mgr;
-    }
+    public static Jedis getCurrentPool() {
+        Jedis conn;
 
-    private JedisManager() {
-
-    }
-
-    private Jedis jedis = null;
-
-    public void createPool() {
-        jedis = new Jedis(EditorConfig.redis_ip, EditorConfig.redis_port, 10000, 3000);
-        if (EditorConfig.redis_pwd.length() > 0) {
-            jedis.auth(EditorConfig.redis_pwd);
+        if ((conn = jedisConn.get()) != null) {
+            return conn;
         }
-    }
-
-    public void destoryPool() {
-    }
-
-    public Jedis getResource() {
-        if (jedis == null) {
-            createPool();
+        else {
+            conn = new Jedis(EditorConfig.redis_ip, EditorConfig.redis_port, 10000, 3000);
+            if (EditorConfig.redis_pwd.length() > 0) {
+                conn.auth(EditorConfig.redis_pwd);
+            }
+            jedisConn.set(conn);
         }
-        return jedis;
+
+        return conn;
+    }
+
+    public static void destoryPool() {
+        Jedis conn = jedisConn.get();
+
+        if (conn != null) {
+            conn.close();
+        }
     }
 
     /**
@@ -50,8 +49,8 @@ public class JedisManager {
      * @param value
      * @return
      */
-    public String setKey(String key, String value) {
-        return getResource().set(key, value);
+    public static String setKey(String key, String value) {
+        return getCurrentPool().set(key, value);
     }
 
     /**
@@ -59,8 +58,8 @@ public class JedisManager {
      * @param key
      * @return
      */
-    public String getKey(String key) {
-        return getResource().get(key);
+    public static String getKey(String key) {
+        return getCurrentPool().get(key);
     }
 
     /**
@@ -68,8 +67,8 @@ public class JedisManager {
      * @param keys
      * @return
      */
-    public List<String> mgetKeys(String... keys) {
-        return getResource().mget(keys);
+    public static List<String> mgetKeys(String... keys) {
+        return getCurrentPool().mget(keys);
     }
 
 //	/**
@@ -82,7 +81,7 @@ public class JedisManager {
 //		Map<String, JedisPool> clusterNodes = jc.getClusterNodes();
 //		for (String k : clusterNodes.keySet()) {
 //			JedisPool jp = clusterNodes.get(k);
-//			Jedis connection = jp.getResource();
+//			Jedis connection = jp.getCurrentPool();
 //			try {
 //				keys.addAll(connection.keys(pattern));
 //			} catch (Exception e) {
@@ -95,110 +94,110 @@ public class JedisManager {
 //		return keys;
 //	}
 
-    public String hget(String key, String field) {
-        return getResource().hget(key, field);
+    public static String hget(String key, String field) {
+        return getCurrentPool().hget(key, field);
     }
 
-    public long hset(String key, String field, String value) {
-        return getResource().hset(key, field, value);
+    public static long hset(String key, String field, String value) {
+        return getCurrentPool().hset(key, field, value);
     }
 
-    public long hsetNx(String key, String field, String value) {
-        return getResource().hsetnx(key, field, value);
+    public static long hsetNx(String key, String field, String value) {
+        return getCurrentPool().hsetnx(key, field, value);
     }
 
-    public long hdel(String key, String field) {
-        return getResource().hdel(key, field);
+    public static long hdel(String key, String field) {
+        return getCurrentPool().hdel(key, field);
     }
 
-    public long hdel(String key, String... fields) {
-        return getResource().hdel(key, fields);
+    public static long hdel(String key, String... fields) {
+        return getCurrentPool().hdel(key, fields);
     }
 
-    public long hincrBy(String key, String field, long value) {
-        return getResource().hincrBy(key, field, value);
+    public static long hincrBy(String key, String field, long value) {
+        return getCurrentPool().hincrBy(key, field, value);
     }
 
-    public long push(String key, String field) {
-        return getResource().lpush(key, field);
+    public static long push(String key, String field) {
+        return getCurrentPool().lpush(key, field);
     }
 
-    public String pop(String key) {
-        return getResource().rpop(key);
+    public static String pop(String key) {
+        return getCurrentPool().rpop(key);
     }
 
-    public long incr(String key) {
-        return getResource().incr(key);
+    public static long incr(String key) {
+        return getCurrentPool().incr(key);
     }
 
-    public String setEx(String key, String value, int expire) {
-        return getResource().setex(key, expire, value);
+    public static String setEx(String key, String value, int expire) {
+        return getCurrentPool().setex(key, expire, value);
     }
 
-    public void setEx(String key, int seconds) {
-        getResource().expire(key, seconds);
+    public static void setEx(String key, int seconds) {
+        getCurrentPool().expire(key, seconds);
     }
 
-    public Long del(String key) {
-        return getResource().del(key);
+    public static Long del(String key) {
+        return getCurrentPool().del(key);
     }
 
-    public Map<String, String> hgetAll(String key) {
-        return getResource().hgetAll(key);
+    public static Map<String, String> hgetAll(String key) {
+        return getCurrentPool().hgetAll(key);
     }
 
-    public long zadd(String key, double score, String member) {
-        return getResource().zadd(key, score, member);
+    public static long zadd(String key, double score, String member) {
+        return getCurrentPool().zadd(key, score, member);
     }
 
-    public long zadd(String key, Map<String, Double> scoreMembers) {
-        return getResource().zadd(key, scoreMembers);
+    public static long zadd(String key, Map<String, Double> scoreMembers) {
+        return getCurrentPool().zadd(key, scoreMembers);
     }
 
-    public long zrem(String key, String member) {
-        return getResource().zrem(key, member);
+    public static long zrem(String key, String member) {
+        return getCurrentPool().zrem(key, member);
     }
 
-    public Long sadd(String key, String... member) {
-        return getResource().sadd(key, member);
+    public static Long sadd(String key, String... member) {
+        return getCurrentPool().sadd(key, member);
     }
 
-    public Set<String> smembers(String key) {
-        return getResource().smembers(key);
+    public static Set<String> smembers(String key) {
+        return getCurrentPool().smembers(key);
     }
 
-    public long scard(String key) {
-        Long size = getResource().scard(key);
+    public static long scard(String key) {
+        Long size = getCurrentPool().scard(key);
         if (size == null)
             return 0;
         return size;
     }
 
-    public Long srem(String key,String member){
-        return getResource().srem(key, member);
+    public static Long srem(String key,String member){
+        return getCurrentPool().srem(key, member);
     }
 
-    public Long srem(String key,String... member){
-        return getResource().srem(key, member);
+    public static Long srem(String key,String... member){
+        return getCurrentPool().srem(key, member);
     }
 
     //从小到大  索引从零开始  -1  不存在
-    public long zrank(String key, String member) {
-        Long size = getResource().zrank(key, member);
+    public static long zrank(String key, String member) {
+        Long size = getCurrentPool().zrank(key, member);
         if (size == null)
             return -1;
         return size;
     }
 
-    public long zrevrank(String key, String member) {
-        Long size = getResource().zrevrank(key, member);
+    public static long zrevrank(String key, String member) {
+        Long size = getCurrentPool().zrevrank(key, member);
         if (size == null)
             return -1;
         return size;
     }
 
-    public long zcount(String key, double min, double max) {
-        Long size = getResource().zcount(key, min, max);
+    public static long zcount(String key, double min, double max) {
+        Long size = getCurrentPool().zcount(key, min, max);
         if (size == null)
             return 0;
         return size;
@@ -211,18 +210,18 @@ public class JedisManager {
      * @param end
      * @return
      */
-    public Set<String> zrange(String key, long start, long end) {
-        return getResource().zrange(key, start, end);
+    public static Set<String> zrange(String key, long start, long end) {
+        return getCurrentPool().zrange(key, start, end);
     }
     //按score从大到小
-    public Set<String> zrevrange(String key, long start, long end) {
-        return getResource().zrevrange(key, start, end);
+    public static Set<String> zrevrange(String key, long start, long end) {
+        return getCurrentPool().zrevrange(key, start, end);
     }
-    public Set<Tuple> zrangeWithScores(String key, long start, long end) {
-        return getResource().zrangeWithScores(key, start, end);
+    public static Set<Tuple> zrangeWithScores(String key, long start, long end) {
+        return getCurrentPool().zrangeWithScores(key, start, end);
     }
-    public Set<Tuple> zrevrangeWithScores(String key, long start, long end) {
-        return getResource().zrevrangeWithScores(key, start, end);
+    public static Set<Tuple> zrevrangeWithScores(String key, long start, long end) {
+        return getCurrentPool().zrevrangeWithScores(key, start, end);
     }
 
     /**
@@ -230,12 +229,12 @@ public class JedisManager {
      * @param key
      * @return
      */
-    public boolean inRedis(String key) {
-        return getResource().exists(key);
+    public static boolean inRedis(String key) {
+        return getCurrentPool().exists(key);
     }
 
-    public boolean inRedis(String key, String value) {
-        return getResource().hexists(key, value);
+    public static boolean inRedis(String key, String value) {
+        return getCurrentPool().hexists(key, value);
     }
 
     /**
@@ -243,17 +242,17 @@ public class JedisManager {
      * @param channel
      * @param message
      */
-    public void publish(String channel, String message) {
-        getResource().publish(channel, message);
+    public static void publish(String channel, String message) {
+        getCurrentPool().publish(channel, message);
     }
 
     /**
      * 订阅
      * @param channel
      */
-    public void subscribe(String channel, JedisPubSub sub) {
+    public static void subscribe(String channel, JedisPubSub sub) {
 //		jc.psubscribe(sub, channel);//带通配符
-        getResource().subscribe(sub, channel);
+        getCurrentPool().subscribe(sub, channel);
     }
 
     public void test() {
@@ -273,7 +272,7 @@ public class JedisManager {
 //		//循环所有的集群节点，获取所有的key
 //		for(Entry<String, JedisPool> p : map.entrySet())
 //		{
-//			Jedis j = p.getValue().getResource();
+//			Jedis j = p.getValue().getCurrentPool();
 //			Set<String> keys = j.keys("*");
 //			endSet.addAll(keys);
 //		}

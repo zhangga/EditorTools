@@ -36,9 +36,7 @@ public class VersionManager {
      * 从redis中加载版本信息
      */
     private void initTableDataVersion() {
-        JedisManager redisManager = JedisManager.getInstance();
-
-        Map<String, String> redisData = redisManager.hgetAll(versionTableName);
+        Map<String, String> redisData = JedisManager.hgetAll(versionTableName);
         Iterator<String> iter = redisData.keySet().iterator();
 
         String dataKey, dataVersion;
@@ -63,7 +61,7 @@ public class VersionManager {
 
         // Lazy instantiation
         if (versionNumber == null) {
-            JedisManager.getInstance().hset(versionTableName, tableNameWithSn, Long.toString(1L));
+            JedisManager.hset(versionTableName, tableNameWithSn, Long.toString(1L));
             tableDataVersions.put(tableNameWithSn, new AtomicLong(1L));
             return String.valueOf(1L);
         }
@@ -82,7 +80,7 @@ public class VersionManager {
         AtomicLong versionNumber = tableDataVersions.get(tableNameWithSn);
 
         if (versionNumber == null) {
-            JedisManager.getInstance().hset(versionTableName, tableNameWithSn, Long.toString(1L));
+            JedisManager.hset(versionTableName, tableNameWithSn, Long.toString(1L));
             return String.valueOf(tableDataVersions.put(tableNameWithSn, new AtomicLong(1L)));
         }
         else {
@@ -112,13 +110,12 @@ public class VersionManager {
      * 将缓存版本号信息写入Redis
      */
     public void versionCacheToRedis() {
-        JedisManager redisManager = JedisManager.getInstance();
         Iterator<String> iter = tableDataVersions.keySet().iterator();
         String tableWithSn;
 
         while (iter.hasNext()) {
             tableWithSn = iter.next();
-            redisManager.hset(versionTableName, tableWithSn, tableDataVersions.get(tableWithSn).toString());
+            JedisManager.hset(versionTableName, tableWithSn, tableDataVersions.get(tableWithSn).toString());
         }
     }
 }

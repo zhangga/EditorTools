@@ -24,6 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.abc.editorserver.utils.Timer;
+import redis.clients.jedis.Jedis;
 
 /**
  * 数据管理器
@@ -59,7 +60,7 @@ public class DataManager {
         excelToRedis();
 
         LogEditor.serv.info("======拆分表格写入Excel中======");
-        redisToExcel();
+//        redisToExcel();
     }
 
     /*
@@ -213,7 +214,7 @@ public class DataManager {
 
                 // 清除数据
                 if (shouldOverride) {
-                    JedisManager.getInstance().del(conf.getRedis_table());
+                    JedisManager.del(conf.getRedis_table());
                 }
 
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
@@ -236,12 +237,11 @@ public class DataManager {
                         key = ExcelManager.getInstance().getDefaultNames()[i];
                     }
 
-                    JedisManager.getInstance().hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
+                    JedisManager.hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
                 }
 
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LogEditor.config.error("Excel写入Redis失败：", e);
         }
     }
@@ -284,7 +284,7 @@ public class DataManager {
 
     private String convertToBR(String value) {
         if (value.contains("@n@")) {
-            return value.replaceAll("@n@", "\\n");
+            return value.replaceAll("@n@", "\n");
         }
         if (value.contains("@q@")) {
             return value.replaceAll("@q@", "\"");
@@ -349,7 +349,7 @@ public class DataManager {
                     file.createNewFile();
                 }
 
-                Map<String, String> mapAll = JedisManager.getInstance().hgetAll(conf.getRedis_table());
+                Map<String, String> mapAll = JedisManager.hgetAll(conf.getRedis_table());
                 XSSFWorkbook workbook = new XSSFWorkbook();
                 XSSFSheet sheet  = workbook.createSheet(sheetName);
                 String[] defaultName = ExcelManager.getInstance().getDefaultNames();
@@ -422,7 +422,7 @@ public class DataManager {
         if (config == null) {
             return ret;
         }
-        Map<String, String> datas = JedisManager.getInstance().hgetAll(config.getRedis_table());
+        Map<String, String> datas = JedisManager.hgetAll(config.getRedis_table());
 
         //在返回数据前去掉属性行
         String[] defaultName = ExcelManager.getInstance().getDefaultNames();
@@ -441,7 +441,7 @@ public class DataManager {
      * @return
      */
     public JSONArray getTableColumnName(String tableName) {
-        String value = JedisManager.getInstance().hget(tableName,"cnName");
+        String value = JedisManager.hget(tableName,"cnName");
         JSONObject jo = JSONObject.parseObject(value);
         JSONArray ret = new JSONArray();
         List<String> columnName = columnSeqMap.get(tableName);
@@ -529,7 +529,7 @@ public class DataManager {
             return -1;
         }
 
-        String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
+        String json = JedisManager.hget(config.getRedis_table(), sn);
         JSONObject jo;
 
         if (json == null) {
@@ -539,7 +539,7 @@ public class DataManager {
         }
         jo.put(field, value);
 
-        JedisManager.getInstance().hset(config.getRedis_table(), sn, jo.toJSONString());
+        JedisManager.hset(config.getRedis_table(), sn, jo.toJSONString());
 
         // 刷新计时器
         tableTimers.get(table).reStartTimer();
@@ -575,7 +575,7 @@ public class DataManager {
         if (config == null) {
             return null;
         }
-        String json = JedisManager.getInstance().hget(config.getRedis_table(), sn);
+        String json = JedisManager.hget(config.getRedis_table(), sn);
         return json;
     }
 
@@ -602,7 +602,7 @@ public class DataManager {
             return null;
         }
 
-        Map<String ,String> map = JedisManager.getInstance().hgetAll(config.getRedis_table());
+        Map<String ,String> map = JedisManager.hgetAll(config.getRedis_table());
         Iterator<String> iter = map.keySet().iterator();
         String nextSN = "";
         long currSN = 0L, maxSN = 0L;
@@ -635,7 +635,7 @@ public class DataManager {
             return -1;
         }
 
-        JedisManager.getInstance().hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
+        JedisManager.hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
@@ -656,7 +656,7 @@ public class DataManager {
             return -1;
         }
 
-        JedisManager.getInstance().hdel(config.getRedis_table(), sn);
+        JedisManager.hdel(config.getRedis_table(), sn);
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
@@ -769,7 +769,6 @@ public class DataManager {
         FileOutputStream fos = null;
 
         ExcelConfig[] excelConfigs = ExcelManager.getInstance().getConfigs();
-        JedisManager jedisManager = JedisManager.getInstance();
 
         /// Excel数据格式相关变量
         DataFormat dataFormat;
@@ -799,7 +798,7 @@ public class DataManager {
                 sheet = workbook.getSheet(sheetName);
                 colKeys = null;
 
-                redisHash = jedisManager.hgetAll(redisTableName);
+                redisHash = JedisManager.hgetAll(redisTableName);
                 String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
                 countRedisHash = redisHash.size();
 
@@ -855,7 +854,7 @@ public class DataManager {
                                 cell.setCellType(CellType.BLANK);
                             }
                             else {
-                                cell.setCellValue(cellValue);
+                                cell.setCellValue(convertToBR(cellValue));
                             }
                         }
                     } else {
@@ -901,7 +900,7 @@ public class DataManager {
                                 cell.setCellType(CellType.BLANK);
                             }
                             else {
-                                cell.setCellValue(cellValue);
+                                cell.setCellValue(convertToBR(cellValue));
                             }
                         }
                     }

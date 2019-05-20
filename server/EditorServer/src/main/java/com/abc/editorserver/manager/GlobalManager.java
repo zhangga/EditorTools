@@ -91,8 +91,8 @@ public class GlobalManager {
             taskExecutor.execute(getNextTask());
         }
 
-        // 定时从SVN更新
-        if (updateTimer.isDue()) {
+        // 定时从SVN更新 (TODO: 移除定时从SVN更新)
+        if (false && updateTimer.isDue()) {
             // 重置SVN更新计时器
             updateTimer.reStartTimer();
 

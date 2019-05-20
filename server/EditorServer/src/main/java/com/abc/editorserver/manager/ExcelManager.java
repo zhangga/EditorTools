@@ -73,7 +73,7 @@ public class ExcelManager {
 
         TableEditAction pastEdit = new TableEditAction(userId);
         pastEdits.put(tableName, pastEdit);
-        JedisManager.getInstance().hset(EditHistoryRedisTableName, tableName, JSONObject.toJSONString(pastEdit));
+        JedisManager.hset(EditHistoryRedisTableName, tableName, JSONObject.toJSONString(pastEdit));
     }
 
     public void updateLastEdit(String tableName, String userId, String dateTime) {
@@ -86,7 +86,7 @@ public class ExcelManager {
         else {
             TableEditAction pastEdit = new TableEditAction(userId, dateTime);
             pastEdits.put(tableName, pastEdit);
-            JedisManager.getInstance().setKey(tableName, JSONObject.toJSONString(pastEdit));
+            JedisManager.setKey(tableName, JSONObject.toJSONString(pastEdit));
         }
     }
 
@@ -96,7 +96,6 @@ public class ExcelManager {
         Map<String, ExcelConfig> temp = new HashMap<>();
         Map<String, TableEditAction> editHistoryTmp = new HashMap<>();
 
-        JedisManager jedisManager = JedisManager.getInstance();
         String editHistoryJson;
         TableEditAction editAction;
 
@@ -104,7 +103,7 @@ public class ExcelManager {
             temp.put(config.getRedis_table().toUpperCase(), config);
 
             // 加载编辑历史
-            editHistoryJson = jedisManager.hget(EditHistoryRedisTableName, config.getRedis_table());
+            editHistoryJson = JedisManager.hget(EditHistoryRedisTableName, config.getRedis_table());
 
             if (editHistoryJson == null) {
                 editHistoryTmp.put(config.getRedis_table(), null);
