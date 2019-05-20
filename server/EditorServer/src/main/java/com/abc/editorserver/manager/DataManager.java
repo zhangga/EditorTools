@@ -590,6 +590,40 @@ public class DataManager {
     }
 
     /**
+     * 获取指定表格下一个可用的SN
+     * @param tableName
+     * @return
+     */
+    public String getNextAvailableSn(String tableName) {
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
+
+        if (config == null) {
+            LogEditor.serv.info("提供的表名错误，无法获取到下一个可用的SN");
+            return null;
+        }
+
+        Map<String ,String> map = JedisManager.getInstance().hgetAll(config.getRedis_table());
+        Iterator<String> iter = map.keySet().iterator();
+        String nextSN = "";
+        long currSN = 0L, maxSN = 0L;
+
+        while (iter.hasNext()) {
+            try {
+                nextSN = iter.next();
+                currSN = Long.parseLong(nextSN);
+            } catch (NumberFormatException e) {
+                LogEditor.serv.info("在数据库表" + config.getRedis_table() + "中出现非数字类型的SN值：" + nextSN);
+            }
+
+            maxSN = Math.max(maxSN, currSN);
+        }
+
+        maxSN += 1;
+
+        return String.valueOf(maxSN);
+    }
+
+    /**
      * 在数据表中新增一条数据
      * @param tableName
      * @param params

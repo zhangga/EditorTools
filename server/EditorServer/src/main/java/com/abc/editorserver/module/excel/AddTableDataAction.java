@@ -36,8 +36,10 @@ public class AddTableDataAction extends GameActionJson {
 
             // 检查参数是否包含sn
             if (sn == null) {
-                replyMsg.put("result", EditorConst.RESULT_FAILED);
-                replyMsg.put("hint", "请提供任务的SN！");
+                String nextAvailableSN = DataManager.getInstance().getNextAvailableSn(table);
+                replyMsg.put("result", EditorConst.RESULT_OK);
+                replyMsg.put("sn", nextAvailableSN);
+                replyMsg.put("hint", "服务器提供了当前表格下一个可用的SN：" + nextAvailableSN);
             }
 
             // 检查SN是否合法
