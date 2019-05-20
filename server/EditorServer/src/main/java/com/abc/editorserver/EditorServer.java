@@ -31,8 +31,6 @@ public class EditorServer {
         VersionManager.getInstance().init();
         // 启动一个守护线程
         GlobalManager.init();
-        // DB
-        JedisManager.getInstance().test();
         // 监听网络端口
         initNet();
 
