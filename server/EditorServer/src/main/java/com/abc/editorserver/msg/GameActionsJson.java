@@ -8,9 +8,12 @@ import com.abc.editorserver.module.excel.AddTableDataAction;
 import com.abc.editorserver.module.excel.DeleteMultipleTableDataBySnAction;
 import com.abc.editorserver.module.excel.DeleteTableDataBySnAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
+import com.abc.editorserver.module.excel.GetTableDataAtColumnsAction;
 import com.abc.editorserver.module.excel.GetTableStatusAction;
 import com.abc.editorserver.module.excel.GetVersionNumberBySnAction;
+import com.abc.editorserver.module.excel.LockTableDataAction;
 import com.abc.editorserver.module.excel.SubmitToSVNAction;
+import com.abc.editorserver.module.excel.UnlockTableDataAction;
 import com.abc.editorserver.module.excel.UpdateMultipleDataInSameColumnAction;
 import com.abc.editorserver.module.excel.UpdateMultipleDataInSameRowAction;
 import com.abc.editorserver.module.excel.UpdateTableDataFromSVNAction;
@@ -48,7 +51,10 @@ public enum GameActionsJson {
 	DeleteTableDataBySnAction("删除某条数据表数据", 14, DeleteTableDataBySnAction.class),
 	DeleteMultipleTableDataBySnAction("批量删除多条数据表数据", 15, DeleteMultipleTableDataBySnAction.class),
 	UpdateMultipleDataInSameColumnAction("批量更新同一列下的多行数据", 16, UpdateMultipleDataInSameColumnAction.class),
-	GetVersionNumberBySnAction("获取某条数据的最新版本号", 17, GetVersionNumberBySnAction.class)
+	GetVersionNumberBySnAction("获取某条数据的最新版本号", 17, GetVersionNumberBySnAction.class),
+	GetTableDataAtColumnsAction("获取指定表格在选定列的所有数据", 18, GetTableDataAtColumnsAction.class),
+	LockTableDataAction("尝试获取指定表格指定数据的锁", 19, LockTableDataAction.class),
+	UnlockTableDataAction("尝试为指定表格指定数据解锁", 20, UnlockTableDataAction.class)
 	;
 	
 	/**
