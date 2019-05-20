@@ -36,7 +36,7 @@ public class UpdateTableDataAction extends GameActionJson {
         String value = request.msg.getString("value");
 
         // 更新数据时自增版本号
-        long ret = DataManager.getInstance().updateTableData(table, sn, field, value, true);
+        long ret = DataManager.getInstance().updateTableData(table, sn, field, value, true, user);
 
         LogEditor.serv.info("更新【" + table + "】表中SN为【" + sn + "】的记录的【" + field + "】列为：" + value);
         LogEditor.serv.info("返回版本号：" + ret);

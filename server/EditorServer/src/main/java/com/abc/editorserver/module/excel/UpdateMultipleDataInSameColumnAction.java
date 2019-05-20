@@ -37,7 +37,7 @@ public class UpdateMultipleDataInSameColumnAction extends GameActionJson {
 
         // 更新数据时不自增版本号
         for (int i = 0; i < snBatchArray.length; i++) {
-            DataManager.getInstance().updateTableData(table, snBatchArray[i], colName, value);
+            DataManager.getInstance().updateTableData(table, snBatchArray[i], colName, value, user);
             LogEditor.serv.info("更新【" + table + "】表中SN为【" + snBatchArray[i] + "】的记录为：" + value);
         }
 

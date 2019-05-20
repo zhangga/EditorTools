@@ -40,7 +40,7 @@ public class UpdateMultipleDataInSameRowAction extends GameActionJson {
 
         for (String valueKey : valueKeys) {
             // 更新数据时不自动增加版本号
-            DataManager.getInstance().updateTableData(table, sn, valueKey, valuesJO.getString(valueKey));
+            DataManager.getInstance().updateTableData(table, sn, valueKey, valuesJO.getString(valueKey), user);
         }
 
         // 手动更新版本号

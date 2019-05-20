@@ -2,13 +2,16 @@ package com.abc.editorserver.manager;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.abc.editorserver.config.EditorConfig;
+import com.abc.editorserver.config.EditorConst;
 import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
+import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.utils.Task;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -36,6 +39,7 @@ public class DataManager {
     private static Map<String, List<String>> columnSeqMap = new HashMap<>();
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
+    private Map<String, User> tableLocks = new ConcurrentHashMap<>();
 
     private final long dataPersistInterval = Timer.HALF_MINUTE;
 
@@ -523,7 +527,13 @@ public class DataManager {
      * @param shouldIncrementVerNum: 是否需要更新版本号
      * @return
      */
-    public long updateTableData(String table, String sn, String field, String value, boolean shouldIncrementVerNum) {
+    public long updateTableData(String table, String sn, String field, String value, boolean shouldIncrementVerNum,
+                                User user) {
+        // 表格数据被占用
+        if (getCurrentTableDataLockOwner(table, sn) != null) {
+            return -1;
+        }
+
         ExcelConfig config = ExcelManager.getInstance().getConfig(table);
         if (config == null) {
             return -1;
@@ -561,8 +571,8 @@ public class DataManager {
      * @param value
      * @return
      */
-    public long updateTableData(String table, String sn, String field, String value) {
-        return updateTableData(table, sn, field, value, false);
+    public long updateTableData(String table, String sn, String field, String value, User user) {
+        return updateTableData(table, sn, field, value, false, user);
     }
 
     /**
@@ -577,6 +587,25 @@ public class DataManager {
         }
         String json = JedisManager.hget(config.getRedis_table(), sn);
         return json;
+    }
+
+    /**
+     * 获取数据表所有行指定列的数据
+     * @param tableName
+     * @param colNames
+     * @return
+     */
+    public JSONArray getTableDataAtColumns(String tableName, String[] colNames) {
+        JSONArray allTableData = getTableData(tableName);
+        JSONArray partialTableData = new JSONArray();
+
+        for (Object data : allTableData) {
+            for (String colName : colNames) {
+                partialTableData.add(((JSONObject)data).get(colName));
+            }
+        }
+
+        return partialTableData;
     }
 
     /**
@@ -651,6 +680,11 @@ public class DataManager {
      * @return
      */
     public int deleteTableData(String tableName, String sn) {
+        // 表格数据被占用
+        if (getCurrentTableDataLockOwner(tableName, sn) != null) {
+            return -1;
+        }
+
         ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
         if (config == null) {
             return -1;
@@ -663,6 +697,73 @@ public class DataManager {
         LogEditor.serv.info("写Excel计时器被刷新");
 
         return 1;
+    }
+
+    /**
+     * 尝试给指定表格中的某个数据上锁
+     * @param tableName
+     * @param sn
+     * @param currUser
+     * @return
+     */
+    public JSONObject tryLockingTableData(String tableName, String sn, User currUser) {
+        String dataTag = tableName + ":" + sn;
+        JSONObject reply = new JSONObject();
+
+        synchronized (DataManager.class) {
+            User lockOwner = tableLocks.get(dataTag);
+
+            if (lockOwner != null) {
+                reply.put("result", EditorConst.RESULT_FAILED);
+                reply.put("msg", "加锁失败，当前表格数据已被" + lockOwner.getName() + "锁定！");
+            } else {
+                tableLocks.put(dataTag, currUser);
+                reply.put("result", EditorConst.RESULT_OK);
+                reply.put("msg", "加锁成功");
+            }
+        }
+
+        return reply;
+    }
+
+    /**
+     * 尝试为指定表格中的某个数据解锁
+     * @param tableName
+     * @param sn
+     * @param currUser
+     * @return
+     */
+    public JSONObject tryUnLockingTableData(String tableName, String sn, User currUser) {
+        String dataTag = tableName + ":" + sn;
+        JSONObject reply = new JSONObject();
+
+        synchronized (DataManager.class) {
+            User lockOwner = tableLocks.get(dataTag);
+
+            if (lockOwner == null) {
+                reply.put("result", EditorConst.RESULT_OK);
+                reply.put("msg", "表格数据未上锁");
+            } else if (!lockOwner.getUid().equals(currUser.getUid())) {
+                reply.put("result", EditorConst.RESULT_FAILED);
+                reply.put("msg", "解锁失败，当前表格数据被" + lockOwner.getName() + "锁定！");
+            } else {
+                tableLocks.put(dataTag, null);
+                reply.put("result", EditorConst.RESULT_OK);
+                reply.put("msg", "解锁成功");
+            }
+        }
+
+        return reply;
+    }
+
+    /**
+     * 获取指定数据当前的锁主人
+     * @param tableName
+     * @param sn
+     * @return
+     */
+    public User getCurrentTableDataLockOwner(String tableName, String sn) {
+        return tableLocks.get(tableName + ":" + sn);
     }
 
     /**
