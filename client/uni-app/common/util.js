@@ -138,8 +138,6 @@ function addDataField(table, keyValues, caller, callback) {
 			var replyData = res.data['data']
 			
 			if (resultCode == msg.RESULT_OK) {
-				Vue.prototype.$message.success('新增任务记录成功')
-				
 				if (callback != null && caller != null) {
 					callback.call(caller, replyData)
 				}
