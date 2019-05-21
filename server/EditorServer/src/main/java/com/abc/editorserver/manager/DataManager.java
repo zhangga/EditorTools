@@ -530,7 +530,8 @@ public class DataManager {
     public long updateTableData(String table, String sn, String field, String value, boolean shouldIncrementVerNum,
                                 User user) {
         // 表格数据被占用
-        if (getCurrentTableDataLockOwner(table, sn) != null) {
+        User currLockOwner = getCurrentTableDataLockOwner(table, sn);
+        if (currLockOwner != null && !currLockOwner.getUid().equals(user.getUid())) {
             return -1;
         }
 
@@ -679,7 +680,8 @@ public class DataManager {
             return -1;
         }
 
-        JedisManager.hset(config.getRedis_table(), params.getString("sn"), params.toJSONString());
+        String newTableData = params.toString();
+        JedisManager.hset(config.getRedis_table(), params.getString("sn"), newTableData);
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
@@ -762,7 +764,7 @@ public class DataManager {
                 reply.put("result", EditorConst.RESULT_FAILED);
                 reply.put("msg", "解锁失败，当前表格数据被" + lockOwner.getName() + "锁定！");
             } else {
-                tableLocks.put(dataTag, null);
+                tableLocks.remove(dataTag);
                 reply.put("result", EditorConst.RESULT_OK);
                 reply.put("msg", "解锁成功");
             }
