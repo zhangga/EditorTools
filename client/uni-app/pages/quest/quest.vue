@@ -296,7 +296,19 @@
 					method: 'GET',
 					data: msg.get_table_data_by_sn(util.getCurrentUserToken(), 'QUEST', this.activeSn),
 					success: res => {
-						this.currSelectedQuestData = JSON.parse(res.data['data'])
+						this.queryResultCode = res.data.result
+						this.queryHint = res.data.hint
+						
+						if (this.queryResultCode == msg.RESULT_FAILED) {
+							this.$notify.error({
+								title: '获取行数据失败',
+								message: queryHint
+							})
+							return
+						}
+						
+						this.currSelectedQuestData = JSON.parse(JSON.parse(res.data['data']).tableData)
+						let currVersionNumber = JSON.parse(res.data['data']).verNum
 						this.hasSelectedRowData = true
 						
 						// 更新页面导航栏文字
@@ -305,7 +317,7 @@
 						});
 						
 						// 更新版本号缓存信息
-						this.$store.state.verNum.set(this.currentTableName, this.currSelectedQuestData['verNum'])
+						this.$store.state.verNum.set(this.currentTableName, currVersionNumber)
 						
 						// 执行回调方法
 						if (callback != null) {
@@ -319,7 +331,7 @@
 					},
 					fail: res => {
 						this.$notify.error({
-							title: '获取失败',
+							title: '获取行数据失败',
 							message: '获取不到对应的任务数据！'
 						});
 					}
