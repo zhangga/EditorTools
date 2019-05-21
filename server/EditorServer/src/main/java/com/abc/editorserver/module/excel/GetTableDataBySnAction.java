@@ -6,6 +6,7 @@ import com.abc.editorserver.manager.VersionManager;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.net.RequestData;
+import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.JSONObject;
 
 /**
@@ -20,6 +21,8 @@ public class GetTableDataBySnAction extends GameActionJson {
         String sn = request.msg.getString("sn");
 
         JSONObject replyMsg = new JSONObject();
+
+        LogEditor.serv.info("请求SN为" + sn + "的表数据");
 
         // 获取表数据
         String tableDataInfo = DataManager.getInstance().getTableDataBySn(table, sn);
