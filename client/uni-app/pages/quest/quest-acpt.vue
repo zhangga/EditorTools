@@ -94,57 +94,28 @@
 						<span class="header">任务和区域</span>
 					</view>
 					
-					<el-form :label-position="labelPosition" label-width="42upx">
-						<el-row>
-							<el-col :span="4">
-								<el-form-item label="任务条件">
-									<el-checkbox v-model="isQuestLimitEnabled"></el-checkbox>
+					<el-form :label-position="labelPosition">
+						<el-row v-for="(limitPair, index) in questLimits">
+							<el-col :span="12">
+								<el-form-item :label="limitPair[0].type" label-width="65upx">
+									<textInput :datas="TaskNames" :placeholder='limitPair[0].type' :method='loadTaskNames' :select="onSetQuestLimit" v-bind:value='limitPair[0].id'
+										@click.native="onQuestLimitFocused" :id="index"></textInput>
 								</el-form-item>
 							</el-col>
-							
-							<el-col :span="9">
-								<el-form-item label="任务类型">
-									<el-select 
-										v-model="selectedQuestType" 
-										id="questType" 
-										@change="onChangeQuestType"
-										v-bind:disabled="!isQuestLimitEnabled">
-										<el-option v-for="questType in questTypes" :key="questType.key" :value="questType.value"></el-option>
-									</el-select>
-								</el-form-item>
-							</el-col>
-							
-							<el-col :span="9">
-								<el-form-item label="任务ID">
-									<textInput :datas="TaskNames" placeholder='任务ID' :method='loadTaskNames' :select="onSetQuestLimit" v-bind:value='questLimit' 
-										id="questLimit" v-bind:disabled="!isQuestLimitEnabled"></textInput>
+							<el-col :span="12">
+								<el-form-item :label="limitPair[1].type" label-width="55upx">
+									<textInput :datas="TaskNames" :placeholder='limitPair[1].type' :method='loadTaskNames' :select="onSetQuestLimit" v-bind:value='limitPair[1].id'
+										@click.native="onQuestLimitFocused" :id="index"></textInput>
 								</el-form-item>
 							</el-col>
 						</el-row>
 						
+						<rainbow-divider></rainbow-divider>
+						
 						<el-row>
-							<el-col :span="4">
-								<el-form-item label="位置条件">
-									<el-checkbox v-model="isPositionLimitEnabled"></el-checkbox>
-								</el-form-item>
-							</el-col>
-							
-							<el-col :span="9">
-								<el-form-item label="位置类型">
-									<el-select 
-										v-model="selectedPositionType" 
-										id="positionType" 
-										@change="onChangePositionType"
-										v-bind:disabled="!isPositionLimitEnabled">
-										<el-option v-for="positionType in positionTypes" :key="positionType.key" :value="positionType.value"></el-option>
-									</el-select>
-								</el-form-item>
-							</el-col>
-							
-							<el-col :span="9">
-								<el-form-item label="位置参数">
-									<el-input placeholder="位置参数" v-model="positionParameter" @change="onChangePositionParameter" 
-										v-bind:disabled="!isPositionLimitEnabled"></el-input>
+							<el-col :span="7" v-for="(limit, index) in positionLimits" :offset="index == 0 ? 0 : 1" >
+								<el-form-item :label="limit.type" label-width="20upx">
+									<el-input :placeholder="limit.type + '限制'" v-model="limit.params" @change="onChangePositionParameter($event, index)"></el-input>
 								</el-form-item>
 							</el-col>
 						</el-row>
@@ -414,13 +385,13 @@
 						
 						<el-row>
 							<el-col :span="10">
-								<el-form-item label="接取任务NPC ID" v-if="findQuestAcceptMannerIndex(questAcceptManner)==2">
+								<el-form-item label="接取任务NPC ID" v-if="findQuestAcceptMannerIndex(questAcceptManner) == 2">
 									<textInput :datas="NPC" placeholder='接取任务NPC' :method='loadNPC' :select="onSetStartNPC" v-bind:value='startNpc' id="startNPC" >
 									</textInput>
 								</el-form-item>
 							</el-col>
 										
-							<el-col :span="10" :offset="1">
+							<el-col :span="10" :offset="findQuestAcceptMannerIndex(questAcceptManner) == 2 ? 1 : 0">
 								<el-form-item label="完成任务NPC ID">
 									<textInput :datas="NPC" placeholder='完成任务NPC' :method='loadNPC' v-bind:value="endNpc" :select="onSetEndNPC" id="endNPC" >
 									</textInput>
@@ -469,36 +440,44 @@
 					</view>
 					<el-form :label-position="labelPosition" label-width="10upx">
 						<el-row>
-							<el-col :span="4">
+							<el-col :span='4'>
 								<el-form-item label="">
-									<el-checkbox v-model="canPerishCauseFailure">角色失败死亡</el-checkbox>
+									<el-checkbox v-model="failDead" @change="onChangeFailDead">角色失败死亡</el-checkbox>
 								</el-form-item>
 							</el-col>
-							<el-col :span="4" :offset="1">
+							<el-col :span='4' :offset='1'>
 								<el-form-item label="">
-									<el-checkbox v-model="canGoOfflineCauseFailure">下线失败</el-checkbox>
+									<el-checkbox v-model="failOffline" @change="onChangeFailOffline">下线失败</el-checkbox>
 								</el-form-item>
 							</el-col>
-							<el-col :span="4" :offset="1">
+						</el-row>
+						<el-row>
+							<el-col :span='4'>
 								<el-form-item label="">
-									<el-checkbox v-model="canTimeoutCauseFailure">超时失败</el-checkbox>
+									<el-checkbox v-model="failTimeout" @change="onSetIsFailTimeEnabled">超时失败</el-checkbox>
 								</el-form-item>
 							</el-col>
-							<el-col :span="6" :offset="0">
+							<el-col :span='8' :offset='1'>
+								<el-form-item label="限时（秒）" label-width="35upx">
+									<el-input-number :disabled="!failTimeout" placeholder="限时（秒）" @change="onChangeTimeLimit" v-model="timeLimit"></el-input-number>
+								</el-form-item>
+							</el-col>
+							
+							<el-col :span='4' :offset='1'>
 								<el-form-item label="">
-									<el-input-number :disabled="!canTimeoutCauseFailure" placeholder="秒"></el-input-number>
+									<el-checkbox v-model="showTimeLimit" @change="onSetShowTimeLimit">是否显示倒计时</el-checkbox>
 								</el-form-item>
 							</el-col>
 						</el-row>
 						<el-row>
 							<el-col :span="4">
 								<el-form-item label="">
-									<el-checkbox v-model="canOutOfAreaCauseFailure">不在区域内</el-checkbox>
+									<el-checkbox v-model="failArea">不在区域内</el-checkbox>
 								</el-form-item>
 							</el-col>
 							<el-col :span="6" :offset="1">
 								<el-form-item label="">
-									<el-select v-model="selectedAreaType" placeholder="区域类型" @change="onSelectAreaType" :disabled="!canOutOfAreaCauseFailure">
+									<el-select v-model="selectedAreaType" placeholder="区域类型" @change="onSelectAreaType" :disabled="!failArea">
 										<el-option v-for="type in areaTypes" :key="type.key" :label="type.value" :value="type.key"></el-option>
 									</el-select>
 								</el-form-item>
@@ -537,36 +516,33 @@
 				forceLimit: '',							// 阵营限制
 				
 				/* ---------- 任务接取条件-【任务和区域】相关 ---------- */
-				isQuestLimitEnabled: false,
-				isPositionLimitEnabled: false,
-				questLimit: '',							// 任务条件
-				positionParameter: '',
-				selectedQuestType: '',
-				selectedPositionType: '',
-				questTypes: [{
-					key: "1",
-					value: "未接，互斥任务",
-				}, {
-					key: "2",
-					value: "已接，关联任务",
-				}, {
-					key: "3",
-					value: "完成，未提交，关联任务"
-				}, {
-					key: "4",
-					value: "完成，已交，前置任务"
+				// 任务条件
+				questLimits: [[{
+					type: '完成，已交，前置任务',
+					id: ''
+				},{
+					type: '未接，互斥任务',
+					id: ''
+				}],[{
+					type: '完成，未提交，关联任务',
+					id: ''
+				},{
+					type: '已接，关联任务',
+					id: ''
+				}]],
+				currActivatedQuestLimitOption: '',						// 标识当前点击的任务条件的序号
+				
+				// 位置条件
+				positionLimits: [{
+					type: '区域',
+					params: ''
+				},{
+					type: '位置',
+					params: ''
+				},{
+					type: '场景',
+					params: ''
 				}],
-				positionTypes: [{
-						key: "1",
-						value: "区域",
-					}, {
-						key: "2",
-						value: "位置",
-					}, {
-						key: "3",
-						value: "场景"
-					}
-				],
 				
 				/* ---------- 新增条件相关 ---------- */
 				addConditionForm: {										// 新增条件表单数据封装
@@ -663,10 +639,16 @@
 				}],
 				
 				/* ---------- 任务失败条件-【任务失败条件】相关 ---------- */
-				canTimeoutCauseFailure: false,
-				canPerishCauseFailure: false,
-				canGoOfflineCauseFailure: false,
-				canOutOfAreaCauseFailure: false,
+				failTimeout: false,
+				timeLimit: 0,
+				showTimeLimit: false,
+				
+				failDead: false,
+				failOffline: false,
+
+				failArea: false,
+				selectedAreaType: '',
+				
 				areaTypes: [{
 					key: "1",
 					value: "区域"
@@ -677,7 +659,6 @@
 					key: "3",
 					value: "场景"
 				}],
-				selectedAreaType: '',
 				
 				/* ---------- 表数据相关 ---------- */
 				Sex: [],
@@ -805,6 +786,12 @@
 				// TODO: 初始化【任务接取条件-角色状态】表单项（当前暂无对应策划数据）
 				
 				// TODO: 初始化【任务接取条件-任务和区域】表单项（当前暂无对应策划数据）
+				let preId = this.tableRowData['preId']
+				if (preId != null && preId != '') {									// TODO: 加上对其他选项是否存在的判断
+					this.questLimits[1][1].id = this.findTaskName(preId)
+				} else {
+					this.questLimits[1][1].id = ''
+				}
 				
 				// TODO: 初始化【任务接取条件-时间条件】表单项（当前暂无对应策划数据）
 				
@@ -812,8 +799,6 @@
 				this.conditionObject.id = this.tableRowData['condition'] != null ? this.findConditionName(this.tableRowData['condition']) : null
 				let conditionID = this.tableRowData['condition']
 				let currConditionDetails = this.findCondition(conditionID)
-				
-				console.log(currConditionDetails)
 				
 				if (currConditionDetails != conditionID) {
 					this.conditionObject.comment = currConditionDetails.comment
@@ -842,7 +827,12 @@
 				
 				// TODO: 初始化【任务接取方式-喊话】表单项（当前暂无对应策划数据）
 				
-				// TODO: 初始化【任务失败条件-任务失败条件】表单项（当前暂无对应策划数据）
+				// TODO: 初始化【任务失败条件-任务失败条件】表单项
+				this.failDead = this.tableRowData['failDead'] != null ? this.tableRowData['failDead'] == 'TRUE' : false
+				this.failOffline = this.tableRowData['failOffline'] != null ? this.tableRowData['failOffline'] == 'TRUE' : false
+				this.failTimeout = (this.tableRowData['timeLimit'] != '' && this.tableRowData['timeLimit'] != '0')
+				this.timeLimit = this.tableRowData['timeLimit']
+				this.showTimeLimit = this.tableRowData['showTimeLimit'] != null ? this.tableRowData['showTimeLimit'] == 'TRUE' : false
 				
 				this.hasSetDefaultValue = true
 			},
@@ -917,23 +907,19 @@
 			
 			/* ----------- 任务与区域相关 ---------- */
 			onSetQuestLimit: function(item) {
-				this.questLimit = item.value
+				let index = this.currActivatedQuestLimitOption
+				this.questLimits[index].id =  item.key
 				if (this.tableRowData['sn'] != null) {
 					// TODO: 写入表格
-					console.log("UPDATE QUEST LIMIT TO " + this.forceLimit.split(":")[1])
+					console.log("UPDATE QUEST LIMIT " + this.questLimits[index].type + " TO " + item.key)
 				}
 			},
-			onChangeQuestType: function(value) {
-				// TODO: 写入表格
-				console.log('CHANGE QUEST TYPE TO ' + value)
+			onQuestLimitFocused: function(item) {
+				this.currActivatedQuestLimitOption = item.target.parentNode.parentNode.parentNode.id
 			},
-			onChangePositionType: function(value) {
+			onChangePositionParameter: function(value, index) {
 				// TODO: 写入表格
-				console.log('CHANGE LOCATION TYPE TO ' + value)
-			},
-			onChangePositionParameter: function(value) {
-				// TODO: 写入表格
-				console.log("CHANGE POSITION PARAMETER TO " + value)
+				console.log("CHANGE POSITION PARAMETER " + index + " TO " + value)
 			},
 			
 			/* ---------- 任务时间相关 ---------- */
@@ -1256,11 +1242,34 @@
 			},
 			
 			/* ---------- 任务失败条件相关 ---------- */
+			onChangeFailDead: function(value) {
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'failDead', value ? 'TRUE' : 'FALSE', this.$store.state.verNum.get('QUEST'), this)
+			},
+			
+			onChangeFailOffline: function(value) {
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'failOffline', value ? 'TRUE' : 'FALSE', this.$store.state.verNum.get('QUEST'), this)
+			},
+			
+			onChangeTimeLimit: function(value) {
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'timeLimit', value, this.$store.state.verNum.get('QUEST'), this)
+			},
+			
+			onSetIsFailTimeEnabled: function(value) {
+				if (!value) {
+					this.timeLimit = 0
+				}
+			},
+			
+			onSetShowTimeLimit: function(value) {
+				util.updateDataField('QUEST', this.tableRowData['sn'], 'showTimeLimit', value ? 'TRUE' : 'FALSE', this.$store.state.verNum.get('QUEST'), this)
+			},
+			
 			onSelectAreaType: function(value) {
 				// TODO: 写入表格
 				console.log(value)
 			},
 			
+			/* ---------- 任务接取方式相关 ---------- */
 			onSetStartNPC: function(item) {
 				this.startNpc = item.value
 				if (this.tableRowData['sn'] != null) {
@@ -1297,6 +1306,7 @@
 					util.updateDataField('QUEST',this.tableRowData['sn'],'afterEndPlotId',this.afterEndPlot.split(':')[0], this.$store.state.verNum.get('QUEST'), this)
 				}
 			},
+			/* ---------- 任务接取条件-其他相关 ---------- */
 			onSetFailCond: function(item) {
 				this.failCond = item.value
 				if (this.tableRowData['sn'] != null) {
@@ -1356,6 +1366,17 @@
 
 			/* -------------------- 通过ID找到对应表项的文字描述（用于数据初始化） -------------------- */
 			
+			findTaskName: function(taskID) {
+				if (taskID == '') {
+					return taskID
+				}
+				for (let i = 0; i < this.TaskNames.length; i++) {
+					if (this.TaskNames[i].key == taskID) {
+						return this.TaskNames[i].value
+					}
+				}
+				return taskID
+			},
 			findNPC: function(NpcID) {
 				if (NpcID == '' || this.NPC.length == 0) {
 					return NpcID
@@ -1595,8 +1616,6 @@
 							
 							this.ConditionTypeNames.push({key: condType['sn'], value: condTypeName})
 							this.ConditionTypes.set(condType['sn'], condType)
-							
-							console.log(condType)
 						}
 						
 						// 初始化条件数据(Condition)
