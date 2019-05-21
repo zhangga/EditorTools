@@ -46,14 +46,6 @@
 					<el-checkbox v-model="canAutomaticDeliver" @change="setAutoDeliver"></el-checkbox>
 				</el-form-item>
 				
-				<el-form-item label="任务限时(秒)" label-width="43upx">
-					<el-input placeholder="时间限制" v-model="timeLimit" id="timeLimit" @blur="setTimeLimit" style="width: 100upx;" clearable></el-input>
-				</el-form-item>
-				
-				<el-form-item label="显示时间信息" label-width="45upx">
-					<el-checkbox v-model="showTimeLimit" @change="setShowTimeLimit" disabled></el-checkbox>
-				</el-form-item>
-				
 				<el-form-item label="完成任务后传送">
 					<el-popover
 						ref="submitTrans"
@@ -260,7 +252,6 @@
 			setAutoDeliver: function() {
 				util.updateDataField('QUEST', this.tableRowData['sn'], 'canAutomaticDeliver',this.canAutomaticDeliver ? "TRUE" : "FALSE", this.$store.state.verNum.get('QUEST'), this)
 			},
-			setShowTimeLimit: function() {},
 			onSelect: function() {},
 			refreshDefaultValues: function() {
 				this.questReward = this.tableRowData['questReward']
