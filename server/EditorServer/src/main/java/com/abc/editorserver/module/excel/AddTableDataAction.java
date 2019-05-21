@@ -44,6 +44,7 @@ public class AddTableDataAction extends GameActionJson {
             // 检查参数是否包含sn
             if (sn == null) {
                 sn = DataManager.getInstance().getNextAvailableSn(table);
+                params.put("sn", sn);
                 LogEditor.serv.info("服务器提供了当前表格下一个可用的SN：" + sn);
             }
 
