@@ -607,14 +607,17 @@ public class DataManager {
      * @param colNames
      * @return
      */
-    public JSONArray getTableDataAtColumns(String tableName, String[] colNames) {
+    public JSONArray getTableDataAtColumns(String tableName, List<String> colNames) {
         JSONArray allTableData = getTableData(tableName);
         JSONArray partialTableData = new JSONArray();
 
         for (Object data : allTableData) {
+            JSONObject rowData = JSONObject.parseObject((String)data);
+            JSONObject partialRowData = new JSONObject();
             for (String colName : colNames) {
-                partialTableData.add(((JSONObject)data).get(colName));
+                partialRowData.put(colName, rowData.get(colName));
             }
+            partialTableData.add(partialRowData);
         }
 
         return partialTableData;

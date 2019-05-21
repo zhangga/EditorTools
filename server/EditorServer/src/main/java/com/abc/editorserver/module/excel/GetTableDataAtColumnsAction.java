@@ -8,6 +8,8 @@ import com.abc.editorserver.net.RequestData;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.List;
+
 /**
  * GetTableDataAtColumnsAction
  * Created by Marco
@@ -19,7 +21,7 @@ public class GetTableDataAtColumnsAction extends GameActionJson {
         String tableName = request.msg.getString("table");
         String cols = request.msg.getString("cols");
 
-        String[] colNames = (String[]) JSONObject.parseArray(cols).toArray();
+        List<String> colNames = JSONObject.parseArray(cols, String.class);
         JSONArray tableData = DataManager.getInstance().getTableDataAtColumns(tableName, colNames);
 
         JSONObject replyMsg = new JSONObject();
