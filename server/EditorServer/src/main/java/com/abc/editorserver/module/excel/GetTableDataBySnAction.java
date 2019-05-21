@@ -19,21 +19,27 @@ public class GetTableDataBySnAction extends GameActionJson {
         String table = request.msg.getString("table");
         String sn = request.msg.getString("sn");
 
-        String json = DataManager.getInstance().getTableDataBySn(table, sn);
+        JSONObject replyMsg = new JSONObject();
 
-        // 附加版本号信息
+        // 获取表数据
+        String tableDataInfo = DataManager.getInstance().getTableDataBySn(table, sn);
+        JSONObject jo = JSONObject.parseObject(tableDataInfo);
+
+        // 获取版本号信息
         String verNum = VersionManager.getInstance().getTableDataVersion(table, sn);
-        String ret = null;
-        if (json != null) {
-            JSONObject jo = JSONObject.parseObject(json);
+        if (jo != null) {
+            // 附加版本号信息
             jo.put("verNum", verNum);
-            ret = jo.toJSONString();
+
+            replyMsg.put("result", EditorConst.RESULT_OK);
+            replyMsg.put("data", jo.toString());
+        }
+        else {
+            replyMsg.put("result", EditorConst.RESULT_FAILED);
+            replyMsg.put("hint", "获取失败，请检查配置文件");
         }
 
-        JSONObject msg = new JSONObject();
-        msg.put("result", EditorConst.RESULT_OK);
-        msg.put("data", ret);
-        sendMsg(request.ctx, msg);
+        sendMsg(request.ctx, replyMsg);
     }
 
 }

@@ -585,8 +585,20 @@ public class DataManager {
         if (config == null) {
             return null;
         }
-        String json = JedisManager.hget(config.getRedis_table(), sn);
-        return json;
+
+        // 读取表数据
+        JSONObject dataInfo = new JSONObject();
+        String tableData = JedisManager.hget(config.getRedis_table(), sn);
+        dataInfo.put("tableData", tableData);
+
+        // 获取锁信息
+        User lockOwner = getCurrentTableDataLockOwner(tableName, sn);
+
+        if (lockOwner != null) {
+            dataInfo.put("lockInfo", lockOwner.getName());
+        }
+
+        return dataInfo.toString();
     }
 
     /**
