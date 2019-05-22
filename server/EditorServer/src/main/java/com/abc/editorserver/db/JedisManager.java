@@ -118,6 +118,10 @@ public class JedisManager {
         return getCurrentPool().hincrBy(key, field, value);
     }
 
+    public static boolean hexists(String key, String field) {
+        return getCurrentPool().hexists(key, field);
+    }
+
     public static long push(String key, String field) {
         return getCurrentPool().lpush(key, field);
     }

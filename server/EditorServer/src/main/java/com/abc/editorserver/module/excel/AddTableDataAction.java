@@ -34,16 +34,9 @@ public class AddTableDataAction extends GameActionJson {
             JSONObject params = JSONObject.parseObject(keyValues);
             String sn = params.getString("sn");
 
-            // 检查SN是否合法
-            if (sn != null && DataManager.getInstance().SnExistsInTable(table, sn)) {
-                replyMsg.put("result", EditorConst.RESULT_FAILED);
-                replyMsg.put("hint", "数据库中已当前SN对应的记录，请提供新的未被使用过的SN");
-                sendMsg(request.ctx, replyMsg);
-                return;
-            }
             // 检查参数是否包含sn
             if (sn == null) {
-                sn = DataManager.getInstance().getNextAvailableSn(table);
+                sn = DataManager.getInstance().getAndIncrNextAvailableSn(table);
                 params.put("sn", sn);
                 LogEditor.serv.info("服务器提供了当前表格下一个可用的SN：" + sn);
             }
@@ -51,22 +44,28 @@ public class AddTableDataAction extends GameActionJson {
             // 添加新数据
             int addResult = DataManager.getInstance().addTableData(table, params);
 
-            if (addResult == 1) {
-                LogEditor.serv.info("在【Table】" + table + "中新增记录：" + " 【keyValues】" + keyValues);
-                replyMsg.put("result", EditorConst.RESULT_OK);
-                replyMsg.put("hint", "请求成功");
+            switch (addResult) {
+                case -1:
+                    LogEditor.serv.info("添加失败，请检查配置文件");
+                    replyMsg.put("result", EditorConst.RESULT_FAILED);
+                    replyMsg.put("hint", "请求失败");
+                    break;
+                case 0:
+                    replyMsg.put("result", EditorConst.RESULT_FAILED);
+                    replyMsg.put("hint", "数据库中已当前SN对应的记录，请提供新的未被使用过的SN");
+                    sendMsg(request.ctx, replyMsg);
+                    break;
+                case 1:
+                    LogEditor.serv.info("在【Table】" + table + "中新增记录：" + " 【keyValues】" + keyValues);
+                    replyMsg.put("result", EditorConst.RESULT_OK);
+                    replyMsg.put("hint", "请求成功");
 
-                JSONObject jo = new JSONObject();
-                jo.put("sn", sn);
-                jo.put("questType", params.getString("questType"));
-                replyMsg.put("data", jo.toJSONString());
+                    JSONObject jo = new JSONObject();
+                    jo.put("sn", sn);
+                    jo.put("questType", params.getString("questType"));
+                    replyMsg.put("data", jo.toJSONString());
+                    break;
             }
-            else {
-                LogEditor.serv.info("添加失败，请检查配置文件");
-                replyMsg.put("result", EditorConst.RESULT_FAILED);
-                replyMsg.put("hint", "请求失败");
-            }
-
         }
 
         sendMsg(request.ctx, replyMsg);

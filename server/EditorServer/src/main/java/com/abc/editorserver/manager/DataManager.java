@@ -62,9 +62,6 @@ public class DataManager {
 
         LogEditor.serv.info("======从Excel写入Redis中======");
         excelToRedis();
-
-        LogEditor.serv.info("======拆分表格写入Excel中======");
-//        redisToExcel();
     }
 
     /*
@@ -203,9 +200,9 @@ public class DataManager {
                 XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
                 XSSFSheet sheet = workbook.getSheet(sheetName);
 
-                //表格每一列的英文名称
+                // 获取表格每一列的英文名称（列名）
                 List<String> colNames = new ArrayList<>();
-                XSSFRow nameRow = sheet.getRow(2);
+                XSSFRow nameRow = sheet.getRow(2);                  // 第2行定义了所有的英文列名
                 for (int i = 0; i < nameRow.getLastCellNum(); i++) {
                     if (nameRow.getCell(i)==null) {
                         colNames.add(Integer.toString(i));
@@ -220,6 +217,9 @@ public class DataManager {
                 if (shouldOverride) {
                     JedisManager.del(conf.getRedis_table());
                 }
+
+                // 逐行遍历表格
+                double maxSnAtCurrTable = 0, currSn = 0;
 
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
@@ -241,9 +241,19 @@ public class DataManager {
                         key = ExcelManager.getInstance().getDefaultNames()[i];
                     }
 
+                    // 获取当前表格中最大的SN
+                    try {
+                        currSn = Double.parseDouble(key);
+                    } catch (Exception e) {
+                        currSn = 0;
+                    } finally {
+                        maxSnAtCurrTable = Math.max(maxSnAtCurrTable, currSn);
+                    }
+
                     JedisManager.hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
                 }
 
+                JedisManager.hset(EditorConst.TABLE_SN_MAX, conf.getRedis_table(), String.valueOf(maxSnAtCurrTable));
             }
         } catch (Exception e) {
             LogEditor.config.error("Excel写入Redis失败：", e);
@@ -631,7 +641,7 @@ public class DataManager {
      * @return
      */
     public boolean SnExistsInTable(String tableName, String sn) {
-        return getTableDataBySn(tableName, sn) != null;
+        return JedisManager.hexists(tableName, sn);
     }
 
     /**
@@ -639,7 +649,7 @@ public class DataManager {
      * @param tableName
      * @return
      */
-    public String getNextAvailableSn(String tableName) {
+    public String getAndIncrNextAvailableSn(String tableName) {
         ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
 
         if (config == null) {
@@ -647,25 +657,8 @@ public class DataManager {
             return null;
         }
 
-        Map<String ,String> map = JedisManager.hgetAll(config.getRedis_table());
-        Iterator<String> iter = map.keySet().iterator();
-        String nextSN = "";
-        long currSN = 0L, maxSN = 0L;
-
-        while (iter.hasNext()) {
-            try {
-                nextSN = iter.next();
-                currSN = Long.parseLong(nextSN);
-            } catch (NumberFormatException e) {
-                LogEditor.serv.info("在数据库表" + config.getRedis_table() + "中出现非数字类型的SN值：" + nextSN);
-            }
-
-            maxSN = Math.max(maxSN, currSN);
-        }
-
-        maxSN += 1;
-
-        return String.valueOf(maxSN);
+        // 自增下一个可用的SN
+        return String.valueOf(JedisManager.hincrBy(EditorConst.TABLE_SN_MAX, config.getRedis_table(), 1L));
     }
 
     /**
@@ -680,8 +673,28 @@ public class DataManager {
             return -1;
         }
 
+        // 新增表数据
         String newTableData = params.toString();
-        JedisManager.hset(config.getRedis_table(), params.getString("sn"), newTableData);
+        long opResult = JedisManager.hsetNx(config.getRedis_table(), params.getString("sn"), newTableData);
+
+        if (opResult == 0L) {
+            LogEditor.serv.info("添加表数据失败：Redis中已有重复的SN " + params.getString("sn"));
+            return 0;
+        }
+
+        // 更新最大SN表
+        synchronized (DataManager.class) {
+            String currMaxSnStr = JedisManager.hget(EditorConst.TABLE_SN_MAX, config.getRedis_table());
+            long currMaxSn = 0L, currSn = Long.parseLong(params.getString("sn"));
+
+            if (currMaxSnStr != null) {
+                currMaxSn = Math.max(currMaxSn, Long.parseLong(currMaxSnStr));
+            }
+
+            if (currSn > currMaxSn) {
+                JedisManager.hset(EditorConst.TABLE_SN_MAX, config.getRedis_table(), String.valueOf(currSn));
+            }
+        }
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
@@ -831,6 +844,7 @@ public class DataManager {
             if (entry.getValue().isRunning()) {
                 // 停止写入Excel定时器
                 entry.getValue().stopTimer();
+
                 candidates.add(entry.getKey());
             }
         }
@@ -935,7 +949,7 @@ public class DataManager {
                         redisHashKey = (row == null ? null : row.getCell(0).toString());
 
                         /// 统一数字格式
-                        if (redisHashKey != null) {
+                        if (redisHashKey != null && redisHashKey.length() > 0) {
                             redisHashKey = String.valueOf(String.format("%.0f", Double.parseDouble(redisHashKey)));
                         }
                     }
