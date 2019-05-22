@@ -2,25 +2,157 @@
 var ExcelConfig_json =
 {
   "configs": [
-    {
+			{
+				// excel表名
+				"excel": "Quest.xlsx",
+				// sheet名
+				"sheet": "任务|Quest",
+				// Redis hash的表名
+				"redis_table": "QUEST",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../quest/quest"
+			},
+			{
+				// excel表名
+				"excel": "Quest.xlsx",
+				// sheet名
+				"sheet": "任务目标|QuestGoal",
+				// Redis hash的表名
+				"redis_table": "QUESTGOAL",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+			{
+				// excel表名
+				"excel": "Quest.xlsx",
+				// sheet名
+				"sheet": "对话表|Plot",
+				// Redis hash的表名
+				"redis_table": "PLOT",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+			{
+				// excel表名
+				"excel": "CharacterMonster.xlsx",
+				// sheet名
+				"sheet": "怪物|Character",
+				// Redis hash的表名
+				"redis_table": "CHARACTER",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+			{
+				// excel表名
+				"excel": "Item.xlsx",
+				// sheet名
+				"sheet": "物品|Item",
+				// Redis hash的表名
+				"redis_table": "ITEM",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+			{
+				// excel表名
+				"excel": "Npc.xlsx",
+				// sheet名
+				"sheet": "Npc|Npc",
+				// Redis hash的表名
+				"redis_table": "NPC",
+				// Redis hash的key值
+				"redis_key": "sn",
+			// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+		{
+			// excel表名
+			"excel": "Action.xlsx",
+			// sheet名
+			"sheet": "行为触发|Action",
+			// Redis hash的表名
+			"redis_table": "ACTION",
+			// Redis hash的key值
+			"redis_key": "sn",
+			// 点击跳转的导航页
+			"navigateTo": "../table/table"
+		},
+			{
+				// excel表名
+				"excel": "DropConfig.xlsm",
+				// sheet名
+				"sheet": "掉落组|DropGroup",
+				// Redis hash的表名
+				"redis_table": "DROPGROUP",
+				// Redis hash的key值
+				"redis_key": "sn",
+			// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+		{
+				// excel表名
+				"excel": "Condition.xlsx",
+				// sheet名
+				"sheet": "条件|Condition",
+				// Redis hash的表名
+				"redis_table": "CONDITION",
+				// Redis hash的key值
+				"redis_key": "sn",
+				// 点击跳转的导航页
+				"navigateTo": "../table/table"
+			},
+		{
+			// excel表名
+			"excel": "CharacterClass.xlsx",
+			// sheet名
+			"sheet": "职业|CharacterClass",
+			// Redis hash的表名
+			"redis_table": "SEX",
+			// Redis hash的key值
+			"redis_key": "sn",
+			// 点击跳转的导航页
+			"navigateTo": "../table/table"
+		},
+		{
+			// excel表名
+			"excel": "Career.xlsx",
+			// sheet名
+			"sheet": "职业|Career",
+			// Redis hash的表名
+			"redis_table": "OCCUPATION",
+			// Redis hash的key值
+			"redis_key": "sn",
+			// 点击跳转的导航页
+			"navigateTo": "../table/table"
+		},
+		{
       // excel表名
-      "excel": "Quest.xlsx",
+      "excel": "Skill.xlsm",
       // sheet名
-      "sheet": "任务|Quest",
+      "sheet": "技能|Skill",
       // Redis hash的表名
-      "redis_table": "QUEST",
+      "redis_table": "SKILL",
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
-      "navigateTo": "../quest/quest"
+      "navigateTo": "../table/table"
     },
     {
       // excel表名
-      "excel": "Quest.xlsx",
+      "excel": "Buff.xlsm",
       // sheet名
-      "sheet": "任务目标|QuestGoal",
+      "sheet": "Buff|Buff",
       // Redis hash的表名
-      "redis_table": "QUESTGOAL",
+      "redis_table": "BUFF",
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
@@ -28,11 +160,11 @@ var ExcelConfig_json =
     },
     {
       // excel表名
-      "excel": "Quest.xlsx",
+      "excel": "Bullet.xlsm",
       // sheet名
-      "sheet": "对话表|Plot",
+      "sheet": "子弹|Bullet",
       // Redis hash的表名
-      "redis_table": "PLOT",
+      "redis_table": "BULLET",
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
@@ -40,11 +172,11 @@ var ExcelConfig_json =
     },
     {
       // excel表名
-      "excel": "CharacterMonster.xlsx",
+      "excel": "Skill.xlsm",
       // sheet名
-      "sheet": "怪物|Character",
+      "sheet": "技能效果|HitEffect",
       // Redis hash的表名
-      "redis_table": "CHARACTER",
+      "redis_table": "HITEFFECT",
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
@@ -52,88 +184,16 @@ var ExcelConfig_json =
     },
     {
       // excel表名
-      "excel": "Item.xlsx",
+      "excel": "Skill.xlsm",
       // sheet名
-      "sheet": "物品|Item",
+      "sheet": "效果|Effect",
       // Redis hash的表名
-      "redis_table": "ITEM",
+      "redis_table": "EFFECT",
       // Redis hash的key值
       "redis_key": "sn",
       // 点击跳转的导航页
       "navigateTo": "../table/table"
-    },
-    {
-      // excel表名
-      "excel": "Npc.xlsx",
-      // sheet名
-      "sheet": "Npc|Npc",
-      // Redis hash的表名
-      "redis_table": "NPC",
-      // Redis hash的key值
-      "redis_key": "sn",
-	  // 点击跳转的导航页
-      "navigateTo": "../table/table"
-    },
-	{
-		// excel表名
-		"excel": "Action.xlsx",
-		// sheet名
-		"sheet": "行为触发|Action",
-		// Redis hash的表名
-		"redis_table": "ACTION",
-		// Redis hash的key值
-		"redis_key": "sn",
-		// 点击跳转的导航页
-		"navigateTo": "../table/table"
-	},
-    {
-      // excel表名
-      "excel": "DropConfig.xlsm",
-      // sheet名
-      "sheet": "掉落组|DropGroup",
-      // Redis hash的表名
-      "redis_table": "DROPGROUP",
-      // Redis hash的key值
-      "redis_key": "sn",
-	  // 点击跳转的导航页
-      "navigateTo": "../table/table"
-    },
-	{
-      // excel表名
-      "excel": "Condition.xlsx",
-      // sheet名
-      "sheet": "条件|Condition",
-      // Redis hash的表名
-      "redis_table": "CONDITION",
-      // Redis hash的key值
-      "redis_key": "sn",
-      // 点击跳转的导航页
-      "navigateTo": "../table/table"
-    },
-	{
-	  // excel表名
-	  "excel": "CharacterClass.xlsx",
-	  // sheet名
-	  "sheet": "职业|CharacterClass",
-	  // Redis hash的表名
-	  "redis_table": "SEX",
-	  // Redis hash的key值
-	  "redis_key": "sn",
-	  // 点击跳转的导航页
-	  "navigateTo": "../table/table"
-	},
-	{
-	  // excel表名
-	  "excel": "Career.xlsx",
-	  // sheet名
-	  "sheet": "职业|Career",
-	  // Redis hash的表名
-	  "redis_table": "OCCUPATION",
-	  // Redis hash的key值
-	  "redis_key": "sn",
-	  // 点击跳转的导航页
-	  "navigateTo": "../table/table"
-	},
+    }
   ],
   "triggers": [
     {
