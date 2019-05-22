@@ -906,7 +906,7 @@ public class DataManager {
                     // 记录提交信息
                     if (commitInfo.getNewRevision() == -1L) {
                         currCommitResult.put("result", EditorConst.RESULT_FAILED);
-                        currCommitResult.put("hint", commitInfo.getErrorMessage());
+                        currCommitResult.put("hint", commitInfo.getErrorMessage().getMessage());
                     } else {
                         currCommitResult.put("result", EditorConst.RESULT_OK);
                         currCommitResult.put("hint", "提交成功");
