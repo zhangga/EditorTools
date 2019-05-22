@@ -201,13 +201,13 @@ public class SVNManager {
             for (int i = 0; i < wcPath.length; ++i) {
                 files[i] = new File(wcPath[i]);
             }
-            LogEditor.serv.info("正在向SVN提交项目......");
+//            LogEditor.serv.info("正在向SVN提交......");
             return getClient().getCommitClient().doCommit(files, keepLocks,
                     commitMessage, null, null, false, false, SVNDepth.INFINITY);
         } catch (SVNException e) {
             LogEditor.config.error("提交SNV项目出错。{}", e);
+            return new SVNCommitInfo(-1, "", new Date(), e.getErrorMessage());
         }
-        return null;
     }
 
     /**

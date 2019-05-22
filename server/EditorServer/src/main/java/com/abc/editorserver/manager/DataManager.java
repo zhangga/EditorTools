@@ -3,8 +3,10 @@ package com.abc.editorserver.manager;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.config.EditorConst;
@@ -12,6 +14,8 @@ import com.abc.editorserver.db.JedisManager;
 import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 import com.abc.editorserver.module.user.User;
+import com.abc.editorserver.msg.GameActionJson;
+import com.abc.editorserver.net.RequestData;
 import com.abc.editorserver.utils.Task;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -27,6 +31,9 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.abc.editorserver.utils.Timer;
+import org.tmatesoft.svn.core.SVNCommitInfo;
+import org.tmatesoft.svn.core.SVNDepth;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -40,6 +47,8 @@ public class DataManager {
     private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
     private Map<String, Timer> tableTimers = new HashMap<>();
     private Map<String, User> tableLocks = new ConcurrentHashMap<>();
+
+    private static StringBuilder excelPathPrefix = new StringBuilder(EditorConfig.svn_export).append('/');
 
     private final long dataPersistInterval = Timer.HALF_MINUTE;
 
@@ -832,8 +841,9 @@ public class DataManager {
 
     /**
      * 强制将更新写入Excel并提交至SVN
+     * @param params：异步调用时的参数
      */
-    public void promptDataPersist() {
+    public void promptDataPersist(JSONObject params) {
         Iterator<Map.Entry<String, Timer>> iter = tableTimers.entrySet().iterator();
         Map.Entry<String, Timer> entry;
         List<String> candidates = new ArrayList<>();
@@ -852,18 +862,74 @@ public class DataManager {
         if (candidates.size() > 0) {
             LogEditor.serv.info("定时器被触发，将缓存刷新至Excel中...");
 
-            JSONObject params = new JSONObject();
+            params = (params == null ? new JSONObject() : params);
             params.put("candidates", candidates);
+
+            if (!GlobalManager.hasPendingCommitTask) {
+                // 设置标志flag
+                GlobalManager.hasPendingCommitTask = true;
+            } else {
+                GameActionJson msgCaller = (GameActionJson)params.get("MsgCaller");
+                RequestData requestCtx = (RequestData)params.get("RequestContext");
+
+                JSONObject replyMsg = new JSONObject();
+                replyMsg.put("result", EditorConst.RESULT_FAILED);
+                replyMsg.put("hint", "当前正在执行另一个COMMIT操作，请稍后重试");
+
+                msgCaller.sendMsg(requestCtx.ctx, replyMsg);
+                return;
+            }
 
             // 提交至任务队列中
             GlobalManager.addTask(new Task(var -> {
+                // 读取参数信息
                 List<String> tables = (List<String>) var.get("candidates");
+                GameActionJson msgCaller = (GameActionJson)var.get("MsgCaller");
+                RequestData requestCtx = (RequestData)var.get("RequestContext");
+                User currUser = (User)var.get("User");
+
+                String commitMsg = "【任务编辑器】提交 | 提交者【" + currUser.getName() + "】";
+                JSONArray commitResults = new JSONArray();
 
                 // 将本地缓存的改动写入至Excel表格中
                 persistData(false, tables);
 
-                // 强制触发下一次commit
-                GlobalManager.getCommitTimer().triggerDue();
+                LogEditor.serv.info("【SVN COMMIT】开始COMMIT");
+
+                for (String candidate : candidates) {
+                    excelPathPrefix.append(ExcelManager.getInstance().getConfig(candidate).getExcel());
+
+                    // 对逐个文件执行Commit
+                    SVNCommitInfo commitInfo = SVNManager.commit(true,  commitMsg, excelPathPrefix.toString());
+                    JSONObject currCommitResult = new JSONObject();
+
+                    // 记录提交信息
+                    if (commitInfo.getNewRevision() == -1L) {
+                        currCommitResult.put("result", EditorConst.RESULT_FAILED);
+                        currCommitResult.put("hint", commitInfo.getErrorMessage());
+                    } else {
+                        currCommitResult.put("result", EditorConst.RESULT_OK);
+                        currCommitResult.put("hint", "提交成功");
+                    }
+                    commitResults.add(currCommitResult);
+
+                    excelPathPrefix.delete(excelPathPrefix.lastIndexOf("/") + 1, excelPathPrefix.length());
+                }
+
+                LogEditor.serv.info("【SVN COMMIT】COMMIT完成");
+
+                // 还原标志flag
+                GlobalManager.hasPendingCommitTask = false;
+
+                // 发送消息
+                JSONObject replyMsg = new JSONObject();
+                try {
+                    replyMsg.put("result", EditorConst.RESULT_OK);
+                    replyMsg.put("hint", commitResults.toString());
+                    msgCaller.sendMsg(requestCtx.ctx, replyMsg);
+                } catch (IllegalStateException e) {
+                    LogEditor.serv.error("服务器返回COMMIT结果失败：【" + e.getMessage() + "】");
+                }
             }, params));
         }
     }

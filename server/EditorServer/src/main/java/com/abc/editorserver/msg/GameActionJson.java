@@ -105,6 +105,7 @@ public abstract class GameActionJson {
         }
         else {
         	LogEditor.msg.error("HTTP写入返回值失败, msg: " + msg);
+        	throw new IllegalStateException("Channel not exists or inactive!");
         }
     }
 
