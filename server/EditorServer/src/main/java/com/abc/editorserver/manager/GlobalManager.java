@@ -2,6 +2,7 @@ package com.abc.editorserver.manager;
 
 import com.abc.editorserver.EditorServer;
 import com.abc.editorserver.config.EditorConfig;
+import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.support.LogEditor;
 import com.abc.editorserver.utils.Function;
 import com.abc.editorserver.utils.Task;
@@ -29,33 +30,20 @@ public class GlobalManager {
             newFixedThreadPool(10);
     private static ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
 
-    private static Timer updateTimer;
-    private static Timer commitTimer;
+    /** 保证队列中最多只有一个待执行COMMIT任务 */
+    public static volatile boolean hasPendingCommitTask = false;
 
-    private static long lastTime = 0;
-    private static final long commitInterval = Timer.FIFTEEN_MINUTES;
-    private static final long updateInterval = Timer.ONE_MINUTE;
-
-    private static DataManager dataManager = DataManager.getInstance();
-
+    /** 保证同时只有一个线程在执行UPDATE任务 */
     public static volatile boolean isDoingUpdate = false;
 
+    private static DataManager dataManager = DataManager.getInstance();
     private GlobalManager() {}
 
     /**
      * 初始化方法
      */
     public static void init() {
-        // 初始化并启动SVN更新计时器
-        updateTimer = new Timer(updateInterval);
-        updateTimer.startTimer();
-
-        // 初始化并启动SVN提交计时器
-        commitTimer = new Timer(commitInterval);
-        commitTimer.startTimer();
-
         pulseExecutor.scheduleAtFixedRate(() -> {
-            lastTime = System.currentTimeMillis();
             try {
                 pulse();
             }
@@ -91,61 +79,7 @@ public class GlobalManager {
             taskExecutor.execute(getNextTask());
         }
 
-        // 定时从SVN更新 (TODO: 移除定时从SVN更新)
-        if (false && updateTimer.isDue()) {
-            // 重置SVN更新计时器
-            updateTimer.reStartTimer();
-
-            taskQueue.add(new Task(var -> {
-                if (!isDoingUpdate) {
-                    // 更新更新状态flag
-                    isDoingUpdate = true;
-
-                    SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
-                    DataManager.getInstance().reloadDataAfterUpdate();
-
-                    LogEditor.serv.info("定时执行了SVN更新");
-                }
-            }, null));
-        }
-
         // 定时将改动写入至Excel中
         dataManager.dataPersistHandler();
-
-        // 定时向SVN提交改动 (TODO: 移除定时向SVN提交改动)
-        if (false && !EditorConfig.dev_mode && commitTimer.isDue()) {
-            // 重置SVN提交计时器
-            commitTimer.reStartTimer();
-
-            taskQueue.add(new Task(var -> {
-                // 如果当前正在执行更新任务，延迟提交至下一个心跳
-                if (isDoingUpdate) {
-                    commitTimer.triggerDue();
-                } else {
-                    LogEditor.serv.info("【SVN COMMIT】COMMIT前执行UPDATE");
-                    isDoingUpdate = true;
-                    SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
-
-                    LogEditor.serv.info("【SVN COMMIT】开始COMMIT");
-                    SVNManager.commit(true, "【任务编辑器】自动更新", EditorConfig.svn_export);
-                    LogEditor.serv.info("【SVN COMMIT】COMMIT完成");
-                }
-            }, null));
-        }
     }
-
-    public static Timer getCommitTimer() {
-        if (commitTimer == null) {
-            commitTimer = new Timer(commitInterval);
-        }
-        return commitTimer;
-    }
-
-    public static Timer getUpdateTimer() {
-        if (updateTimer == null) {
-            updateTimer = new Timer(updateInterval);
-        }
-        return updateTimer;
-    }
-
 }
