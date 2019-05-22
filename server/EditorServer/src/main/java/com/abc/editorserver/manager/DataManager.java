@@ -228,7 +228,7 @@ public class DataManager {
                 }
 
                 // 逐行遍历表格
-                double maxSnAtCurrTable = 0, currSn = 0;
+                int maxSnAtCurrTable = 0, currSn = 0;
 
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
@@ -252,7 +252,7 @@ public class DataManager {
 
                     // 获取当前表格中最大的SN
                     try {
-                        currSn = Double.parseDouble(key);
+                        currSn = Integer.parseInt(key);
                     } catch (Exception e) {
                         currSn = 0;
                     } finally {
@@ -702,6 +702,7 @@ public class DataManager {
 
             if (currSn > currMaxSn) {
                 JedisManager.hset(EditorConst.TABLE_SN_MAX, config.getRedis_table(), String.valueOf(currSn));
+                LogEditor.serv.info("表格" + config.getRedis_table() + "的最大SN被更新为" + currSn);
             }
         }
 

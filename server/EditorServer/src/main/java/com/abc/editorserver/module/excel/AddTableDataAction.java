@@ -52,7 +52,7 @@ public class AddTableDataAction extends GameActionJson {
                     break;
                 case 0:
                     replyMsg.put("result", EditorConst.RESULT_FAILED);
-                    replyMsg.put("hint", "数据库中已当前SN对应的记录，请提供新的未被使用过的SN");
+                    replyMsg.put("hint", "数据库中已有当前SN对应的记录，请提供新的未被使用过的SN");
                     sendMsg(request.ctx, replyMsg);
                     break;
                 case 1:
