@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.abc.editorserver.config.EditorConfig;
@@ -225,6 +226,7 @@ public class DataManager {
                 // 清除数据
                 if (shouldOverride) {
                     JedisManager.del(conf.getRedis_table());
+                    JedisManager.hdel(EditorConst.TABLE_SN_MAX, conf.getRedis_table());
                 }
 
                 // 逐行遍历表格
@@ -573,7 +575,7 @@ public class DataManager {
 
         // 刷新计时器
         tableTimers.get(table).reStartTimer();
-        LogEditor.serv.info("写Excel计时器被刷新");
+        LogEditor.serv.info("写Excel【" + table + "】计时器被刷新");
 
         if (shouldIncrementVerNum) {
             return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
@@ -662,7 +664,7 @@ public class DataManager {
         ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
 
         if (config == null) {
-            LogEditor.serv.info("提供的表名错误，无法获取到下一个可用的SN");
+            LogEditor.serv.error("提供的表名错误，无法获取到下一个可用的SN");
             return null;
         }
 
@@ -687,7 +689,7 @@ public class DataManager {
         long opResult = JedisManager.hsetNx(config.getRedis_table(), params.getString("sn"), newTableData);
 
         if (opResult == 0L) {
-            LogEditor.serv.info("添加表数据失败：Redis中已有重复的SN " + params.getString("sn"));
+            LogEditor.serv.error("添加表数据失败：Redis中表格" + tableName + "已有重复的SN " + params.getString("sn"));
             return 0;
         }
 
@@ -708,9 +710,114 @@ public class DataManager {
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
-        LogEditor.serv.info("写Excel计时器被刷新");
+        LogEditor.serv.info("写Excel【" + tableName + "】计时器被刷新");
 
         return 1;
+    }
+
+    /**
+     * 浅复制一条表数据
+     * @param tableName
+     * @param sn
+     * @return
+     */
+    public JSONObject shallowCopyTableData(String tableName, String sn) {
+        JSONObject replyMsg = new JSONObject();
+        String originalData = JedisManager.hget(tableName, sn);
+        if (originalData == null) {
+            String hint = "浅复制表数据" + tableName + ":" + sn + "时无法找到指定的源数据";
+            LogEditor.serv.error(hint);
+            replyMsg.put("result", EditorConst.RESULT_FAILED);
+            replyMsg.put("hint", hint);
+        }
+
+        // 执行浅复制前锁定源数据，避免用户再复制期间修改数据
+        User defaultUser = new User();
+        defaultUser.setUid("DEFAULT_USER");
+        tryLockingTableData(tableName, sn, defaultUser);
+
+        String copiedDataSn = getAndIncrNextAvailableSn(tableName);
+        JSONObject copiedData = JSONObject.parseObject(originalData);
+        copiedData.put("sn", copiedDataSn);
+        addTableData(tableName, copiedData);
+
+        // 解锁源数据
+        tryUnLockingTableData(tableName, sn, defaultUser);
+
+        replyMsg.put("result", EditorConst.RESULT_OK);
+        replyMsg.put("data", copiedData.toString());
+        return replyMsg;
+    }
+
+    /**
+     * 深复制一条表数据
+     * @param tableName
+     * @param sn
+     * @return
+     */
+    public JSONObject deepCopyTableData(String tableName, String sn) {
+        JSONObject replyMsg = new JSONObject();
+        ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
+
+        if (config == null) {
+            String hint = "找不到对应的配置文件，请检查后重试";
+            LogEditor.serv.error(hint);
+            replyMsg.put("result", EditorConst.RESULT_FAILED);
+            replyMsg.put("hint", hint);
+            return replyMsg;
+        }
+
+        String refs = config.getRefs();
+
+        // 浅复制当前表格指定的数据
+        JSONObject shallowCopyResult = shallowCopyTableData(tableName, sn);
+
+        if (shallowCopyResult.get("result") == EditorConst.RESULT_FAILED) {
+            return shallowCopyResult;
+        }
+
+        JSONObject shallowCopiedData = JSONObject.parseObject(shallowCopyResult.getString("data"));
+        LogEditor.serv.info("浅复制了表格" + tableName + "中SN为" + sn + "的数据，开始进行深复制");
+
+        // 查询表格关联信息，执行深复制
+        if (refs != null && refs.length() > 0) {
+            JSONArray refsAsArray = JSONObject.parseArray(refs);
+            for (int i = 0; i < refsAsArray.size(); i++) {
+                JSONObject refObj = refsAsArray.getJSONObject(i);
+
+                // 遍历所有的引用列
+                for (String refColName : refObj.keySet()) {
+                    String refTableName = refObj.getString(refColName);
+                    String[] refTableSns = shallowCopiedData.getString(refColName).split(",");
+                    List<String> updatedCopiedRefSns = new ArrayList<>(refTableSns.length);
+
+                    // 引用列中可能有多个数据（用逗号分隔），逐个进行复制
+                    for (String refTableSn : refTableSns) {
+                        // 递归进行深度复制
+                        JSONObject deepCopyResult = deepCopyTableData(refTableName, refTableSn);
+                        LogEditor.serv.info("深复制了表格" + refTableName + "中SN为" + refTableSn + "的数据");
+
+                        // 记录深复制后的新SN值
+                        JSONObject deepCopiedData = JSONObject.parseObject(deepCopyResult.getString("data"));
+                        updatedCopiedRefSns.add(deepCopiedData.getString("sn"));
+
+                        // 一旦失败则停止复制
+                        if (deepCopyResult.get("result") == EditorConst.RESULT_FAILED) {
+                            return deepCopyResult;
+                        }
+                    }
+
+                    // 更新上级复制数据引用列的值
+                    shallowCopiedData.put(refColName, String.join(",", updatedCopiedRefSns));
+                    JedisManager.hset(tableName, shallowCopiedData.getString("sn"), shallowCopiedData.toString());
+                    shallowCopyResult.put("data", shallowCopiedData.toString());
+                }
+            }
+        }
+
+        replyMsg.put("result", EditorConst.RESULT_OK);
+        replyMsg.put("data", shallowCopyResult.getString("data"));
+        return replyMsg;
     }
 
     /**
@@ -734,7 +841,7 @@ public class DataManager {
 
         // 刷新计时器
         tableTimers.get(tableName).reStartTimer();
-        LogEditor.serv.info("写Excel计时器被刷新");
+        LogEditor.serv.info("写Excel【" + tableName + "】计时器被刷新");
 
         return 1;
     }

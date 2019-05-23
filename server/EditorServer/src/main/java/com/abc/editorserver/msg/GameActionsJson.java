@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.abc.editorserver.module.excel.AddTableDataAction;
+import com.abc.editorserver.module.excel.DeepCopyTableDataAction;
 import com.abc.editorserver.module.excel.DeleteMultipleTableDataBySnAction;
 import com.abc.editorserver.module.excel.DeleteTableDataBySnAction;
 import com.abc.editorserver.module.excel.DownloadTableAction;
@@ -54,7 +55,8 @@ public enum GameActionsJson {
 	GetVersionNumberBySnAction("获取某条数据的最新版本号", 17, GetVersionNumberBySnAction.class),
 	GetTableDataAtColumnsAction("获取指定表格在选定列的所有数据", 18, GetTableDataAtColumnsAction.class),
 	LockTableDataAction("尝试获取指定表格指定数据的锁", 19, LockTableDataAction.class),
-	UnlockTableDataAction("尝试为指定表格指定数据解锁", 20, UnlockTableDataAction.class)
+	UnlockTableDataAction("尝试为指定表格指定数据解锁", 20, UnlockTableDataAction.class),
+	DeepCopyTableDataAction("深复制指定的表格数据", 21, DeepCopyTableDataAction.class)
 	;
 	
 	/**
