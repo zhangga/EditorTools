@@ -13,12 +13,6 @@
 	/* uni.css - 通用组件、模板样式库，可以当作一套ui库应用 */
 	@import './common/uni.css';
 	
-	.dialog {
-	    width: 100%;
-		padding-bottom: 3%;
-	    background: rgba(0,0,0,.7);
-	}
-	
 	.mainContent {
 	    padding: 30px 20px 20px;
 	    border-radius: 8px;

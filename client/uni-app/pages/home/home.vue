@@ -234,6 +234,12 @@
 </script>
 
 <style>
+	.dialog {
+	    width: 100%;
+		height: 100%;
+		padding-bottom: 3%;
+	    background: rgba(0,0,0,.7);
+	}
 	.el-col {
 		padding-left: 25upx;
 	}

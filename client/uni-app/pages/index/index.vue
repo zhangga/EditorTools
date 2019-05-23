@@ -138,9 +138,10 @@
 		margin-bottom: 3upx;
 		padding: 0upx;
 	}
-	/* .buttonGroup {
-		position: relative;
-		top: 50%;
-		left: 60%;
-	} */
+	.dialog {
+	    width: 100%;
+		height: 100vh;
+		padding-bottom: 3%;
+	    background: rgba(0,0,0,.7);
+	}
 </style>
