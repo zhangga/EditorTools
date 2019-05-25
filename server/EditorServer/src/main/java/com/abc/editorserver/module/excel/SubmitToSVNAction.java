@@ -29,6 +29,6 @@ public class SubmitToSVNAction extends GameActionJson {
         params.put("User", user);
 
         // 将持久化延迟到下一帧执行，避免并发操作问题
-        GlobalManager.addTask(new Task(dataManager::promptDataPersist, params));
+        GlobalManager.addTask(new Task(dataManager::promptDataPersistAndCommit, params));
     }
 }
