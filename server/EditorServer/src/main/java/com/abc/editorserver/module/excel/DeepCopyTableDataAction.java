@@ -18,7 +18,7 @@ public class DeepCopyTableDataAction extends GameActionJson {
         String tableName = request.msg.getString("table");
         String sn = request.msg.getString("sn");
 
-        JSONObject copyResult = DataManager.getInstance().deepCopyTableData(tableName, sn);
+        JSONObject copyResult = DataManager.getInstance().deepCopyTableData(tableName, sn, user);
         sendMsg(request.ctx, copyResult);
     }
 }

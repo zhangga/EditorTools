@@ -42,23 +42,28 @@ public class AddTableDataAction extends GameActionJson {
             }
 
             // 添加新数据
-            int addResult = DataManager.getInstance().addTableData(table, params);
+            int addResult = DataManager.getInstance().addTableData(table, params, user);
 
             switch (addResult) {
-                case -1:
-                    LogEditor.serv.info("添加失败，请检查配置文件");
+                case -2:
+                    LogEditor.serv.error("添加失败，当前表格/表格数据被锁定，请稍后重试");
                     replyMsg.put("result", EditorConst.RESULT_FAILED);
-                    replyMsg.put("hint", "请求失败");
+                    replyMsg.put("hint", "请求失败，当前表格/表格数据被锁定，请稍后重试");
+                case -1:
+                    LogEditor.serv.error("添加失败，请检查配置文件");
+                    replyMsg.put("result", EditorConst.RESULT_FAILED);
+                    replyMsg.put("hint", "添加失败，请检查配置文件");
                     break;
                 case 0:
+                    LogEditor.serv.error("添加失败，数据库中已有当前SN对应的记录，请提供新的未被使用过的SN");
                     replyMsg.put("result", EditorConst.RESULT_FAILED);
-                    replyMsg.put("hint", "数据库中已有当前SN对应的记录，请提供新的未被使用过的SN");
+                    replyMsg.put("hint", "添加失败，数据库中已有当前SN对应的记录，请提供新的未被使用过的SN");
                     sendMsg(request.ctx, replyMsg);
                     break;
                 case 1:
                     LogEditor.serv.info("在【Table】" + table + "中新增记录：" + " 【keyValues】" + keyValues);
                     replyMsg.put("result", EditorConst.RESULT_OK);
-                    replyMsg.put("hint", "请求成功");
+                    replyMsg.put("hint", "添加成功");
 
                     JSONObject jo = new JSONObject();
                     jo.put("sn", sn);
