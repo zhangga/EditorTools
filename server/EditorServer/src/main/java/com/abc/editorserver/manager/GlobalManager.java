@@ -1,13 +1,9 @@
 package com.abc.editorserver.manager;
 
-import com.abc.editorserver.EditorServer;
 import com.abc.editorserver.config.EditorConfig;
-import com.abc.editorserver.module.JSONModule.ExcelConfig;
 import com.abc.editorserver.support.LogEditor;
-import com.abc.editorserver.utils.Function;
 import com.abc.editorserver.utils.Task;
 import com.abc.editorserver.utils.Timer;
-import com.alibaba.fastjson.JSONObject;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
@@ -23,11 +19,15 @@ import java.util.concurrent.TimeUnit;
  * Date: 2019/3/30
  */
 public class GlobalManager {
-
+    /** 心跳线程 */
     private static ScheduledThreadPoolExecutor pulseExecutor = (ScheduledThreadPoolExecutor) Executors.
             newScheduledThreadPool(1);
+
+    /** 任务执行线程 */
     private static ThreadPoolExecutor taskExecutor = (ThreadPoolExecutor)Executors.
             newFixedThreadPool(10);
+
+    /** 任务队列 */
     private static ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
 
     /** 保证队列中最多只有一个待执行COMMIT任务 */
@@ -36,6 +36,12 @@ public class GlobalManager {
     /** 保证同时只有一个线程在执行UPDATE任务 */
     public static volatile boolean isDoingUpdate = false;
 
+    /** 更新间隔常量 */
+    private static final long updateInterval = Timer.HALF_MINUTE;
+
+    /** 更新计时器 */
+    private static Timer updateTimer;
+
     private static DataManager dataManager = DataManager.getInstance();
     private GlobalManager() {}
 
@@ -43,6 +49,10 @@ public class GlobalManager {
      * 初始化方法
      */
     public static void init() {
+        // 初始化并启动SVN更新计时器
+        updateTimer = new Timer(updateInterval);
+        updateTimer.startTimer();
+
         pulseExecutor.scheduleAtFixedRate(() -> {
             try {
                 pulse();
@@ -79,7 +89,31 @@ public class GlobalManager {
             taskExecutor.execute(getNextTask());
         }
 
+        // 定时从SVN更新
+        if (false && updateTimer.isDue()) {
+            // 重置SVN更新计时器
+            updateTimer.reStartTimer();
+
+            taskQueue.add(new Task(var -> {
+                if (!isDoingUpdate) {
+                    // 更新更新状态flag
+                    isDoingUpdate = true;
+
+                    // 更新前将未写入的改动持久化至Excel
+                    dataManager.dataPersistHandler(false);
+
+                    // 执行SVN更新
+                    SVNManager.update(EditorConfig.svn_export, SVNRevision.HEAD, SVNDepth.INFINITY);
+
+                    // 将更新后的Excel数据刷新至数据库中
+                    DataManager.getInstance().reloadDataAfterUpdate();
+
+                    LogEditor.serv.info("定时执行了SVN更新");
+                }
+            }, null));
+        }
+
         // 定时将改动写入至Excel中
-        dataManager.dataPersistHandler();
+        dataManager.dataPersistHandler(true);
     }
 }
