@@ -23,7 +23,12 @@ public class UpdateTableDataAction extends GameActionJson {
 
         JSONObject replyMsg = new JSONObject();
 
+        LogEditor.serv.info("接受到的消息：【Table】" + table + " 【sn】" + sn + " 【verNum】" + versionNum);
+
         VersionManager versionManager = VersionManager.getInstance();
+
+        LogEditor.serv.info("当前请求数据的版本号为：" + versionManager.getTableDataVersion(table, sn));
+
         if (versionManager.hasTableDataVersionChanged(table, sn, versionNum)) {
             LogEditor.serv.info("收到的versionNum: " + versionNum);
             replyMsg.put("result", EditorConst.RESULT_FAILED);
