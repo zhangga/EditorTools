@@ -5,6 +5,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.UnsupportedEncodingException;
 
+import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.net.RequestData;
 import com.abc.editorserver.support.LogEditor;
@@ -34,7 +35,9 @@ public abstract class GameActionJson {
 	
 	public void action(User user, RequestData request) {
 		try {
-			LogEditor.msg.info("接收消息：{}", request);
+			int cmdNum = Integer.valueOf(new JSONObject(request.msg).getString("cmd"));
+			String cmdName = GameActionsJson.getType(cmdNum).getName();
+			LogEditor.msg.info("接收消息：消息号为：{}，描述：{}", cmdNum, cmdName);
 			doAction(user, request);
 		} catch (Exception e) {
 			LogEditor.serv.error("处理消息时发生异常：msgId = {}, exception = {}", cmd, e);
@@ -74,7 +77,9 @@ public abstract class GameActionJson {
      * @param msg
      */
     public static void sendMsg0(Channel channel, String msg) {
-    	LogEditor.msg.info("回复消息：" + msg);
+    	if (EditorConfig.dev_mode) {
+			LogEditor.msg.info("回复消息：" + msg);
+		}
         ByteBuf buf = null;
         try {
             buf = Unpooled.wrappedBuffer(msg.getBytes("UTF-8"));
