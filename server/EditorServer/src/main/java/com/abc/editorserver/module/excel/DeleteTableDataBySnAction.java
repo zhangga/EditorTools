@@ -5,6 +5,7 @@ import com.abc.editorserver.manager.DataManager;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.net.RequestData;
+import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.JSONObject;
 
 /**
@@ -18,7 +19,8 @@ public class DeleteTableDataBySnAction extends GameActionJson {
         String table = request.msg.getString("table");
         String sn = request.msg.getString("sn");
 
-        DataManager.getInstance().deleteTableData(table, sn);
+        LogEditor.serv.info("接收到删除请求：【table】" + table + ",【sn】" + sn);
+        DataManager.getInstance().deleteTableData(table, sn, user);
 
         JSONObject msg = new JSONObject();
         msg.put("result", EditorConst.RESULT_OK);

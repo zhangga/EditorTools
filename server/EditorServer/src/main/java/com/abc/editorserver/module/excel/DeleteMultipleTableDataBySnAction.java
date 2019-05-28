@@ -27,7 +27,7 @@ public class DeleteMultipleTableDataBySnAction extends GameActionJson {
         String[] snBatchArray = snBatch.split("\\|");
 
         for (String sn : snBatchArray) {
-            DataManager.getInstance().deleteTableData(table, sn);
+            DataManager.getInstance().deleteTableData(table, sn, user);
         }
 
         JSONObject msg = new JSONObject();
