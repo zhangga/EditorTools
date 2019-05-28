@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.abc.editorserver.support.LogEditor;
 import com.alibaba.fastjson.parser.Feature;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormat;
@@ -33,9 +34,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.abc.editorserver.utils.Timer;
 import org.tmatesoft.svn.core.SVNCommitInfo;
-import org.tmatesoft.svn.core.SVNDepth;
-import org.tmatesoft.svn.core.wc.SVNRevision;
-import redis.clients.jedis.Jedis;
 
 /**
  * 数据管理器
@@ -844,9 +842,10 @@ public class DataManager {
      * @param sn
      * @return
      */
-    public int deleteTableData(String tableName, String sn) {
+    public int deleteTableData(String tableName, String sn, User user) {
         // 判断表格数据是否被锁定
-        if (getCurrentTableDataLockOwner(tableName, sn) != null) {
+        User currLockOwner = getCurrentTableDataLockOwner(tableName, sn);
+        if (currLockOwner != null && !currLockOwner.getUid().equals(user.getUid())) {
             return -1;
         }
 
@@ -854,6 +853,8 @@ public class DataManager {
         if (config == null) {
             return -1;
         }
+
+        LogEditor.serv.info("删除了" + tableName + "表中SN为" + sn + "的记录");
 
         JedisManager.hdel(config.getRedis_table(), sn);
 
@@ -863,7 +864,6 @@ public class DataManager {
 
         // 刷新改动记录表
         tableModifiedSinceLastCommit.put(config.getRedis_table(), true);
-
 
         return 1;
     }
@@ -1043,8 +1043,8 @@ public class DataManager {
      * @param params：异步调用时的参数
      */
     public void promptDataPersistAndCommit(JSONObject params) {
-        List<String> unPersistedTables = new ArrayList<>();
-        List<String> unCommitedTables = new ArrayList<>();
+        Set<String> unPersistedTables = new HashSet<>();
+        Set<String> unCommitedTables = new HashSet<>();
 
         // 判断是否还有改动未写入Excel
         for (Map.Entry<String, Timer> entry : tableTimers.entrySet()) {
@@ -1092,8 +1092,8 @@ public class DataManager {
             // 提交至任务队列中
             GlobalManager.addTask(new Task(var -> {
                 // 读取参数信息
-                List<String> tablesToPersist = (List<String>) var.get("unPersistedTables");
-                List<String> tablesToCommit = (List<String>) var.get("unCommitedTables");
+                Set<String> tablesToPersist = (HashSet<String>) var.get("unPersistedTables");
+                Set<String> tablesToCommit = (HashSet<String>) var.get("unCommitedTables");
                 GameActionJson msgCaller = (GameActionJson)var.get("MsgCaller");
                 RequestData requestCtx = (RequestData)var.get("RequestContext");
                 User currUser = (User)var.get("User");
@@ -1102,7 +1102,7 @@ public class DataManager {
                 JSONArray commitResults = new JSONArray();
 
                 // 将本地缓存的改动写入至Excel表格中
-                persistData(false, tablesToPersist);
+                persistData(false, new ArrayList<>(tablesToPersist));
 
                 LogEditor.serv.info("【SVN COMMIT】开始COMMIT");
 
@@ -1116,7 +1116,15 @@ public class DataManager {
                     // 记录提交信息
                     if (commitInfo.getNewRevision() == -1L) {
                         currCommitResult.put("result", EditorConst.RESULT_FAILED);
-                        currCommitResult.put("hint", commitInfo.getErrorMessage().getMessage());
+
+                        String errorMessage = "NO MSG";
+                        try {
+                            errorMessage = commitInfo.getErrorMessage().getMessage();
+                        } catch (NullPointerException e) {
+                            LogEditor.serv.error("在获取文件" + tableToCommit + "的COMMIT结果时抛出异常");
+                        } finally {
+                            currCommitResult.put("hint", errorMessage);
+                        }
                     } else {
                         currCommitResult.put("result", EditorConst.RESULT_OK);
                         currCommitResult.put("hint", "提交成功");
@@ -1179,6 +1187,7 @@ public class DataManager {
         XSSFRow row;
         String excelName, sheetName, excelPath, cellValue;
         List<String> columnNames;
+        int lastExcelRowIndex;
 
         // 解析相关变量
         JSONObject json;
@@ -1222,13 +1231,14 @@ public class DataManager {
                 redisHash = JedisManager.hgetAll(redisTableName);
                 String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
                 countRedisHash = redisHash.size();
+                lastExcelRowIndex = sheet.getLastRowNum();
 
                 // 初始化格式
                 dataFormat = workbook.createDataFormat();
 
                 LogEditor.serv.info("总写入行数：" + countRedisHash);
 
-                for (rowIndex = 0; rowIndex < countRedisHash; rowIndex++) {
+                for (rowIndex = 0; rowIndex <= lastExcelRowIndex; rowIndex++) {
                     row = sheet.getRow(rowIndex);
 
                     if (rowIndex < defaultNames.length) {
@@ -1279,9 +1289,43 @@ public class DataManager {
                                 cell.setCellValue(convertToBR(cellValue));
                             }
                         }
-                    } else {
-                        // 数据在excel中存在，但在redis中没有对应记录，说明记录被删除，需在Excel中删去对应行
-                        sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
+                    }
+                    // 数据在excel中存在，但在redis中没有对应记录，说明记录被删除，需在Excel中删去对应行
+                    else {
+                        LogEditor.serv.info("写入Excel时，需要删除第" + rowIndex + "(0-based)行的数据");
+
+                        // 如果要删除的行为表格的最后一行，直接调用XSSFSheet#removeRow方法
+                        if (rowIndex == sheet.getLastRowNum()) {
+                            row = sheet.getRow(rowIndex);
+                            if (row != null) {
+                                sheet.removeRow(row);
+                            }
+                        }
+                        // 否则，调用XSSFSheet#shiftRows方法
+                        else {
+                            int shiftStartIndex = rowIndex + 1;
+                            int shiftEndIndex = sheet.getLastRowNum();
+                            int shiftOffset = -1;
+                            int startRowIndexAfterShift = shiftStartIndex + shiftOffset;
+                            int endRowIndexAfterShift = shiftEndIndex + shiftOffset;
+
+                            sheet.shiftRows(shiftStartIndex, shiftEndIndex, shiftOffset);
+
+                            // 需要更新shift后cell的引用关系，否则Excel文件会被损坏
+                            // 参见https://bz.apache.org/bugzilla/show_bug.cgi?id=57423#c13
+                            for (int shiftedRowIdx = startRowIndexAfterShift; shiftedRowIdx <= endRowIndexAfterShift;
+                                 shiftedRowIdx++) {
+                                XSSFRow shiftedRow = sheet.getRow(shiftedRowIdx);
+                                if (shiftedRow != null) {
+                                    for (Cell c : shiftedRow) {
+                                        ((XSSFCell)c).updateCellReferencesForShifting("MSG");
+                                    }
+                                }
+                            }
+
+                            // rowIndex指针在删除当前行之后，由于shift操作，指针指向的是下一行的数据，所以需要手动往回移动指针
+                            rowIndex -= 1;
+                        }
                     }
 
                     // 删除已经遍历过的key
@@ -1291,6 +1335,21 @@ public class DataManager {
                 // 处理新增的表记录
                 if (redisHash.size() > 0) {
                     LogEditor.serv.info("开始写入新增的表记录...");
+
+                    // 为了避免空行，将cursor定位到最后一个不为空的行
+                    lastExcelRowIndex = sheet.getLastRowNum();
+
+                    for (rowIndex = lastExcelRowIndex; rowIndex >= 0 ; rowIndex--) {
+                        if ((row = sheet.getRow(rowIndex)) != null && (cell = row.getCell(0)) != null) {
+                            cellValue = cell.toString();
+
+                            if (cellValue != null && cellValue.length() > 0) {
+                                break;
+                            }
+                        }
+                    }
+
+                    rowIndex += 1;
 
                     // 保持记录按照sn增序排列
                     redisHashKeys = new LinkedList<>(redisHash.keySet());
