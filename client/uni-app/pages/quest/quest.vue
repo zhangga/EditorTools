@@ -456,11 +456,26 @@
 						method: 'GET',
 						data: msg.submit_to_svn(util.getCurrentUserToken()),
 						success: res => {
-							this.$message({
-								type: 'success',
-								message: '操作成功'
-							});
-						}
+							let resultCode = res.data['result']
+							
+							if (resultCode == msg.RESULT_OK) {
+								this.$notify.success({
+									title: '提交成功',
+									message: res.data['hint']
+								});
+							} else {
+								this.$notify.error({
+									title: '提交失败',
+									message: res.data['hint']
+								})
+							}
+						},
+						fail: () => {
+							this.notify.error({
+								title: '提交失败',
+								message: '请求服务器失败，请重试！'
+							})
+						},
 					})
 				}).catch(() => { 
 				});
