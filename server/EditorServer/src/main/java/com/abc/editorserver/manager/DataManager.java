@@ -809,6 +809,11 @@ public class DataManager {
 
                     // 引用列中可能有多个数据（用逗号分隔），逐个进行复制
                     for (String refTableSn : refTableSns) {
+                        // 处理引用字段为空的情况
+                        if (refTableSn.length() == 0) {
+                            continue;
+                        }
+
                         // 递归进行深度复制
                         JSONObject deepCopyResult = deepCopyTableData(refTableName, refTableSn, user);
                         LogEditor.serv.info("完成表格" + refTableName + "中SN为" + refTableSn + "数据的深复制");
@@ -1245,7 +1250,18 @@ public class DataManager {
                         redisHashKey = defaultNames[rowIndex];
                     } else {
                         /// 确定当前Excel行对应的redisHashKey（也即第一列中定义的SN）
-                        redisHashKey = (row == null ? null : row.getCell(0).toString());
+                        Cell snCell;
+                        if (row == null || (snCell = row.getCell(0)) == null) {
+                            redisHashKey = null;
+
+                            if (row != null) {
+                                LogEditor.serv.error("在表格【" + sheetName + "】的行" + row.getRowNum() + "中的Sn列发现了空内容");
+                            } else {
+                                LogEditor.serv.error("在表格【" + sheetName + "中发现了空行");
+                            }
+                        } else {
+                            redisHashKey = snCell.toString();
+                        }
 
                         /// 统一数字格式
                         if (redisHashKey != null && redisHashKey.length() > 0) {
