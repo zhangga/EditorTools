@@ -116,8 +116,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 //        });
         // 线程处理消息
         // 编辑器用一个线程来处理消息，安全。
-        RequestData reqestData = new RequestData(ctx, uid, param);
-        MsgManager.submit(reqestData);
+        RequestData requestData = new RequestData(ctx, uid, param);
+        MsgManager.submit(requestData);
     }
 
     /**

@@ -1,13 +1,11 @@
 package com.abc.editorserver.manager;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.abc.editorserver.config.EditorConfig;
 import com.abc.editorserver.config.EditorConst;
@@ -17,6 +15,7 @@ import com.abc.editorserver.module.JSONModule.ExcelTrigger;
 import com.abc.editorserver.module.user.User;
 import com.abc.editorserver.msg.GameActionJson;
 import com.abc.editorserver.net.RequestData;
+import com.abc.editorserver.utils.EditorUtils;
 import com.abc.editorserver.utils.Task;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -28,6 +27,10 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -40,11 +43,6 @@ import org.tmatesoft.svn.core.SVNCommitInfo;
  */
 public class DataManager {
 
-    private static DataManager mgr = new DataManager();
-    public static DataManager getInstance(){ return mgr; }
-    private static Map<String, List<String>> columnSeqMap = new HashMap<>();
-    private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
-
     /** 记录表格是否有未持久化至Excel的改动 */
     private Map<String, Timer> tableTimers = new HashMap<>();
 
@@ -54,11 +52,32 @@ public class DataManager {
     /** 记录表格的锁定情况 */
     private Map<String, User> tableLocks = new ConcurrentHashMap<>();
 
+    /** Excel文件路径 */
     private static StringBuilder excelPathPrefix = new StringBuilder(EditorConfig.svn_export).append('/');
+
+    /** CSV文件路径 */
+    private static StringBuilder csvPathPrefix = new StringBuilder(EditorConfig.svn_export).append("/data/csv/");
+
+    /** 数据持久化时间间隔 */
     private final long dataPersistInterval = Timer.HALF_MINUTE;
+
+    /** ExcelConfig配置文件名 */
     private static final String ConfigPath = "ExcelConfig.json";
 
+    /** 是否需要提交CSV文件 */
+    private boolean shouldCommitCSV = true;
+
+    /** Redis中表格名 -> 表格中所有列名的映射 */
+    private static Map<String, List<String>> columnSeqMap = new HashMap<>();
+
+    /** Trigger表格数据缓存 */
+    private Map<String, Map<String, JSONObject>> triggerData = new HashMap<>();
+
+    /** 管理类实例 */
+    private static DataManager mgr = new DataManager();
+
     private DataManager() {}
+    public static DataManager getInstance(){ return mgr; }
 
     /**
      * 初始化方法
@@ -95,15 +114,13 @@ public class DataManager {
      * @return
      */
     private void loadExcelConfig() {
-        try {
-            File file = new File(EditorConfig.CONFIG_PATH + ConfigPath);
-            InputStream input = new FileInputStream(file);
+        String configPath = EditorConfig.CONFIG_PATH + ConfigPath;
+        try (InputStream input = new FileInputStream(configPath)) {
             byte[] buff = input.readAllBytes();
             String jsonStr = new String(buff);
             JSONObject jo = JSON.parseObject(jsonStr);
             ExcelManager.setInstance(jo.toJavaObject(ExcelManager.class));
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             LogEditor.config.error("读取Excel配置失败：", e);
         }
     }
@@ -136,32 +153,28 @@ public class DataManager {
      * 读取ExcelConfig中配置的Trigger表，缓存表格内容
      */
     private void initTriggers() {
-
-        XSSFRow row;
-        XSSFCell cell;
-        XSSFSheet sheet;
-        XSSFWorkbook workbook;
-        String triggerName, excelName, sheetName;
-        List<String> colNames, rowValues;
-
+        // 获取Trigger表的配置文件
         ExcelTrigger[] triggers = ExcelManager.getInstance().getTriggers();
 
-        try {
-            for (ExcelTrigger trigger : triggers) {
-                excelName = trigger.getExcel();
-                sheetName = trigger.getSheet();
-                triggerName = excelName.substring(0, excelName.lastIndexOf('.')) + "_" + sheetName;
-                excelName = EditorConfig.svn_export + "/" + excelName;
+        for (ExcelTrigger trigger : triggers) {
+            String excelName = trigger.getExcel();
+            String sheetName = trigger.getSheet();
+            String triggerName = excelName.substring(0, excelName.lastIndexOf('.')) + "_" + sheetName;
+            excelName = EditorConfig.svn_export + "/" + excelName;
 
-                workbook = new XSSFWorkbook(new FileInputStream(excelName));
-                sheet = workbook.getSheet(sheetName);
+            // TODO DEBUG USE REMOVE
+            LogEditor.serv.info("Processing excel: " + excelName + ", sheet: " + sheetName);
+
+            try (FileInputStream fis = new FileInputStream(excelName)) {
+                Workbook workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet(sheetName);
 
                 // 获取表格所有的列名
-                colNames = new ArrayList<>();
-                row = sheet.getRow(0);
+                List<String> colNames = new ArrayList<>();
+                Row row = sheet.getRow(0);
 
                 for (int colIndex = 0; colIndex < row.getLastCellNum(); colIndex++) {
-                    cell = row.getCell(colIndex);
+                    Cell cell = row.getCell(colIndex);
 
                     if (cell == null) {
                         colNames.add(String.valueOf(colIndex));
@@ -172,13 +185,13 @@ public class DataManager {
 
                 // 缓存表格数据
                 for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
-                    rowValues = new ArrayList<>();
+                    List<String> rowValues = new ArrayList<>();
                     row = sheet.getRow(rowIndex);
 
                     String indexColumn = row.getCell(0).toString();
 
                     for (int colIndex = 0; colIndex < row.getLastCellNum(); colIndex++) {
-                        cell = row.getCell(colIndex);
+                        Cell cell = row.getCell(colIndex);
 
                         if (cell == null) {
                             rowValues.add("");
@@ -187,18 +200,16 @@ public class DataManager {
                         }
                     }
 
-                    while (rowValues.size() < colNames.size())
-                    {
+                    while (rowValues.size() < colNames.size()) {
                         rowValues.add("");
                     }
 
                     triggerData.computeIfAbsent(triggerName, s -> new LinkedHashMap<>())
                             .put(indexColumn, JSONObject.parseObject(stringToJSON(colNames, rowValues)));
                 }
-
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -206,20 +217,24 @@ public class DataManager {
      * 根据配置信息将对应的excel表写入Redis
      */
     public void excelToRedis(boolean shouldOverride) {
-        try {
-            for (ExcelConfig conf: ExcelManager.getInstance().getConfigs()) {
-                String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
-                String sheetName = conf.getSheet();
-                XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(fileName));
-                XSSFSheet sheet = workbook.getSheet(sheetName);
+        for (ExcelConfig conf: ExcelManager.getInstance().getConfigs()) {
+            String fileName = EditorConfig.svn_export + "/" + conf.getExcel();
+            String sheetName = conf.getSheet();
+
+            // TODO DEBUG USE REMOVE
+            LogEditor.serv.info("Processing excel: " + fileName + ", sheet: " + sheetName);
+
+            try (FileInputStream fis = new FileInputStream(fileName)) {
+                Workbook workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet(sheetName);
 
                 // 获取表格每一列的英文名称（列名）
                 List<String> colNames = new ArrayList<>();
-                XSSFRow nameRow = sheet.getRow(2);                  // 第2行定义了所有的英文列名
+                Row nameRow = sheet.getRow(2);                  // 第2行定义了所有的英文列名
                 for (int i = 0; i < nameRow.getLastCellNum(); i++) {
                     if (nameRow.getCell(i)==null) {
                         colNames.add(Integer.toString(i));
-                    } else{
+                    } else {
                         colNames.add(nameRow.getCell(i).toString());
                     }
                 }
@@ -236,12 +251,11 @@ public class DataManager {
 
                 // 逐行遍历表格
                 int maxSnAtCurrTable = 0, currSn = 0;
-
                 for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                     List<String> valueList = new ArrayList<>();
-                    XSSFRow row = sheet.getRow(i);
+                    Row row = sheet.getRow(i);
                     for (int j = 0; j < row.getLastCellNum(); j++) {
-                        XSSFCell cell = row.getCell(j);
+                        Cell cell = row.getCell(j);
                         if (null == cell) {
                             valueList.add("");
                         } else {
@@ -266,13 +280,16 @@ public class DataManager {
                         maxSnAtCurrTable = Math.max(maxSnAtCurrTable, currSn);
                     }
 
+                    // 记录表格数据
                     JedisManager.hset(conf.getRedis_table(), key, stringToJSON(colNames, valueList));
                 }
 
+                // 记录表格的最大SN
                 JedisManager.hset(EditorConst.TABLE_SN_MAX, conf.getRedis_table(), String.valueOf(maxSnAtCurrTable));
+
+            } catch (Exception e) {
+                LogEditor.config.error("Excel写入Redis失败：", e);
             }
-        } catch (Exception e) {
-            LogEditor.config.error("Excel写入Redis失败：", e);
         }
     }
 
@@ -336,25 +353,57 @@ public class DataManager {
      * @return
      * @throws Exception
      */
-    private String stringToJSON(List<String> keys, List<String> values) throws Exception{
-        int length = keys.size();
-//        if(values.size() != length){
-//            throw new Exception("key与value的数目不相同");
-//        }
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("{\"");
-        for(int i = 0; i < length-1; i++){
-            buffer.append(keys.get(i));
-            buffer.append("\":\"");
-            buffer.append(values.get(i));
-            buffer.append("\",\"");
+    private String stringToJSON(List<String> keys, List<String> values) throws Exception {
+        // 检查提供values的内容是否包括不可解析的字符
+        List<String> parsedValues = new ArrayList<>();
+        for (String value : values) {
+            parsedValues.add(formatStringForJSON(value));
         }
-        buffer.append(keys.get(length-1));
-        buffer.append("\":\"");
-        buffer.append(values.get(length-1));
-        buffer.append("\"}");
 
-        return buffer.toString();
+        int length = keys.size();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{\"");
+        for (int i = 0; i < length - 1; i++) {
+            sb.append(keys.get(i));
+            sb.append("\":\"");
+            sb.append(parsedValues.get(i));
+            sb.append("\",\"");
+        }
+        sb.append(keys.get(length - 1));
+        sb.append("\":\"");
+        sb.append(parsedValues.get(length - 1));
+        sb.append("\"}");
+
+        return sb.toString();
+    }
+
+    /**
+     * 检查传入字符，替换不可被FastJSON解析的内容，与resolveStringForJSON方法配合使用
+     * @param value
+     * @return
+     */
+    private String formatStringForJSON(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        // 避免JSON解析时遇到"\"字符时抛出异常的问题
+        value = value.replaceAll("\\\\", "#@#");
+        return value;
+    }
+
+    /**
+     * 解析通过formatStringForJSON方法处理过的字符，与resolveStringForJSON方法配合使用
+     * @param value
+     * @return
+     */
+    private String resolveStringForJSON(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        // 与formatStringForJSON中的操作互反
+        value = value.replaceAll("#@#", "\\");
+        return value;
     }
 
     /**
@@ -546,22 +595,22 @@ public class DataManager {
 
     /**
      * 更新数据表数据
-     * @param table
+     * @param tableName
      * @param sn
      * @param field
      * @param value
      * @param shouldIncrementVerNum: 是否需要更新版本号
      * @return
      */
-    public long updateTableData(String table, String sn, String field, String value, boolean shouldIncrementVerNum,
+    public long updateTableData(String tableName, String sn, String field, String value, boolean shouldIncrementVerNum,
                                 User user) {
         // 判断表格数据是否被锁定
-        User currLockOwner = getCurrentTableDataLockOwner(table, sn);
+        User currLockOwner = getCurrentTableDataLockOwner(tableName, sn);
         if (currLockOwner != null && !currLockOwner.getUid().equals(user.getUid())) {
             return -1;
         }
 
-        String json = JedisManager.hget(table, sn);
+        String json = JedisManager.hget(tableName, sn);
         JSONObject jo;
 
         if (json == null) {
@@ -571,21 +620,9 @@ public class DataManager {
         }
         jo.put(field, value);
 
-        JedisManager.hset(table, sn, jo.toJSONString());
+        JedisManager.hset(tableName, sn, jo.toJSONString());
 
-        // 刷新计时器
-        tableTimers.get(table).reStartTimer();
-        LogEditor.serv.info("Excel【" + table + "】计时器被刷新");
-
-        // 刷新改动记录表
-        tableModifiedSinceLastCommit.put(table, true);
-
-        if (shouldIncrementVerNum) {
-            return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(table, sn));
-        }
-        else {
-            return Long.parseLong(VersionManager.getInstance().getTableDataVersion(table, sn));
-        }
+        return onTableDataChanged(tableName, sn, shouldIncrementVerNum, false);
     }
 
     /**
@@ -703,27 +740,9 @@ public class DataManager {
             return 0;
         }
 
-        // 更新最大SN表
-        synchronized (DataManager.class) {
-            String currMaxSnStr = JedisManager.hget(EditorConst.TABLE_SN_MAX, config.getRedis_table());
-            long currMaxSn = 0L, currSn = Long.parseLong(params.getString("sn"));
-
-            if (currMaxSnStr != null) {
-                currMaxSn = Math.max(currMaxSn, Long.parseLong(currMaxSnStr));
-            }
-
-            if (currSn > currMaxSn) {
-                JedisManager.hset(EditorConst.TABLE_SN_MAX, config.getRedis_table(), String.valueOf(currSn));
-                LogEditor.serv.info("表格" + config.getRedis_table() + "的最大SN被更新为" + currSn);
-            }
-        }
-
-        // 刷新计时器
-        tableTimers.get(config.getRedis_table()).reStartTimer();
-        LogEditor.serv.info("Excel【" + tableName + "】计时器被刷新");
-
-        // 刷新改动记录表
-        tableModifiedSinceLastCommit.put(config.getRedis_table(), true);
+        // 数据变动回调方法
+        String currSn = params.getString("sn");
+        onTableDataChanged(config.getRedis_table(), currSn, false, true);
 
         return 1;
     }
@@ -735,7 +754,7 @@ public class DataManager {
      * @param user
      * @return
      */
-    public JSONObject shallowCopyTableData(String tableName, String sn, User user) {
+    private JSONObject shallowCopyTableData(String tableName, String sn, User user) {
         JSONObject replyMsg = new JSONObject();
         String originalData = JedisManager.hget(tableName, sn);
         if (originalData == null) {
@@ -773,7 +792,6 @@ public class DataManager {
     public JSONObject deepCopyTableData(String tableName, String sn, User user) {
         JSONObject replyMsg = new JSONObject();
         ExcelConfig config = ExcelManager.getInstance().getConfig(tableName);
-
         if (config == null) {
             String hint = "找不到对应的配置文件，请检查后重试";
             LogEditor.serv.error(hint);
@@ -782,11 +800,8 @@ public class DataManager {
             return replyMsg;
         }
 
-        String refs = config.getRefs();
-
         // 浅复制当前表格指定的数据
         JSONObject shallowCopyResult = shallowCopyTableData(tableName, sn, user);
-
         if (shallowCopyResult.get("result") == EditorConst.RESULT_FAILED) {
             return shallowCopyResult;
         }
@@ -796,6 +811,7 @@ public class DataManager {
                 shallowCopiedData.getString("sn") + "，开始进行深复制");
 
         // 查询表格关联信息，执行深复制
+        String refs = config.getRefs();
         if (refs != null && refs.length() > 0) {
             JSONArray refsAsArray = JSONObject.parseArray(refs);
             for (int i = 0; i < refsAsArray.size(); i++) {
@@ -810,7 +826,7 @@ public class DataManager {
                     // 引用列中可能有多个数据（用逗号分隔），逐个进行复制
                     for (String refTableSn : refTableSns) {
                         // 处理引用字段为空的情况
-                        if (refTableSn.length() == 0) {
+                        if (refTableSn.isBlank()) {
                             continue;
                         }
 
@@ -829,9 +845,13 @@ public class DataManager {
                     }
 
                     // 更新上级复制数据引用列的值
+                    String shallowCopiedDataSn = shallowCopiedData.getString("sn");
                     shallowCopiedData.put(refColName, String.join(",", updatedCopiedRefSns));
-                    JedisManager.hset(tableName, shallowCopiedData.getString("sn"), shallowCopiedData.toString());
+                    JedisManager.hset(tableName, shallowCopiedDataSn, shallowCopiedData.toString());
                     shallowCopyResult.put("data", shallowCopiedData.toString());
+
+                    // 调用数据变化回调方法（无需再更新SN池，在浅复制时已经进行）
+                    onTableDataChanged(tableName, shallowCopiedDataSn, false, false);
                 }
             }
         }
@@ -861,15 +881,11 @@ public class DataManager {
 
         LogEditor.serv.info("删除了" + tableName + "表中SN为" + sn + "的记录");
 
+        // 从数据库中删除数据
         JedisManager.hdel(config.getRedis_table(), sn);
 
-        // 刷新计时器
-        tableTimers.get(config.getRedis_table()).reStartTimer();
-        LogEditor.serv.info("Excel【" + config.getRedis_table() + "】计时器被刷新");
-
-        // 刷新改动记录表
-        tableModifiedSinceLastCommit.put(config.getRedis_table(), true);
-
+        // 数据变动回调方法
+        onTableDataChanged(config.getRedis_table(), sn, false, false);
         return 1;
     }
 
@@ -884,17 +900,14 @@ public class DataManager {
         String dataTag = tableName + ":" + sn;
         JSONObject reply = new JSONObject();
 
-        synchronized (DataManager.class) {
-            User lockOwner = tableLocks.get(dataTag);
-
-            if (lockOwner != null) {
-                reply.put("result", EditorConst.RESULT_FAILED);
-                reply.put("msg", "加锁失败，当前表格数据已被" + lockOwner.getName() + "锁定！");
-            } else {
-                tableLocks.put(dataTag, currUser);
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "加锁成功");
-            }
+        User lockOwner = tableLocks.get(dataTag);
+        if (lockOwner != null) {
+            reply.put("result", EditorConst.RESULT_FAILED);
+            reply.put("msg", "加锁失败，当前表格数据已被" + lockOwner.getName() + "锁定！");
+        } else {
+            tableLocks.put(dataTag, currUser);
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "加锁成功");
         }
 
         return reply;
@@ -911,20 +924,17 @@ public class DataManager {
         String dataTag = tableName + ":" + sn;
         JSONObject reply = new JSONObject();
 
-        synchronized (DataManager.class) {
-            User lockOwner = tableLocks.get(dataTag);
-
-            if (lockOwner == null) {
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "表格数据未上锁");
-            } else if (!lockOwner.getUid().equals(currUser.getUid())) {
-                reply.put("result", EditorConst.RESULT_FAILED);
-                reply.put("msg", "解锁失败，当前表格数据被" + lockOwner.getName() + "锁定！");
-            } else {
-                tableLocks.remove(dataTag);
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "解锁成功");
-            }
+        User lockOwner = tableLocks.get(dataTag);
+        if (lockOwner == null) {
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "表格数据未上锁");
+        } else if (!lockOwner.getUid().equals(currUser.getUid())) {
+            reply.put("result", EditorConst.RESULT_FAILED);
+            reply.put("msg", "解锁失败，当前表格数据被" + lockOwner.getName() + "锁定！");
+        } else {
+            tableLocks.remove(dataTag);
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "解锁成功");
         }
 
         return reply;
@@ -940,17 +950,14 @@ public class DataManager {
         String dataTag = tableName;
         JSONObject reply = new JSONObject();
 
-        synchronized (DataManager.class) {
-            User lockOwner = tableLocks.get(dataTag);
-
-            if (lockOwner != null) {
-                reply.put("result", EditorConst.RESULT_FAILED);
-                reply.put("msg", "加锁失败，当前表格已被" + lockOwner.getName() + "锁定！");
-            } else {
-                tableLocks.put(dataTag, currUser);
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "加锁成功");
-            }
+        User lockOwner = tableLocks.get(dataTag);
+        if (lockOwner != null) {
+            reply.put("result", EditorConst.RESULT_FAILED);
+            reply.put("msg", "加锁失败，当前表格已被" + lockOwner.getName() + "锁定！");
+        } else {
+            tableLocks.put(dataTag, currUser);
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "加锁成功");
         }
 
         return reply;
@@ -966,20 +973,17 @@ public class DataManager {
         String dataTag = tableName;
         JSONObject reply = new JSONObject();
 
-        synchronized (DataManager.class) {
-            User lockOwner = tableLocks.get(dataTag);
-
-            if (lockOwner == null) {
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "表格未上锁");
-            } else if (!lockOwner.getUid().equals(currUser.getUid())) {
-                reply.put("result", EditorConst.RESULT_FAILED);
-                reply.put("msg", "解锁失败，当前表格被" + lockOwner.getName() + "锁定！");
-            } else {
-                tableLocks.remove(dataTag);
-                reply.put("result", EditorConst.RESULT_OK);
-                reply.put("msg", "解锁成功");
-            }
+        User lockOwner = tableLocks.get(dataTag);
+        if (lockOwner == null) {
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "表格未上锁");
+        } else if (!lockOwner.getUid().equals(currUser.getUid())) {
+            reply.put("result", EditorConst.RESULT_FAILED);
+            reply.put("msg", "解锁失败，当前表格被" + lockOwner.getName() + "锁定！");
+        } else {
+            tableLocks.remove(dataTag);
+            reply.put("result", EditorConst.RESULT_OK);
+            reply.put("msg", "解锁成功");
         }
 
         return reply;
@@ -1031,15 +1035,13 @@ public class DataManager {
 
                 // 提交至任务队列中
                 GlobalManager.addTask(new Task(var -> {
-                    List<String> tables = (List<String>) var.get("candidates");
-
                     // 将本地缓存的改动写入至Excel表格中
+                    List<String> tables = (List<String>) var.get("candidates");
                     persistData(false, tables);
                 }, params));
             } else {
                 persistData(false, candidates);
             }
-
         }
     }
 
@@ -1049,14 +1051,13 @@ public class DataManager {
      */
     public void promptDataPersistAndCommit(JSONObject params) {
         Set<String> unPersistedTables = new HashSet<>();
-        Set<String> unCommitedTables = new HashSet<>();
+        Set<String> unCommittedTables = new HashSet<>();
 
         // 判断是否还有改动未写入Excel
         for (Map.Entry<String, Timer> entry : tableTimers.entrySet()) {
             if (entry.getValue().isRunning()) {
                 // 停止写入Excel定时器
                 entry.getValue().stopTimer();
-
                 unPersistedTables.add(entry.getKey());
             }
         }
@@ -1066,17 +1067,16 @@ public class DataManager {
             if (entry.getValue()) {
                 // 重置未改动标识
                 entry.setValue(false);
-
-                unCommitedTables.add(entry.getKey());
+                unCommittedTables.add(entry.getKey());
             }
         }
 
-        if (unPersistedTables.size() > 0 || unCommitedTables.size() > 0) {
+        if (unPersistedTables.size() > 0 || unCommittedTables.size() > 0) {
             LogEditor.serv.info("定时器被触发，将缓存刷新至Excel中...");
 
             params = (params == null ? new JSONObject() : params);
             params.put("unPersistedTables", unPersistedTables);
-            params.put("unCommitedTables", unCommitedTables);
+            params.put("unCommittedTables", unCommittedTables);
 
             if (!GlobalManager.hasPendingCommitTask) {
                 // 设置标志flag
@@ -1097,13 +1097,13 @@ public class DataManager {
             // 提交至任务队列中
             GlobalManager.addTask(new Task(var -> {
                 // 读取参数信息
-                Set<String> tablesToPersist = (HashSet<String>) var.get("unPersistedTables");
-                Set<String> tablesToCommit = (HashSet<String>) var.get("unCommitedTables");
+                Set<String> tablesToPersist = (Set<String>) var.get("unPersistedTables");
+                Set<String> tablesToCommit = (Set<String>) var.get("unCommittedTables");
                 GameActionJson msgCaller = (GameActionJson)var.get("MsgCaller");
                 RequestData requestCtx = (RequestData)var.get("RequestContext");
                 User currUser = (User)var.get("User");
 
-                String commitMsg = "【任务编辑器】提交 | 提交者【" + currUser.getName() + "】";
+                String commitMsg = "CSJ-0000 【编辑器】提交 | 提交者【" + currUser.getName() + "】";
                 JSONArray commitResults = new JSONArray();
 
                 // 将本地缓存的改动写入至Excel表格中
@@ -1111,32 +1111,55 @@ public class DataManager {
 
                 LogEditor.serv.info("【SVN COMMIT】开始COMMIT");
 
+                // 获取所有需要提交的Excel
+                Map<String, List<String>> excelsToTablesToCommit = new HashMap<>();
                 for (String tableToCommit : tablesToCommit) {
-                    excelPathPrefix.append(ExcelManager.getInstance().getConfig(tableToCommit).getExcel());
+                    String excelName = ExcelManager.getInstance().getConfig(tableToCommit).getExcel();
+                    excelsToTablesToCommit.computeIfAbsent(excelName, r -> new ArrayList<>()).add(tableToCommit);
+                }
 
-                    // 对逐个文件执行Commit
-                    SVNCommitInfo commitInfo = SVNManager.commit(true,  commitMsg, excelPathPrefix.toString());
-                    JSONObject currCommitResult = new JSONObject();
+                for (String excelToCommit : excelsToTablesToCommit.keySet()) {
+                    // 记录所有需要提交的文件
+                    List<String> commitFiles = new ArrayList<>();
+
+                    excelPathPrefix.append(excelToCommit);
+                    commitFiles.add(excelPathPrefix.toString());
+                    excelPathPrefix.delete(excelPathPrefix.lastIndexOf("/") + 1, excelPathPrefix.length());
+
+                    // 获取需要提交的CSV文件信息
+                    if (shouldCommitCSV) {
+                        for (String tableToCommit : excelsToTablesToCommit.get(excelToCommit)) {
+                            ExcelConfig config = ExcelManager.getInstance().getConfig(tableToCommit);
+                            csvPathPrefix.append(config.getSheet().substring(config.getSheet().lastIndexOf("|") + 1))
+                                    .append(".csv");
+                            commitFiles.add(csvPathPrefix.toString());
+                            csvPathPrefix.delete(csvPathPrefix.lastIndexOf("/") + 1, csvPathPrefix.length());
+                        }
+                    }
+
+                    // 提交文件
+                    SVNCommitInfo commitInfo = SVNManager.commit(true,  commitMsg,
+                            commitFiles.toArray(new String[0]));
 
                     // 记录提交信息
+                    JSONObject currCommitResult = new JSONObject();
                     if (commitInfo.getNewRevision() == -1L) {
                         currCommitResult.put("result", EditorConst.RESULT_FAILED);
 
-                        String errorMessage = "NO MSG";
+                        String errorMessage = "";
                         try {
                             errorMessage = commitInfo.getErrorMessage().getMessage();
                         } catch (NullPointerException e) {
-                            LogEditor.serv.error("在获取文件" + tableToCommit + "的COMMIT结果时抛出异常");
+                            LogEditor.serv.error("在获取文件的COMMIT结果时抛出异常");
                         } finally {
-                            currCommitResult.put("hint", errorMessage);
+                            currCommitResult.put("hint", errorMessage.isBlank() ? "FAILED TO OBTAIN MSG" : errorMessage);
                         }
                     } else {
                         currCommitResult.put("result", EditorConst.RESULT_OK);
                         currCommitResult.put("hint", "提交成功");
                     }
-                    commitResults.add(currCommitResult);
 
-                    excelPathPrefix.delete(excelPathPrefix.lastIndexOf("/") + 1, excelPathPrefix.length());
+                    commitResults.add(currCommitResult);
                 }
 
                 LogEditor.serv.info("【SVN COMMIT】COMMIT完成");
@@ -1176,125 +1199,97 @@ public class DataManager {
      * @param tablesToPersist: 指定需要写入的表格
      */
     public void persistData(boolean shouldPersistAll, List<String> tablesToPersist) {
-
         LogEditor.serv.info("=========开始将Redis数据写入Excel中========");
 
-        // Redis操作相关变量
-        String redisTableName, redisRowData, redisHashKey;
-        Map<String, String> redisHash;
-        LinkedList<String> redisHashKeys;
-        int countRedisHash;
+        // 预处理需要写入的表格
+        ExcelConfig[] excelConfigs = ExcelManager.getInstance().getConfigs();
+        Set<String> targetTables = new HashSet<>(tablesToPersist);
 
-        // Excel操作相关变量
-        XSSFWorkbook workbook;
-        XSSFSheet sheet;
-        XSSFCell cell;
-        XSSFRow row;
-        String excelName, sheetName, excelPath, cellValue;
-        List<String> columnNames;
-        int lastExcelRowIndex;
-
-        // 解析相关变量
-        JSONObject json;
-        List<String> colKeys;
-        int rowIndex, colIndex;
-
-        // IO相关变量
         FileInputStream fis = null;
         FileOutputStream fos = null;
 
-        ExcelConfig[] excelConfigs = ExcelManager.getInstance().getConfigs();
-
-        // Excel数据格式相关变量
-        DataFormat dataFormat;
-        CellStyle cellStyle;
-
-        // 预处理需要写入的表格
-        Set<String> targetTables = new HashSet<>(tablesToPersist);
-
         try {
             for (ExcelConfig config : excelConfigs) {
-                redisTableName = config.getRedis_table();
+                String redisTableName = config.getRedis_table();
 
                 // 跳过不需要持久化的表格
                 if (!shouldPersistAll && !targetTables.contains(redisTableName)) {
                     continue;
                 }
 
-                excelName = config.getExcel();
-                sheetName = config.getSheet();
-                excelPath = EditorConfig.svn_export + "/" + excelName;
-                columnNames = columnSeqMap.get(redisTableName);
+                String excelName = config.getExcel();
+                String sheetName = config.getSheet();
+                String excelPath = EditorConfig.svn_export + "/" + excelName;
+                List<String> columnNames = columnSeqMap.get(redisTableName);
 
                 LogEditor.serv.info("开始写入表格：" + redisTableName);
 
+                // 打开表格
                 fis = new FileInputStream(excelPath);
-                workbook = new XSSFWorkbook(fis);
-                sheet = workbook.getSheet(sheetName);
-                colKeys = null;
-
-                redisHash = JedisManager.hgetAll(redisTableName);
-                String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
-                countRedisHash = redisHash.size();
-                lastExcelRowIndex = sheet.getLastRowNum();
+                XSSFWorkbook workbook = new XSSFWorkbook(fis);
+                XSSFSheet sheet = workbook.getSheet(sheetName);
 
                 // 初始化格式
-                dataFormat = workbook.createDataFormat();
+                DataFormat dataFormat = workbook.createDataFormat();
+                Map<String, String> redisHash = JedisManager.hgetAll(redisTableName);
+                String[] defaultNames = ExcelManager.getInstance().getDefaultNames();
 
-                LogEditor.serv.info("总写入行数：" + countRedisHash);
+                LogEditor.serv.info("总写入行数：" + redisHash.size());
 
-                for (rowIndex = 0; rowIndex <= lastExcelRowIndex; rowIndex++) {
-                    row = sheet.getRow(rowIndex);
+                // 记录表格的所有列ID，每张表格只需录入一次
+                List<String> colKeys = null;
 
+                for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                    XSSFRow row = sheet.getRow(rowIndex);
+
+                    String excelRowSN;
                     if (rowIndex < defaultNames.length) {
-                        redisHashKey = defaultNames[rowIndex];
+                        excelRowSN = defaultNames[rowIndex];
                     } else {
-                        /// 确定当前Excel行对应的redisHashKey（也即第一列中定义的SN）
+                        // 确定当前Excel行在第一列中定义的SN
                         Cell snCell;
                         if (row == null || (snCell = row.getCell(0)) == null) {
-                            redisHashKey = null;
-
+                            // 无法读取到SN列中的值
                             if (row != null) {
-                                LogEditor.serv.error("在表格【" + sheetName + "】的行" + row.getRowNum() + "中的Sn列发现了空内容");
+                                LogEditor.serv.warn("在表格【" + sheetName + "】的行" + row.getRowNum() + "中的SN列为空！");
                             } else {
-                                LogEditor.serv.error("在表格【" + sheetName + "中发现了空行");
+                                LogEditor.serv.warn("表格【" + sheetName + "】的第" + (rowIndex + 1) + "行为空行！");
                             }
+                            excelRowSN = null;
                         } else {
-                            redisHashKey = snCell.toString();
+                            excelRowSN = snCell.toString();
                         }
 
-                        /// 统一数字格式
-                        if (redisHashKey != null && redisHashKey.length() > 0) {
-                            redisHashKey = String.valueOf(String.format("%.0f", Double.parseDouble(redisHashKey)));
+                        // 统一数字格式
+                        if (excelRowSN != null && !excelRowSN.isBlank()) {
+                            excelRowSN = String.valueOf(String.format("%.0f", Double.parseDouble(excelRowSN)));
                         }
                     }
 
-                    if (redisHashKey == null || redisHashKey.length() == 0) {
+                    if (excelRowSN == null || excelRowSN.isBlank()) {
                         break;
                     }
 
                     // 更新excel对应的行内容
-                    redisRowData = redisHash.get(redisHashKey);
+                    String redisRowData;
+                    if ((redisRowData = redisHash.get(excelRowSN)) != null) {
+                        // 若SN在Redis中有对应数据
+                        JSONObject rowJO = JSON.parseObject(redisRowData, Feature.OrderedField);
+                        colKeys = (colKeys == null ? new ArrayList<>(rowJO.keySet()) : colKeys);
 
-                    if (redisRowData != null) {
-                        json = JSON.parseObject(redisRowData, Feature.OrderedField);
-
-                        colKeys = (colKeys == null ? new ArrayList<>(json.keySet()) : colKeys);
-
-                        for (colIndex = 0; colIndex < colKeys.size(); colIndex++) {
-                            cell = row.getCell(colIndex);
-
-                            if (cell == null) {
+                        for (int colIndex = 0; colIndex < colKeys.size(); colIndex++) {
+                            XSSFCell cell ;
+                            if ((cell = row.getCell(colIndex)) == null) {
                                 cell = row.createCell(colIndex);
                             }
 
                             // 保留原格式的同时，设置数据格式为字符串，以正常写入大数字
-                            cellStyle = cell.getCellStyle();
+                            CellStyle cellStyle = cell.getCellStyle();
                             cellStyle.setDataFormat(dataFormat.getFormat("@"));
                             cell.setCellStyle(cellStyle);
 
                             // 设置单元格内容
-                            cellValue = String.valueOf(json.get(colKeys.get(colIndex)));
+                            String cellValue = resolveStringForJSON(String.valueOf(rowJO.get(colKeys.get(colIndex))));
 
                             // 空值的情况下填入空字符串
                             if (cellValue.equals("null") || cellValue.equals("")) {
@@ -1306,8 +1301,8 @@ public class DataManager {
                             }
                         }
                     }
-                    // 数据在excel中存在，但在redis中没有对应记录，说明记录被删除，需在Excel中删去对应行
                     else {
+                        // 数据在excel中存在，但在redis中没有对应记录，说明记录被删除，需在Excel中删去对应行
                         LogEditor.serv.info("写入Excel时，需要删除第" + rowIndex + "(0-based)行的数据");
 
                         // 如果要删除的行为表格的最后一行，直接调用XSSFSheet#removeRow方法
@@ -1317,8 +1312,8 @@ public class DataManager {
                                 sheet.removeRow(row);
                             }
                         }
-                        // 否则，调用XSSFSheet#shiftRows方法
                         else {
+                            // 否则，调用XSSFSheet#shiftRows方法
                             int shiftStartIndex = rowIndex + 1;
                             int shiftEndIndex = sheet.getLastRowNum();
                             int shiftOffset = -1;
@@ -1345,19 +1340,20 @@ public class DataManager {
                     }
 
                     // 删除已经遍历过的key
-                    redisHash.remove(redisHashKey);
+                    redisHash.remove(excelRowSN);
                 }
 
-                // 处理新增的表记录
+                // redisHash中仍有剩余内容，则为Redis中新增的表记录
                 if (redisHash.size() > 0) {
                     LogEditor.serv.info("开始写入新增的表记录...");
 
                     // 为了避免空行，将cursor定位到最后一个不为空的行
-                    lastExcelRowIndex = sheet.getLastRowNum();
-
-                    for (rowIndex = lastExcelRowIndex; rowIndex >= 0 ; rowIndex--) {
+                    int rowIndex;
+                    for (rowIndex = sheet.getLastRowNum(); rowIndex >= 0 ; rowIndex--) {
+                        XSSFRow row;
+                        XSSFCell cell;
                         if ((row = sheet.getRow(rowIndex)) != null && (cell = row.getCell(0)) != null) {
-                            cellValue = cell.toString();
+                            String cellValue = cell.toString();
 
                             if (cellValue != null && cellValue.length() > 0) {
                                 break;
@@ -1368,19 +1364,19 @@ public class DataManager {
                     rowIndex += 1;
 
                     // 保持记录按照sn增序排列
-                    redisHashKeys = new LinkedList<>(redisHash.keySet());
+                    LinkedList<String> redisHashKeys = new LinkedList<>(redisHash.keySet());
                     Collections.sort(redisHashKeys);
 
                     while (!redisHashKeys.isEmpty()) {
-                        row = sheet.createRow(rowIndex++);
-                        redisHashKey = redisHashKeys.poll();
-                        redisRowData = redisHash.get(redisHashKey);
-                        json = JSON.parseObject(redisRowData);
+                        XSSFRow row = sheet.createRow(rowIndex++);
+                        String redisHashKey = redisHashKeys.poll();
+                        String redisRowData = redisHash.get(redisHashKey);
+                        JSONObject json = JSON.parseObject(redisRowData);
 
-                        for (colIndex = 0; colIndex < columnNames.size(); colIndex++) {
+                        for (int colIndex = 0; colIndex < columnNames.size(); colIndex++) {
                             // 设置单元格格式，比保证大数字可被正常写入
-                            cell = row.createCell(colIndex);
-                            cellStyle = cell.getCellStyle();
+                            XSSFCell cell = row.createCell(colIndex);
+                            CellStyle cellStyle = cell.getCellStyle();
 
                             if (cellStyle == null) {
                                 cellStyle = workbook.createCellStyle();
@@ -1391,7 +1387,7 @@ public class DataManager {
                             cell.setCellStyle(cellStyle);
 
                             // 空值的情况下填入空字符串
-                            cellValue = String.valueOf(json.get(columnNames.get(colIndex)));
+                            String cellValue = resolveStringForJSON(String.valueOf(json.get(columnNames.get(colIndex))));
                             if (cellValue.equals("null") || cellValue.equals("")) {
                                 cell.setCellValue("");
                                 cell.setCellType(CellType.BLANK);
@@ -1407,6 +1403,11 @@ public class DataManager {
                 workbook.write(fos);
 
                 LogEditor.serv.info("写入Excel完成！");
+
+                // 生成与Excel对应的CSV文件
+                if (shouldCommitCSV) {
+                    toCSV(workbook, excelName, sheetName);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -1423,6 +1424,114 @@ public class DataManager {
             catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * 生成指定excel表单对应的csv文件
+     * @param workbook
+     * @param excelName
+     * @param sheetName
+     */
+    public void toCSV(Workbook workbook, String excelName, String sheetName) {
+        try {
+            Sheet currSheet = workbook.getSheet(sheetName);
+            sheetName = sheetName.substring(sheetName.indexOf("|") + 1);
+
+            LogEditor.serv.info("开始生成CSV：" + sheetName);
+
+            String fileName = sheetName + ".csv";
+            String csvPath = EditorConfig.svn_export + "/data/csv/" + fileName;
+            FileOutputStream fos = new FileOutputStream(csvPath, false);
+
+            // UTF-8 BOM HEADER
+            byte[] bytes = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+            fos.write(bytes);
+
+            int totalRowCount = currSheet.getPhysicalNumberOfRows();
+            int totalColCount = currSheet.getRow(2).getPhysicalNumberOfCells();
+
+            A:
+            for (int rowIdx = 0; rowIdx < totalRowCount; rowIdx++) {
+                StringJoiner rowJoiner = new StringJoiner(",");
+                Row row = currSheet.getRow(rowIdx);
+                if (row == null) {
+                    continue;
+                }
+                for (int colIdx = 0; colIdx < totalColCount; colIdx++) {
+                    Cell cell = row.getCell(colIdx);
+                    if (cell == null) {
+                        if (colIdx != 0) {
+                            rowJoiner.add("\"\"");
+                            continue;
+                        } else {
+                            if (rowIdx == 0) {
+                                throw new IllegalArgumentException(excelName + " " + sheetName + " ☢配置首列不能为null");
+                            }
+                            continue A;
+                        }
+                    }
+                    String cellValue = EditorUtils.getCellValueStr(cell);
+                    if (colIdx == 0 && rowIdx >= 4 && cellValue.isBlank()) {
+                        // 跳过空单元格的情况
+                        continue A;
+                    }
+
+                    cellValue = cellValue.replaceAll("\"", "\"\"");
+                    cellValue = "\"" + cellValue + "\"";
+                    rowJoiner.add(cellValue);
+                }
+                fos.write(rowJoiner.toString().getBytes(StandardCharsets.UTF_8));
+                fos.write("\n".getBytes(StandardCharsets.UTF_8));
+            }
+
+            fos.flush();
+            fos.close();
+            LogEditor.serv.info("生成CSV完成！");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 数据被修改的回调方法
+     * @param tableName：表格名
+     * @param dataSn：修改的数据SN
+     * @param shouldIncrementVerNum：是否需要修改版本号
+     * @param shouldUpdateSnPool: 是否需要更新可用SN池
+     * @return 新的版本号（如果需要生成的话）
+     */
+    public Long onTableDataChanged(String tableName, String dataSn, boolean shouldIncrementVerNum, boolean shouldUpdateSnPool) {
+        // 刷新计时器
+        tableTimers.get(tableName).reStartTimer();
+        LogEditor.serv.info("Excel【" + tableName + "】计时器被刷新");
+
+        // 刷新改动记录表
+        tableModifiedSinceLastCommit.put(tableName, true);
+
+        // 若需要更新最大可用SN池
+        if (shouldUpdateSnPool) {
+            // 更新最大SN表
+            String currMaxSnStr;
+            long currMaxSn = 0L, currSn = Long.parseLong(dataSn);
+
+            if ((currMaxSnStr = JedisManager.hget(EditorConst.TABLE_SN_MAX, tableName)) != null) {
+                currMaxSn = Math.max(currMaxSn, Long.parseLong(currMaxSnStr));
+            }
+
+            if (currSn > currMaxSn) {
+                JedisManager.hset(EditorConst.TABLE_SN_MAX, tableName, String.valueOf(currSn));
+                LogEditor.serv.info("表格" + tableName + "的最大SN被更新为" + currSn);
+            }
+        }
+
+        // 若需要更新数据版本号
+        if (shouldIncrementVerNum) {
+            return Long.parseLong(VersionManager.getInstance().incrementTableDataVersion(tableName, dataSn));
+        }
+        else {
+            return Long.parseLong(VersionManager.getInstance().getTableDataVersion(tableName, dataSn));
         }
     }
 }

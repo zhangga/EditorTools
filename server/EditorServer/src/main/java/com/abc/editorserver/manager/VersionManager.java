@@ -50,7 +50,7 @@ public class VersionManager {
     }
 
     /**
-     * 获取指定的版本号信息
+     * 获取指定数据行的版本号信息
      * @param redisTableName
      * @param sn
      * @return
@@ -63,6 +63,24 @@ public class VersionManager {
         if (versionNumber == null) {
             JedisManager.hset(versionTableName, tableNameWithSn, Long.toString(1L));
             tableDataVersions.put(tableNameWithSn, new AtomicLong(1L));
+            return String.valueOf(1L);
+        }
+
+        return String.valueOf(versionNumber.get());
+    }
+
+    /**
+     * 获取表格的版本号信息
+     * @param redisTableName
+     * @return
+     */
+    public String getTableVersion(String redisTableName) {
+        AtomicLong versionNumber = tableDataVersions.get(redisTableName);
+
+        // Lazy instantiation
+        if (versionNumber == null) {
+            JedisManager.hset(versionTableName, redisTableName, Long.toString(1L));
+            tableDataVersions.put(redisTableName, new AtomicLong(1L));
             return String.valueOf(1L);
         }
 

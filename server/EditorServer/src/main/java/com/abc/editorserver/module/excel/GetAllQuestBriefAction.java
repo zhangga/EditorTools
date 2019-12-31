@@ -30,19 +30,26 @@ public class GetAllQuestBriefAction extends GameActionJson {
             data.put("children", new JSONArray());
             datas.add(data);
         }
-        for (int i = 0; i < quests.size(); ++i) {
-            JSONObject quest = JSONObject.parseObject(quests.getString(i));
-            // 简要信息
-            JSONObject brief = new JSONObject();
-            int sn = quest.getInteger("sn");
-            brief.put("id", quest.getInteger("sn"));
-            brief.put("text", sn + ":\t" + quest.getString("questName"));
-            // 任务类型
-            int type = quest.getIntValue("questType");
-            int index = ExcelManager.getInstance().getQuestIndex(type);
-            JSONObject data = datas.getJSONObject(index);
-            data.getJSONArray("children").add(brief);
+        String currQuest = "";
+        try {
+            for (int i = 0; i < quests.size(); ++i) {
+                currQuest = quests.getString(i);
+                JSONObject quest = JSONObject.parseObject(quests.getString(i));
+                // 简要信息
+                JSONObject brief = new JSONObject();
+                int sn = quest.getInteger("sn");
+                brief.put("id", quest.getInteger("sn"));
+                brief.put("text", sn + ":\t" + quest.getString("questName"));
+                // 任务类型
+                int type = quest.getIntValue("questType");
+                int index = ExcelManager.getInstance().getQuestIndex(type);
+                JSONObject data = datas.getJSONObject(index);
+                data.getJSONArray("children").add(brief);
+            }
+        } catch (Exception e) {
+            System.out.println(currQuest);
         }
+
 
         // 更新编辑历史
         ExcelManager.getInstance().updateLastEdit("QUEST", user.getName());

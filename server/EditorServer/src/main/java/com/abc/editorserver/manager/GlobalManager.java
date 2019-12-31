@@ -23,10 +23,6 @@ public class GlobalManager {
     private static ScheduledThreadPoolExecutor pulseExecutor = (ScheduledThreadPoolExecutor) Executors.
             newScheduledThreadPool(1);
 
-    /** 任务执行线程 */
-    private static ThreadPoolExecutor taskExecutor = (ThreadPoolExecutor)Executors.
-            newFixedThreadPool(10);
-
     /** 任务队列 */
     private static ConcurrentLinkedQueue<Task> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -86,7 +82,7 @@ public class GlobalManager {
     private static void pulse() {
         // 处理任务队列
         while (!taskQueue.isEmpty()) {
-            taskExecutor.execute(getNextTask());
+            getNextTask().doTask();
         }
 
         // 定时从SVN更新

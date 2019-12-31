@@ -7,7 +7,7 @@ import com.abc.editorserver.net.RequestData;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * DeepCopyTableDataAction
+ * 深复制一条表数据
  * Created by Marco
  * Date: 2019/5/22 21:59
  */

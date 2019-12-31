@@ -3,12 +3,12 @@ package com.abc.editorserver.utils;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * 线程池执行任务类
+ * 任务类
  * Created by Marco
  * Date: 2019/4/8 20:18
  */
 
-public class Task implements Runnable {
+public class Task {
 
     public Function<JSONObject> taskFunc;
     public JSONObject taskParams;
@@ -18,8 +18,7 @@ public class Task implements Runnable {
         taskParams = params;
     }
 
-    @Override
-    public void run() {
+    public void doTask() {
         taskFunc.apply(taskParams);
     }
 }
